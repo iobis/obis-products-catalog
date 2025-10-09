@@ -1,0 +1,25 @@
+# generic
+.DS_Store
+.vagrant
+
+# code & config
+_service-provider/*
+_solr/schema.xml
+local/*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
