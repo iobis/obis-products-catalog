@@ -1,0 +1,190 @@
+{% extends "page.html" %}
+
+{% block subtitle %}{{ _('Import Dataset from DOI') }}{% endblock %}
+
+{% block breadcrumb_content %}
+  <li>{% link_for _('Datasets'), named_route='dataset.search' %}</li>
+  <li class="active">{% link_for _('Import from DOI'), named_route='doi_import.import_doi_form' %}</li>
+{% endblock %}
+
+{% block primary_content %}
+  <article class="module">
+    <div class="module-content">
+      <h1 class="page-heading">{{ _('Import Dataset from DOI') }}</h1>
+      <p class="module-content">
+        Import a dataset by providing a DOI (Digital Object Identifier). The system will automatically fetch metadata from Zenodo and create a properly structured dataset.
+      </p>
+
+      <form class="dataset-form form-horizontal" method="post" action="{{ url_for('doi_import.import_doi_form') }}">
+        {{ h.csrf_input() }}
+        
+        <div class="form-group">
+          <label for="doi_url" class="control-label col-sm-2">{{ _('DOI URL') }}</label>
+          <div class="col-sm-10">
+            <input id="doi_url" 
+                   name="doi_url" 
+                   type="url" 
+                   class="form-control" 
+                   placeholder="https://doi.org/10.5281/zenodo.11464531"
+                   required>
+            <p class="help-block">
+              Enter the full DOI URL (e.g., https://doi.org/10.5281/zenodo.11464531) or just the DOI (e.g., 10.5281/zenodo.11464531)
+            </p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="owner_org" class="control-label col-sm-2">{{ _('Organization') }}</label>
+          <div class="col-sm-10">
+            <select id="owner_org" name="owner_org" class="form-control" required>
+              <option value="">{{ _('Select organization...') }}</option>
+              {% for org in user_orgs %}
+                <option value="{{ org.id }}">{{ org.display_name }}</option>
+              {% endfor %}
+            </select>
+            <p class="help-block">{{ _('The organization that will own this dataset') }}</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="control-label col-sm-2">{{ _('Contributing Organizations') }}</label>
+          <div class="col-sm-10">
+            <div class="contributing-orgs-container" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px;">
+              {% if contributing_orgs %}
+                {% for org in contributing_orgs %}
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="contributing_organizations" value="{{ org.value }}">
+                      {{ org.label }}
+                    </label>
+                  </div>
+                {% endfor %}
+              {% else %}
+                <p class="text-muted">{{ _('No contributing organizations available') }}</p>
+              {% endif %}
+            </div>
+            <p class="help-block">
+              {{ _('Select institutions that contributed to this dataset (optional).') }}
+            </p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <div class="alert alert-info">
+              <strong>{{ _('What happens next?') }}</strong>
+              <ol>
+                <li>{{ _('System fetches metadata from Zenodo') }}</li>
+                <li>{{ _('Creates a dataset with title, description, authors, and files') }}</li>
+                <li>{{ _('Links to selected organizations') }}</li>
+                <li>{{ _('You can edit the dataset after import to add more details') }}</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="col-sm-offset-2 col-sm-10">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa fa-download"></i> {{ _('Import Dataset') }}
+            </button>
+            <a href="{{ url_for('dataset.search') }}" class="btn btn-default">
+              {{ _('Cancel') }}
+            </a>
+          </div>
+        </div>
+      </form>
+
+      <hr>
+
+      <div class="module-content">
+        <h3>{{ _('Supported Repository') }}</h3>
+        <ul>
+          <li><strong>Zenodo:</strong> Full metadata support including authors, descriptions, files, and licenses</li>
+        </ul>
+
+        <h3>{{ _('Example DOIs') }}</h3>
+        <ul>
+          <li><code>https://doi.org/10.5281/zenodo.11464531</code></li>
+          <li><code>10.5281/zenodo.11464531</code></li>
+        </ul>
+      </div>
+    </div>
+  </article>
+{% endblock %}
+
+{% block secondary_content %}
+  <section class="module module-narrow module-shallow">
+    <h2 class="module-heading">
+      <i class="fa fa-info-circle"></i>
+      {{ _('About DOI Import') }}
+    </h2>
+    <div class="module-content">
+      <p>
+        {{ _('This feature automatically imports dataset metadata from Zenodo, saving you time and ensuring accurate citation information.') }}
+      </p>
+      
+      <h4>{{ _('What gets imported?') }}</h4>
+      <ul>
+        <li>{{ _('Title and description') }}</li>
+        <li>{{ _('Authors with affiliations') }}</li>
+        <li>{{ _('Keywords and tags') }}</li>
+        <li>{{ _('License information') }}</li>
+        <li>{{ _('File downloads and resources') }}</li>
+        <li>{{ _('DOI and citation metadata') }}</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="module module-narrow module-shallow">
+    <h2 class="module-heading">
+      <i class="fa fa-question-circle"></i>
+      {{ _('Need Help?') }}
+    </h2>
+    <div class="module-content">
+      <p>
+        <strong>{{ _('What is a DOI?') }}</strong><br>
+        {{ _('A Digital Object Identifier (DOI) is a unique persistent identifier for research datasets, publications, and other digital objects.') }}
+      </p>
+      
+      <p>
+        <strong>{{ _('Where do I find DOIs?') }}</strong><br>
+        {{ _('DOIs are found on Zenodo at urls like: https://zenodo.org/records/11464531') }}
+      </p>
+
+      <p>
+        <strong>{{ _('Import not working?') }}</strong><br>
+        {{ _('Make sure the DOI is from Zenodo and publicly accessible.') }}
+      </p>
+    </div>
+  </section>
+{% endblock %}
+
+{% block styles %}
+  {{ super() }}
+  <style>
+    .contributing-orgs-container {
+      background-color: #f9f9f9;
+    }
+    
+    .contributing-orgs-container .checkbox {
+      margin-top: 5px;
+      margin-bottom: 5px;
+    }
+    
+    .contributing-orgs-container .checkbox label {
+      font-weight: normal;
+      padding-left: 5px;
+    }
+
+    .alert-info ol {
+      margin-bottom: 0;
+      padding-left: 20px;
+    }
+
+    .help-block {
+      color: #737373;
+      font-size: 0.9em;
+    }
+  </style>
+{% endblock %}

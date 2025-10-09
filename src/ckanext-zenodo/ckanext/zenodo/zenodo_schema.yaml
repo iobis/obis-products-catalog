@@ -1,0 +1,331 @@
+scheming_version: 2
+dataset_type: dataset
+about: Zenodo to CKAN schema for ODIS export
+about_url: https://github.com/yourusername/ckanext-zenodo
+
+dataset_fields:
+  - field_name: title
+    label: Title
+    preset: title
+    required: true
+    help_text: Title of the work from Zenodo
+
+  - field_name: name
+    label: URL
+    preset: dataset_slug
+    form_placeholder: eg-my-dataset
+
+  - field_name: notes
+    label: Description
+    form_snippet: markdown.html
+    required: true
+    help_text: Description of the work (HTML stripped from Zenodo)
+
+  # Free-form tags
+  - field_name: tag_string
+    label: Tags
+    preset: tag_string_autocomplete
+    form_placeholder: eg. environment, marine, biodiversity
+    help_text: Free-form tags for convenience
+    validators: ignore_missing
+
+  # Product Types - controlled vocabulary
+  - field_name: product_type_tags
+    label: Product Types
+    preset: multiple_checkbox
+    choices:
+      - value: Raw Dataset
+        label: Raw Dataset
+      - value: Derived Dataset
+        label: Derived Dataset
+      - value: Model Output
+        label: Model Output
+      - value: Report
+        label: Report
+      - value: Presentation
+        label: Presentation
+      - value: Data Visualization
+        label: Data Visualization
+      - value: Map
+        label: Map
+      - value: Workflow
+        label: Workflow
+      - value: Software
+        label: Software
+      - value: Standard
+        label: Standard
+    help_text: Select one or more product types
+
+  # Thematics - controlled vocabulary
+  - field_name: thematic_tags
+    label: Thematic Areas
+    preset: multiple_checkbox
+    choices:
+      - value: Biodiversity
+        label: Biodiversity
+      - value: Climate Change
+        label: Climate Change
+      - value: Ocean Acidification
+        label: Ocean Acidification
+      - value: Marine Protected Areas
+        label: Marine Protected Areas
+      - value: Fisheries
+        label: Fisheries
+      - value: Pollution
+        label: Pollution
+      - value: Coastal Management
+        label: Coastal Management
+      - value: Deep Sea
+        label: Deep Sea
+      - value: Coral Reefs
+        label: Coral Reefs
+      - value: Species Distribution
+        label: Species Distribution
+    help_text: Select one or more thematic areas
+
+  - field_name: owner_org
+    label: Organization
+    preset: dataset_organization
+
+  - field_name: zenodo_url
+    label: Source URL
+    form_placeholder: https://zenodo.org/records/...
+    display_snippet: link.html
+    help_text: URL to the Zenodo landing page
+    validators: ignore_missing
+
+  # Direct metadata fields
+  - field_name: doi
+    label: DOI
+    form_placeholder: https://doi.org/10.5281/zenodo.11464531
+    display_snippet: link.html
+    help_text: Digital Object Identifier URL
+    validators: ignore_missing
+
+  - field_name: canonical_id
+    label: Canonical ID
+    form_placeholder: https://doi.org/10.5281/zenodo.11464531
+    display_snippet: link.html
+    help_text: Canonical identifier for this resource
+    required: true
+    validators: ignore_missing
+
+  - field_name: resource_type
+    label: Resource Type
+    form_placeholder: https://schema.org/PresentationDigitalDocument
+    help_text: Schema.org type from Zenodo
+    required: true
+    validators: ignore_missing
+
+  - field_name: license_id
+    label: License
+    form_snippet: license.html
+    help_text: License definitions and additional information can be found at http://opendefinition.org/
+
+  - field_name: date_published
+    label: Date Published
+    preset: date
+    help_text: Publication date (YYYY-MM-DD)
+    validators: ignore_missing
+
+  - field_name: date_created
+    label: Date Created
+    help_text: Record creation timestamp (ISO 8601)
+    validators: ignore_missing
+
+  - field_name: date_modified
+    label: Date Modified
+    help_text: Record modification timestamp (ISO 8601)
+    validators: ignore_missing
+
+  - field_name: publisher_name
+    label: Publisher
+    help_text: Name of the publisher (typically Zenodo)
+    validators: ignore_missing
+
+# Authors as JSON
+  - field_name: authors
+    label: Authors (JSON)
+    form_snippet: markdown.html
+    form_placeholder: '[{"author_name": "Jane Doe", "author_orcid": "https://orcid.org/0000-0001-2345-6789"}]'
+    help_text: 'Authors as JSON array. Example: [{"author_name": "Name", "author_orcid": "https://orcid.org/..."}]'
+    validators: ignore_missing scheming_valid_json_array
+
+  # Contributors as JSON
+  - field_name: contributors
+    label: Contributors (JSON)
+    form_snippet: markdown.html
+    form_placeholder: '[{"contributor_name": "John Smith"}]'
+    help_text: 'Contributors as JSON array'
+    validators: ignore_missing scheming_valid_json_array
+
+  # Funding as JSON
+  - field_name: funding
+    label: Funding (JSON)
+    form_snippet: markdown.html
+    form_placeholder: '[{"funder_name": "NSF", "grant_id": "12345"}]'
+    help_text: 'Funding information as JSON array'
+    validators: ignore_missing scheming_valid_json_array
+
+  # # Repeating field: Authors
+  # - field_name: authors
+  #   label: Authors
+  #   help_text: People included in the citation
+  #   repeating_label: Author
+  #   repeating_subfields:
+  #     - field_name: author_name
+  #       label: Full Name
+  #       required: true
+  #     - field_name: author_given_name
+  #       label: Given Name
+  #     - field_name: author_family_name
+  #       label: Family Name
+  #     - field_name: author_orcid
+  #       label: ORCID
+  #       form_placeholder: https://orcid.org/0000-0003-4897-1669
+  #       display_snippet: link.html
+  #     - field_name: author_affiliation_name
+  #       label: Affiliation
+  #     - field_name: author_affiliation_ror
+  #       label: ROR ID
+  #       form_placeholder: https://ror.org/02z5nhe81
+  #       display_snippet: link.html
+
+  # # Repeating field: Contributors
+  # - field_name: contributors
+  #   label: Contributors
+  #   help_text: People NOT in citation (editors, supervisors, etc.)
+  #   repeating_label: Contributor
+  #   repeating_subfields:
+  #     - field_name: contributor_name
+  #       label: Full Name
+  #       required: true
+  #     - field_name: contributor_given_name
+  #       label: Given Name
+  #     - field_name: contributor_family_name
+  #       label: Family Name
+  #     - field_name: contributor_orcid
+  #       label: ORCID
+  #       form_placeholder: https://orcid.org/0000-0003-3763-6187
+  #       display_snippet: link.html
+  #     - field_name: contributor_affiliation_name
+  #       label: Affiliation
+  #     - field_name: contributor_affiliation_ror
+  #       label: ROR ID
+  #       form_placeholder: https://ror.org/05cjt1n05
+  #       display_snippet: link.html
+
+  # # Repeating field: Funding
+  # - field_name: funding
+  #   label: Funding
+  #   help_text: Grant and funding information
+  #   repeating_label: Grant
+  #   repeating_subfields:
+  #     - field_name: funder_name
+  #       label: Funder Name
+  #     - field_name: funder_id
+  #       label: Funder ID
+  #     - field_name: grant_name
+  #       label: Grant Name
+  #     - field_name: grant_id
+  #       label: Grant ID
+  #     - field_name: grant_url
+  #       label: Grant URL
+  #       display_snippet: link.html
+
+  # Simple extra fields
+  - field_name: keywords
+    label: Keywords
+    form_placeholder: environmental DNA, eDNA, biodiversity
+    help_text: Comma-separated keywords
+    validators: ignore_missing
+
+  - field_name: temporal_coverage
+    label: Temporal Coverage
+    form_placeholder: 2024-06-03/2024-06-10
+    help_text: ISO 8601 date or date range
+    validators: ignore_missing
+
+  - field_name: language
+    label: Language
+    form_placeholder: en
+    validators: ignore_missing
+
+  # Spatial coverage fields
+  - field_name: spatial_coverage_type
+    label: Spatial Coverage Type
+    preset: select
+    choices:
+      - value: point
+        label: Point
+      - value: box
+        label: Bounding Box
+    help_text: Type of spatial coverage
+    validators: ignore_missing
+
+  - field_name: spatial_point_latitude
+    label: Latitude
+    form_placeholder: "39.3280"
+    help_text: Decimal degrees (-90 to 90)
+    validators: ignore_missing
+
+  - field_name: spatial_point_longitude
+    label: Longitude
+    form_placeholder: "120.1633"
+    help_text: Decimal degrees (-180 to 180)
+    validators: ignore_missing
+
+  - field_name: spatial_box
+    label: Bounding Box
+    form_placeholder: "-90 -180 90 180"
+    help_text: Format miny minx maxy maxx (lat long coordinates)
+    validators: ignore_missing
+
+  - field_name: spatial_description
+    label: Spatial Description
+    form_placeholder: North Atlantic Ocean
+    help_text: Human-readable location description
+    validators: ignore_missing
+
+  # Provenance fields
+  - field_name: source_metadata
+    label: Source Metadata
+    form_snippet: null
+    display_snippet: json.html
+    help_text: Complete original Zenodo JSON-LD record
+    validators: ignore_missing
+
+  - field_name: zenodo_record_id
+    label: Zenodo Record ID
+    help_text: Numeric ID from Zenodo URL
+    validators: ignore_missing
+
+  - field_name: harvest_timestamp
+    label: Harvest Timestamp
+    help_text: When this record was harvested from Zenodo
+    validators: ignore_missing
+
+  - field_name: content_size
+    label: Content Size
+    form_placeholder: 3.21 MB
+    help_text: File size if applicable
+    validators: ignore_missing
+
+resource_fields:
+
+- field_name: url
+  label: URL
+  preset: resource_url_upload
+
+- field_name: name
+  label: Name
+  form_placeholder: eg. January 2011 Gold Prices
+
+- field_name: description
+  label: Description
+  form_snippet: markdown.html
+  form_placeholder: Some useful notes about the data
+
+- field_name: format
+  label: Format
+  preset: resource_format_autocomplete

@@ -1,0 +1,39 @@
+<div role="main">
+  <div class="main hero">
+    <div class="container">
+      <div class="row">
+        {% snippet 'home/snippets/highlights.html' %}
+      </div>
+    </div>
+  </div>
+
+  <div class="main-secondary">
+    <div class="container">
+      <div class="row">
+        {% snippet 'home/snippets/products.html' %}
+      </div>
+    </div>
+      <div class="contribution-section">
+        <span style="font-weight: 900; font-size: 28px;">Want to contribute?</span>
+        <div style="display: flex; gap: 20px; justify-content: center; margin-top: 15px;">
+            <span style="font-size: 18px;">Contact us at: </span>
+            <a href="#" id="contact-email" style="font-size: 18px; color: var(--main-color); font-weight: 600;"></a>
+        </div>
+    </div>
+    
+    <script>
+        // Anti-scraping email obfuscation
+        (function() {
+            var parts = ['helpdesk', 'obis', 'org'];
+            var email = parts[0] + '@' + parts[1] + '.' + parts[2];
+            var link = document.getElementById('contact-email');
+            link.href = 'mailto:' + email;
+            link.textContent = email;
+        })();
+    </script>
+  </div>
+
+
+  
+  
+</div>

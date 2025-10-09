@@ -1,0 +1,86 @@
+{% extends "page.html" %}
+
+{% block subtitle %}{{ _("Add Dataset") }}{% endblock %}
+
+{% block breadcrumb_content %}
+  <li class="active">{% link_for _('Datasets'), named_route='dataset.search' %}</li>
+  <li class="active">{{ _('Add Dataset') }}</li>
+{% endblock %}
+
+{% block primary_content %}
+  <article class="module">
+    <div class="module-content">
+      <h1 class="page-heading">{{ _("Add Dataset") }}</h1>
+      
+      <div class="dataset-creation-options">
+        <div class="row">
+          <div class="col-md-6">
+            <div class="option-card">
+              <div class="option-header">
+                <h3>{{ _("Create Manually") }}</h3>
+              </div>
+              <div class="option-body">
+                <p>{{ _("Create a new dataset by filling out the form manually.") }}</p>
+                <a href="{{ h.url_for('dataset.new') }}" class="btn btn-primary btn-lg">
+                  <i class="fa fa-plus"></i> {{ _("Create Manually") }}
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <div class="option-card">
+              <div class="option-header">
+                <h3>{{ _("Import from Zenodo") }}</h3>
+              </div>
+              <div class="option-body">
+                <p>{{ _("Import dataset metadata automatically from a Zenodo DOI.") }}</p>
+                <a href="{{ h.url_for('doi_import.import_doi_form') }}" class="btn btn-success btn-lg">
+                  <i class="fa fa-download"></i> {{ _("Import from Zenodo") }}
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+{% endblock %}
+
+<style>
+.dataset-creation-options {
+    margin-top: 2rem;
+}
+
+.option-card {
+    border: 2px solid #e6e6e6;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.option-card:hover {
+    border-color: #2c5aa0;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.option-header h3 {
+    margin-top: 0;
+    color: #2c5aa0;
+    font-size: 1.4em;
+}
+
+.option-body p {
+    margin-bottom: 1.5rem;
+    color: #666;
+    line-height: 1.5;
+}
+
+.option-body .btn {
+    min-width: 200px;
+    font-size: 1.1em;
+    padding: 12px 24px;
+}
+</style>

@@ -1,0 +1,14 @@
+zenodo-js:
+  filter: rjsmin
+  output: ckanext-zenodo/%(version)s-zenodo.js
+  contents:
+    - script.js
+  extra:
+    preload:
+      - base/main
+
+zenodo-css:
+  filter: cssrewrite
+  output: ckanext-zenodo/%(version)s-zenodo.css
+  contents:
+    - style.css

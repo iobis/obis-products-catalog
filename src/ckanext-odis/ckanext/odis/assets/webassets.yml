@@ -1,0 +1,14 @@
+# odis-js:
+#   filter: rjsmin
+#   output: ckanext-odis/%(version)s-odis.js
+#   contents:
+#     - js/odis.js
+#   extra:
+#     preload:
+#       - base/main
+
+# odis-css:
+#   filter: cssrewrite
+#   output: ckanext-odis/%(version)s-odis.css
+#   contents:
+#     - css/odis.css

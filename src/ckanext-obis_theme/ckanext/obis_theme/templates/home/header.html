@@ -1,0 +1,45 @@
+{% ckan_extends %}
+
+{% block header_site_navigation_tabs %}
+  {{ super() }}
+  
+  <!-- Debug and redirect Add Dataset buttons -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('DOI import script loaded');
+      
+      setTimeout(function() {
+        // Debug: Log all links on the page
+        var allLinks = document.querySelectorAll('a');
+        console.log('Total links found:', allLinks.length);
+        
+        // Look for dataset/new links specifically
+        var datasetLinks = document.querySelectorAll('a[href*="/dataset/new"]');
+        console.log('Dataset/new links found:', datasetLinks.length);
+        datasetLinks.forEach(function(link, index) {
+          console.log('Link ' + index + ':', link.href, 'Text:', link.textContent.trim());
+        });
+        
+        // Try broader search
+        var addLinks = document.querySelectorAll('a');
+        var foundAddDataset = false;
+        addLinks.forEach(function(link) {
+          var text = link.textContent.trim().toLowerCase();
+          var href = link.getAttribute('href') || '';
+          
+          if (text.includes('add') && text.includes('dataset')) {
+            console.log('Found Add Dataset button:', link.href, 'Text:', link.textContent.trim());
+            link.href = '{{ h.url_for("doi_import.dataset_new_choice") }}';
+            link.style.border = '2px solid red'; // Visual indicator it was found
+            foundAddDataset = true;
+          }
+        });
+        
+        if (!foundAddDataset) {
+          console.log('No Add Dataset buttons found');
+        }
+        
+      }, 500); // Increased timeout
+    });
+  </script>
+{% endblock %}

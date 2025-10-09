@@ -1,0 +1,54 @@
+{% ckan_extends %}
+
+{% block primary_content_inner %}
+  <h1>
+    {% block page_heading %}
+      {{ h.dataset_display_name(c.pkg_dict) }}
+      {% if c.pkg_dict.state.startswith('draft') %}
+        [{{ _('Draft') }}]
+      {% endif %}
+      {% if c.pkg_dict.state == 'deleted' %}
+        [{{ _('Deleted') }}]
+      {% endif %}
+    {% endblock %}
+  </h1>
+  
+  {% if h.check_access('package_update', {'id': c.pkg_dict.id}) %}
+    <div class="admin-actions" style="margin-bottom: 20px;">
+      <a href="{{ h.url_for('dataset.groups', id=c.pkg_dict.name) }}" class="btn btn-default">
+        <i class="fa fa-sitemap"></i> Manage Institutions
+      </a>
+    </div>
+  {% endif %}
+
+  {# Move tags right after title with pill styling and links #}
+  {% if c.pkg_dict.tags %}
+    {% block package_tags %}
+      <div class="tags-section" style="margin-bottom: 15px;">
+        {% for tag in c.pkg_dict.tags %}
+          <a href="{{ h.url_for('dataset.search', tags=tag.name) }}" class="tag-pill" style="display: inline-block; background-color: #e6f3ff; color: #0366d6; padding: 4px 12px; margin: 2px 4px 2px 0; border-radius: 16px; font-size: 14px; text-decoration: none;">
+            {{ tag.display_name }}
+          </a>
+        {% endfor %}
+      </div>
+    {% endblock %}
+  {% endif %}
+  
+  {# Show the rest of the default content but without tags (since we moved them) #}
+  {% block package_notes %}
+    {% if c.pkg_dict.notes %}
+      <div class="notes embedded-content">
+        {{ h.render_markdown(h.get_translated(c.pkg_dict, 'notes')) }}
+      </div>
+    {% endif %}
+  {% endblock %}
+  
+  {% block package_resources %}
+    {% snippet "package/snippets/resources_list.html", pkg=c.pkg_dict, resources=c.pkg_dict.resources %}
+  {% endblock %}
+  
+  {% block package_additional_info %}
+    {% snippet "package/snippets/additional_info.html", pkg_dict=c.pkg_dict %}
+  {% endblock %}
+  
+{% endblock %}
