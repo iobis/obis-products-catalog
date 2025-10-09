@@ -71,6 +71,41 @@ Wait until STATUS shows `Up X seconds (healthy)`, then access CKAN at http://loc
 
 **Note:** The datapusher token setup is currently skipped. Configure it later following the [DataStore documentation](https://docs.ckan.org/en/latest/maintaining/datastore.html#set-permissions) when needed.
 
+### 5. Custom Schema Configuration
+
+The OBIS CKAN instance uses a custom metadata schema defined in `ckanext-zenodo`.
+
+**Schema configuration** is set via environment variables in `.env`:
+```bash
+# Dataset schema (active)
+CKAN___SCHEMING__DATASET_SCHEMAS=ckanext.zenodo:zenodo_schema.yaml
+
+# Group schema (currently disabled)
+# CKAN___SCHEMING__GROUP_SCHEMAS=ckanext.zenodo:group.yaml
+```
+
+**Note:** Use `CKAN___` (3 underscores) for extension configurations with dots in the key name.
+
+**Verify schema is loaded:**
+```bash
+docker exec obis-ckan-211-ckan-dev-1 grep "scheming\." /srv/app/ckan.ini
+```
+
+You should see:
+```
+scheming.dataset_schemas=ckanext.zenodo:zenodo_schema.yaml
+```
+
+**Testing the schema:**
+1. Log in to CKAN at http://localhost:5000
+2. Go to "Datasets" → "Add Dataset"
+3. You should see the custom fields defined in `src/ckanext-zenodo/ckanext/zenodo/zenodo_schema.yaml`
+
+**Modifying the schema:**
+1. Edit `src/ckanext-zenodo/ckanext/zenodo/zenodo_schema.yaml`
+2. Restart the container: `docker-compose -f docker-compose.dev.yml restart ckan-dev`
+3. Changes will be reflected immediately (no rebuild needed)
+
 ### Key Files Changed
 
 1. `ckan/Dockerfile.dev` - added COPY commands for override files

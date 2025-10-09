@@ -16,7 +16,7 @@ if not CKAN_TOKEN:
 
 # Headers for CKAN API requests (direct token format, not Bearer)
 HEADERS = {
-    'Authorization': CKAN_TOKEN,
+    'Authorization': f'Bearer {CKAN_TOKEN}',
     'Content-Type': 'application/json'
 }
 
