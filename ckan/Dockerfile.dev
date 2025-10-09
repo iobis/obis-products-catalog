@@ -34,6 +34,15 @@ FROM ckan/ckan-dev:2.11
 # Clone the extension(s) your are writing for your own project in the `src` folder
 # to get them mounted in this image at runtime
 
+### Scheming ###
+RUN pip3 install -e 'git+https://github.com/ckan/ckanext-scheming.git@master#egg=ckanext-scheming'
+
+### Custom Extensions ###
+RUN pip3 install -e /srv/app/src/ckanext-doi-import && \
+    pip3 install -e /srv/app/src/ckanext-obis_theme && \
+    pip3 install -e /srv/app/src/ckanext-odis && \
+    pip3 install -e /srv/app/src/ckanext-zenodo
+    
 # Copy custom initialization scripts
 COPY --chown=ckan-sys:ckan-sys docker-entrypoint.d/* /docker-entrypoint.d/
 
