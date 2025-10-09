@@ -1,3 +1,86 @@
+# OBIS Products Catalog - CKAN DOcker
+
+## CKAN 2.11 Docker Setup - What We Did
+
+### 1. Initial Setup
+
+- Cloned the repo and checked out `obis-ckan-2.11` branch
+- Copied `.env.example` to `.env`
+- Updated `.env` with proper database credentials and secrets
+
+### 2. Fixed Extension Installation Issue
+Problem: Extensions in `src/` weren't being installed, causing `PluginNotFoundException`
+Solution:
+- Created override files in ckan/setup/:
+   - `start_ckan_development.sh.override` - installs extensions from `/srv/app/src_extensions` at startup
+   - `prerun.py.override` - handles database initialization
+- Modified `ckan/Dockerfile.dev` to copy these override files:
+
+```
+dockerfile  COPY --chown=ckan-sys:ckan-sys setup/start_ckan_development.sh.override /srv/app/start_ckan_development.sh
+  COPY --chown=ckan-sys:ckan-sys setup/prerun.py.override /srv/app/prerun.py
+```
+
+- Commented out the problematic volume mount in docker-compose.dev.yml:
+
+```yaml
+# - home_dir:/srv/app/  # This was overwriting our startup scripts
+```
+
+### 3. Fixed SECRET_KEY Configuration
+
+Problem: Flask `SECRET_KEY` was missing, causing startup failure
+Solution: Added to `.env`:
+
+```
+CKAN___SECRET_KEY=dev_flask_secret_key_change_in_production
+CKAN___BEAKER__SESSION__SECRET=dev_secret_key_change_in_production
+CKAN___API_TOKEN__JWT__ENCODE__SECRET=string:dev_jwt_encode_secret
+CKAN___API_TOKEN__JWT__DECODE__SECRET=string:dev_jwt_decode_secret
+```
+
+### 4. Database Initialization and First Run
+
+**Clean start and build:**
+```bash
+docker-compose -f docker-compose.dev.yml down -v
+docker-compose -f docker-compose.dev.yml up -d --build
+```
+
+**Initialize database** (run once after first build):
+```bash
+docker exec -it obis-ckan-211-ckan-dev-1 ckan -c /srv/app/ckan.ini db init
+```
+
+**Create sysadmin user** (run once):
+```bash
+docker exec -it obis-ckan-211-ckan-dev-1 ckan -c /srv/app/ckan.ini sysadmin add ckan_admin email=admin@localhost name=ckan_admin
+```
+Enter a password when prompted (e.g., `test1234` for development).
+
+**Restart to apply changes:**
+```bash
+docker-compose -f docker-compose.dev.yml restart ckan-dev
+```
+
+**Verify it's healthy:**
+```bash
+docker ps
+```
+Wait until STATUS shows `Up X seconds (healthy)`, then access CKAN at http://localhost:5000
+
+**Note:** The datapusher token setup is currently skipped. Configure it later following the [DataStore documentation](https://docs.ckan.org/en/latest/maintaining/datastore.html#set-permissions) when needed.
+
+### Key Files Changed
+
+1. `ckan/Dockerfile.dev` - added COPY commands for override files
+1. `docker-compose.dev.yml` - commented out `home_dir` volume mount
+1. `.env` - added SECRET_KEY and other secrets
+1. `ckan/setup/*.override` - custom startup scripts (already existed, just needed to be used)
+
+<details>
+  <summary>Original Docker CKAN README</summary>
+
 # Docker Compose setup for CKAN
 
 
@@ -380,3 +463,5 @@ It is open and licensed under the GNU Affero General Public License (AGPL) v3.0
 whose full text may be found at:
 
 http://www.fsf.org/licensing/licenses/agpl-3.0.html
+
+</details>
