@@ -22,7 +22,7 @@ FROM ckan/ckan-dev:2.11
 # will also require gather_consumer and fetch_consumer processes running (please see https://github.com/ckan/ckanext-harvest)
 
 ### Scheming ###
-#RUN  pip3 install -e 'git+https://github.com/ckan/ckanext-scheming.git@master#egg=ckanext-scheming'
+RUN  pip3 install -e 'git+https://github.com/ckan/ckanext-scheming.git@master#egg=ckanext-scheming'
 
 ### Pages ###
 #RUN  pip3 install -e git+https://github.com/ckan/ckanext-pages.git#egg=ckanext-pages
@@ -34,15 +34,10 @@ FROM ckan/ckan-dev:2.11
 # Clone the extension(s) your are writing for your own project in the `src` folder
 # to get them mounted in this image at runtime
 
-### Scheming ###
-RUN pip3 install -e 'git+https://github.com/ckan/ckanext-scheming.git@master#egg=ckanext-scheming'
+### Copy setup override files ###
+COPY --chown=ckan-sys:ckan-sys setup/start_ckan_development.sh.override /srv/app/start_ckan_development.sh
+COPY --chown=ckan-sys:ckan-sys setup/prerun.py.override /srv/app/prerun.py
 
-### Custom Extensions ###
-RUN pip3 install -e /srv/app/src/ckanext-doi-import && \
-    pip3 install -e /srv/app/src/ckanext-obis_theme && \
-    pip3 install -e /srv/app/src/ckanext-odis && \
-    pip3 install -e /srv/app/src/ckanext-zenodo
-    
 # Copy custom initialization scripts
 COPY --chown=ckan-sys:ckan-sys docker-entrypoint.d/* /docker-entrypoint.d/
 
