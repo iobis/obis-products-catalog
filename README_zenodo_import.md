@@ -16,7 +16,7 @@ src/ckanext-zenodo/ckanext/zenodo/scripts/harvest_zenodo.py
 1. **API Token**: Generate a CKAN API token for the `ckan_admin` user:
    ```bash
    docker exec -it obis-ckan-211-ckan-dev-1 bash
-   ckan -c /srv/app/ckan.ini user token add ckan_admin harvest_script
+   ckan -c /srv/app/ckan.ini user token list ckan_admin
    ```
    Copy the **token ID** (not the JWT) - it looks like: `Tnq0p8Lyx-oFgUxtRM8J3C__KtTxwWOfp8SPBtYx96s`
 
