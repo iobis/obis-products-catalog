@@ -114,14 +114,14 @@
       {% endif %}
       
       {# Product Types #}
-      {% if pkg_dict.product_type_tags %}
+      {% if pkg_dict.product_type %}
         <tr>
           <th scope="row">{{ _('Product Types') }}</th>
           <td>
-            {% if pkg_dict.product_type_tags is string %}
-              <span class="label label-info" style="background-color: #5bc0de; color: white; padding: 3px 8px; border-radius: 3px; font-size: 12px; display: inline-block; margin-right: 5px; margin-bottom: 5px;">{{ pkg_dict.product_type_tags }}</span>
+            {% if pkg_dict.product_type is string %}
+              <span class="label label-info" style="background-color: #5bc0de; color: white; padding: 3px 8px; border-radius: 3px; font-size: 12px; display: inline-block; margin-right: 5px; margin-bottom: 5px;">{{ pkg_dict.product_type }}</span>
             {% else %}
-              {% for item in pkg_dict.product_type_tags %}
+              {% for item in pkg_dict.product_type %}
                 <span class="label label-info" style="background-color: #5bc0de; color: white; padding: 3px 8px; border-radius: 3px; font-size: 12px; display: inline-block; margin-right: 5px; margin-bottom: 5px;">{{ item }}</span>
               {% endfor %}
             {% endif %}

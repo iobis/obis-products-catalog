@@ -1,4 +1,4 @@
-Here's a concise README for the harvest script:
+Here's the updated README with the complete solution:
 
 ```markdown
 # Zenodo DOI Harvest Script
@@ -18,7 +18,7 @@ src/ckanext-zenodo/ckanext/zenodo/scripts/harvest_zenodo.py
    docker exec -it obis-ckan-211-ckan-dev-1 bash
    ckan -c /srv/app/ckan.ini user token add ckan_admin harvest_script
    ```
-   Copy the token that's displayed.
+   Copy the **token ID** (not the JWT) - it looks like: `Tnq0p8Lyx-oFgUxtRM8J3C__KtTxwWOfp8SPBtYx96s`
 
 2. **DOI Registry**: Ensure your DOI list exists at:
    ```
@@ -31,6 +31,16 @@ src/ckanext-zenodo/ckanext/zenodo/scripts/harvest_zenodo.py
    https://zenodo.org/record/12345
    ```
 
+3. **Scheming Configuration**: Add to `.env` file:
+   ```bash
+   CKAN__SCHEMING__DATASET_SCHEMAS=ckanext.zenodo:zenodo_schema.yaml
+   ```
+   
+   Then restart CKAN:
+   ```bash
+   docker-compose -f docker-compose.dev.yml restart ckan-dev
+   ```
+
 ## Usage
 
 ### From Host Machine
@@ -38,7 +48,7 @@ src/ckanext-zenodo/ckanext/zenodo/scripts/harvest_zenodo.py
 ```bash
 docker exec -it obis-ckan-211-ckan-dev-1 bash -c \
   "cd /srv/app/src_extensions/ckanext-zenodo/ckanext/zenodo/scripts && \
-   CKAN_API_TOKEN='your-token-here' python3 harvest_zenodo.py"
+   CKAN_API_TOKEN='your-token-id-here' python3 harvest_zenodo.py"
 ```
 
 ### From Inside Container
@@ -47,8 +57,8 @@ docker exec -it obis-ckan-211-ckan-dev-1 bash -c \
 # Enter container
 docker exec -it obis-ckan-211-ckan-dev-1 bash
 
-# Set token
-export CKAN_API_TOKEN='your-token-here'
+# Set token (use the token ID, not JWT)
+export CKAN_API_TOKEN='Tnq0p8Lyx-oFgUxtRM8J3C__KtTxwWOfp8SPBtYx96s'
 
 # Navigate to script
 cd /srv/app/src_extensions/ckanext-zenodo/ckanext/zenodo/scripts
@@ -80,8 +90,17 @@ python3 harvest_zenodo.py --force
    - Updates if Zenodo is newer (or if `--force` flag used)
 4. **For new datasets**: 
    - Fetches metadata from Zenodo
+   - Maps to CKAN schema (including product_type)
    - Creates new dataset in CKAN
    - Assigns to "OBIS Community" organization
+
+## Metadata Mapping
+
+The script maps Zenodo metadata to CKAN fields:
+- **Resource Type** → **Product Type** (dataset, publication, software, presentation, poster, image, video, lesson, physical_object, other)
+- **Creators** → **Authors** (as JSON)
+- **Title, Description, License, Keywords** → Standard CKAN fields
+- **Files** → Resources (as links to Zenodo)
 
 ## Output
 
@@ -111,14 +130,28 @@ Summary:
 
 ## Troubleshooting
 
-**"API token required" error**: Ensure you're using `Bearer` format (script handles this automatically)
+**"API token required" error**: Make sure you're using the token ID (from `user token list`), not a JWT token
 
-**"DOI registry not found"**: Check the file path matches the location above
+**"Invalid API token"**: 
+- Verify token exists: `ckan -c /srv/app/ckan.ini user token list ckan_admin`
+- Use the value in `[brackets]`, e.g., `[Tnq0p8Lyx...]`
 
-**"Invalid API token"**: Regenerate token using the command in Prerequisites
+**"DOI registry not found"**: Check the file exists at `src/ckanext-zenodo/ckanext/zenodo/config/zenodo_dois.txt`
+
+**Product Type not displaying**: 
+1. Verify scheming config: `docker exec -it obis-ckan-211-ckan-dev-1 python3 -c "from ckan.plugins import toolkit; print(toolkit.config.get('scheming.dataset_schemas'))"`
+2. Should show: `ckanext.zenodo:zenodo_schema.yaml`
+3. If `None`, add to `.env` and restart (see Prerequisites #3)
 
 **Import failures**: Check CKAN logs for detailed errors:
 ```bash
 docker logs obis-ckan-211-ckan-dev-1 | tail -50
 ```
+
+## Configuration Files
+
+- **Schema**: `src/ckanext-zenodo/ckanext/zenodo/zenodo_schema.yaml`
+- **Plugin**: `src/ckanext-zenodo/ckanext/zenodo/plugin.py`
+- **DOI List**: `src/ckanext-zenodo/ckanext/zenodo/config/zenodo_dois.txt`
+- **Harvest Script**: `src/ckanext-zenodo/ckanext/zenodo/scripts/harvest_zenodo.py`
 ```

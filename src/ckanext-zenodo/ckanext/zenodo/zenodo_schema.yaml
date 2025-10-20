@@ -30,31 +30,33 @@ dataset_fields:
     validators: ignore_missing
 
   # Product Types - controlled vocabulary
-  - field_name: product_type_tags
+  - field_name: product_type
     label: Product Types
     preset: multiple_checkbox
+    validators: scheming_multiple_choice
+    output_validators: scheming_multiple_choice_output
     choices:
-      - value: Raw Dataset
-        label: Raw Dataset
-      - value: Derived Dataset
-        label: Derived Dataset
-      - value: Model Output
-        label: Model Output
-      - value: Report
-        label: Report
-      - value: Presentation
-        label: Presentation
-      - value: Data Visualization
-        label: Data Visualization
-      - value: Map
-        label: Map
-      - value: Workflow
-        label: Workflow
-      - value: Software
+      - value: dataset
+        label: Dataset
+      - value: publication
+        label: Publication
+      - value: software
         label: Software
-      - value: Standard
-        label: Standard
-    help_text: Select one or more product types
+      - value: presentation
+        label: Presentation
+      - value: poster
+        label: Poster
+      - value: image
+        label: Image/Figure
+      - value: video
+        label: Video
+      - value: lesson
+        label: Lesson
+      - value: physical_object
+        label: Physical Object
+      - value: other
+        label: Other
+    help_text: Select one or more product types (from Zenodo resource types)
 
   # Thematics - controlled vocabulary
   - field_name: thematic_tags
@@ -69,6 +71,10 @@ dataset_fields:
         label: Ocean Acidification
       - value: Marine Protected Areas
         label: Marine Protected Areas
+      - value: eDNA
+        label: eDNA
+      - value: Invasives
+        label: Invasives    
       - value: Fisheries
         label: Fisheries
       - value: Pollution
