@@ -1,6 +1,6 @@
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
-from ckanext.obis_theme.helpers import dataset_type_class
+from ckanext.obis_theme import helpers
 
 
 class ObisThemePlugin(plugins.SingletonPlugin):
@@ -16,7 +16,8 @@ class ObisThemePlugin(plugins.SingletonPlugin):
 
     def get_helpers(self):
         return {
-            'dataset_type_class': dataset_type_class
+            'dataset_type_class': helpers.dataset_type_class,
+            'obis_get_product_type_stats': helpers.obis_get_product_type_stats,
+            'obis_get_thematic_stats': helpers.obis_get_thematic_stats,
+            'obis_get_recent_datasets': helpers.obis_get_recent_datasets,
         }
-
-    

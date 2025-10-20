@@ -3,7 +3,7 @@
         <span class="section-title">Recently Updated</span>
     </div>
     <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; padding: 20px 0;">
-        {% set recent = h.get_recent_datasets(4) %}
+        {% set recent = h.obis_get_recent_datasets(4) %}
         {% for dataset in recent %}
         <a href="{{ h.url_for('dataset.read', id=dataset.name) }}" style="text-decoration: none; color: inherit;">
             <div class="products-box" style="height: 100%;">
