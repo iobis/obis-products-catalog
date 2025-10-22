@@ -7,7 +7,7 @@ from urllib.parse import urljoin
 # Configuration
 OBIS_API_URL = "https://api.obis.org/v3/node"
 CKAN_BASE_URL = os.getenv('CKAN_URL', 'http://localhost:5000')
-CKAN_TOKEN = os.getenv('CKAN_TOKEN')
+CKAN_TOKEN = os.getenv('CKAN_API_TOKEN')
 
 if not CKAN_TOKEN:
     print("Error: Please set the CKAN_TOKEN environment variable")
@@ -16,7 +16,7 @@ if not CKAN_TOKEN:
 
 # Headers for CKAN API requests (direct token format, not Bearer)
 HEADERS = {
-    'Authorization': f'Bearer {CKAN_TOKEN}',
+    'Authorization': CKAN_TOKEN,
     'Content-Type': 'application/json'
 }
 

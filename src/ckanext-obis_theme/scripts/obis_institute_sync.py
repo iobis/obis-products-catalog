@@ -20,7 +20,7 @@ from urllib.parse import urljoin
 OBIS_API_URL = "https://api.obis.org/v3/institute"
 OCEAN_EXPERT_API_BASE = "https://oceanexpert.org/api/v1"
 CKAN_BASE_URL = os.getenv('CKAN_URL', 'http://localhost:5000')
-CKAN_TOKEN = os.getenv('CKAN_TOKEN')
+CKAN_TOKEN = os.getenv('CKAN_API_TOKEN')
 
 if not CKAN_TOKEN:
     print("Error: Please set the CKAN_TOKEN environment variable")
