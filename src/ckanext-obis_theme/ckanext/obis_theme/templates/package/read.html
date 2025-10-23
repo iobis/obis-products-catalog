@@ -13,6 +13,16 @@
     {% endblock %}
   </h1>
   
+  {# JSON-LD Export Link #}
+  <div class="jsonld-export" style="margin-bottom: 15px; position: relative; z-index: 100;">
+    <span style="color: #666; font-size: 14px;">View as:</span>
+    <a href="/dataset/{{ c.pkg_dict.name }}/odis.jsonld" 
+       target="_blank"
+       style="margin-left: 8px; color: #0066cc; font-weight: 500; text-decoration: underline; position: relative; z-index: 101;">
+      <i class="fa fa-code"></i> JSON-LD
+    </a>
+  </div>
+  
   {% if h.check_access('package_update', {'id': c.pkg_dict.id}) %}
     <div class="admin-actions" style="margin-bottom: 20px;">
       <a href="{{ h.url_for('dataset.groups', id=c.pkg_dict.name) }}" class="btn btn-default">
