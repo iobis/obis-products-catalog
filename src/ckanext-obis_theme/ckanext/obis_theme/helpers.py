@@ -20,6 +20,15 @@ def dataset_type_class(value):
     return f"add-info-value-{css_class}" if css_class else ""
 
 
+# Simple class to hold stat data that supports dot notation
+class StatObject:
+    def __init__(self, name, count, icon, display_name):
+        self.name = name
+        self.count = count
+        self.icon = icon
+        self.display_name = display_name
+
+
 def obis_get_product_type_stats():
     """Get statistics for product types from product_type field."""
     try:
@@ -42,8 +51,8 @@ def obis_get_product_type_stats():
             'publication': 'fa-file-text',
             'software': 'fa-code',
             'presentation': 'fa-desktop',
-            'poster': 'fa-image',
-            'image': 'fa-picture-o',
+            'poster': 'fa-person-chalkboard',
+            'image': 'fa-image',
             'video': 'fa-video-camera',
             'lesson': 'fa-graduation-cap',
             'physical_object': 'fa-cube',
@@ -78,14 +87,14 @@ def obis_get_product_type_stats():
         
         stats = []
         for ptype, count in product_counts.items():
-            stats.append({
-                'name': ptype,
-                'count': count,
-                'icon': icon_mapping.get(ptype.lower(), 'fa-folder'),
-                'display_name': label_mapping.get(ptype, ptype.title())
-            })
+            stats.append(StatObject(
+                name=ptype,
+                count=count,
+                icon=icon_mapping.get(ptype.lower(), 'fa-folder'),
+                display_name=label_mapping.get(ptype, ptype.title())
+            ))
         
-        return sorted(stats, key=lambda x: x['count'], reverse=True)
+        return sorted(stats, key=lambda x: x.count, reverse=True)
     except Exception as e:
         return []
 
@@ -117,7 +126,7 @@ def obis_get_thematic_stats():
             'fisheries': 'fa-ship',
             'pollution': 'fa-exclamation-triangle',
             'coastal management': 'fa-anchor',
-            'deep sea': 'fa-submarine',
+            'deep sea': 'fa-water',
             'coral reefs': 'fa-pagelines',
             'species distribution': 'fa-map-marker',
         }
@@ -136,14 +145,14 @@ def obis_get_thematic_stats():
         
         stats = []
         for tag, count in thematic_counts.items():
-            stats.append({
-                'name': tag,
-                'count': count,
-                'icon': icon_mapping.get(tag.lower(), 'fa-tag'),
-                'display_name': tag
-            })
+            stats.append(StatObject(
+                name=tag,
+                count=count,
+                icon=icon_mapping.get(tag.lower(), 'fa-tag'),
+                display_name=tag
+            ))
         
-        return sorted(stats, key=lambda x: x['count'], reverse=True)
+        return sorted(stats, key=lambda x: x.count, reverse=True)
     except Exception as e:
         return []
 
@@ -155,6 +164,16 @@ def obis_get_recent_datasets(limit=4):
             'rows': limit,
             'sort': 'metadata_modified desc'
         })
+        
+        # Simple class for dataset objects
+        class DatasetObject:
+            def __init__(self, name, title, metadata_modified, owner_org, product_type_tags, thematic_tags):
+                self.name = name
+                self.title = title
+                self.metadata_modified = metadata_modified
+                self.owner_org = owner_org
+                self.product_type_tags = product_type_tags
+                self.thematic_tags = thematic_tags
         
         datasets = []
         for pkg in result.get('results', []):
@@ -172,14 +191,14 @@ def obis_get_recent_datasets(limit=4):
             except (json.JSONDecodeError, TypeError):
                 thematic_tags = []
             
-            dataset = {
-                'name': pkg.get('name'),
-                'title': pkg.get('title'),
-                'metadata_modified': pkg.get('metadata_modified'),
-                'owner_org': pkg.get('owner_org'),
-                'product_type_tags': product_types,
-                'thematic_tags': thematic_tags,
-            }
+            dataset = DatasetObject(
+                name=pkg.get('name'),
+                title=pkg.get('title'),
+                metadata_modified=pkg.get('metadata_modified'),
+                owner_org=pkg.get('owner_org'),
+                product_type_tags=product_types,
+                thematic_tags=thematic_tags
+            )
             datasets.append(dataset)
         
         return datasets

@@ -3,13 +3,13 @@
     <div>
         <span class="section-title">Product Types</span>
     </div>
-    <div class="d-flex flex-row flex-wrap justify-content-around" style="gap: 30px; padding: 15px 0;">
+    <div class="highlights-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); max-width: 100%; gap: 30px; padding: 15px 0;">
         {% set stats = h.obis_get_product_type_stats() %}
         {% for stat in stats %}
-        <a href="{{ h.url_for('dataset.search', vocab_product_type_tags=stat.name) }}" class="text-center" style="text-decoration: none; color: inherit; min-width: 100px;">
+        <a href="{{ h.url_for('dataset.search', vocab_product_type_tags=stat.name) }}" class="highlight-item text-center" style="text-decoration: none; color: inherit; min-width: 100px;">
             <span class="fa {{ stat.icon }}" style="font-size: 36px; color: var(--main-color);"></span><br>
             <span class="number" style="font-weight: 900; font-size: 28px; display: block; margin: 8px 0;">{{ stat.count }}</span>
-            <span class="numbertext" style="font-size: 12px; color: #666;">{{ stat.name }}</span>
+            <span class="numbertext" style="font-size: 12px; color: #666;">{{ stat.display_name }}</span>
         </a>
         {% endfor %}
     </div>
@@ -20,14 +20,50 @@
     <div>
         <span class="section-title">Thematic Areas</span>
     </div>
-    <div class="d-flex flex-row flex-wrap justify-content-around" style="gap: 30px; padding: 15px 0;">
+    <div class="highlights-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); max-width: 100%; gap: 30px; padding: 15px 0;">
         {% set thematic_stats = h.obis_get_thematic_stats() %}
         {% for stat in thematic_stats %}
-        <a href="{{ h.url_for('dataset.search', vocab_thematic_tags=stat.name) }}" class="text-center" style="text-decoration: none; color: inherit; min-width: 100px;">
+        <a href="{{ h.url_for('dataset.search', vocab_thematic_tags=stat.name) }}" class="highlight-item text-center" style="text-decoration: none; color: inherit; min-width: 100px;">
             <span class="fa {{ stat.icon }}" style="font-size: 36px; color: var(--main-color);"></span><br>
             <span class="number" style="font-weight: 900; font-size: 28px; display: block; margin: 8px 0;">{{ stat.count }}</span>
-            <span class="numbertext" style="font-size: 12px; color: #666;">{{ stat.name }}</span>
+            <span class="numbertext" style="font-size: 12px; color: #666;">{{ stat.display_name }}</span>
         </a>
         {% endfor %}
     </div>
 </div>
+
+<style>
+    /* Desktop: 5 columns */
+    @media (min-width: 992px) {
+        .highlights-grid {
+            grid-template-columns: repeat(5, 1fr) !important;
+        }
+    }
+    
+    /* Tablet: 3 columns */
+    @media (min-width: 768px) and (max-width: 991px) {
+        .highlights-grid {
+            grid-template-columns: repeat(3, 1fr) !important;
+        }
+    }
+    
+    /* Mobile: 2 columns */
+    @media (max-width: 767px) {
+        .highlights-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 15px !important;
+        }
+        
+        .highlight-item .fa {
+            font-size: 28px !important;
+        }
+        
+        .highlight-item .number {
+            font-size: 24px !important;
+        }
+        
+        .highlight-item .numbertext {
+            font-size: 11px !important;
+        }
+    }
+</style>
