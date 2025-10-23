@@ -1,4 +1,231 @@
-# OBIS Products Catalog - CKAN DOcker
+# OBIS Products Catalog
+
+A CKAN 2.11 Docker-based catalog system for managing and publishing OBIS (Ocean Biodiversity Information System) products with custom theming, metadata schemas, and JSON-LD export capabilities.
+
+## Repository Structure
+
+```
+.
+├── bin/                          # Helper scripts for development
+│   ├── ckan                      # CKAN CLI wrapper
+│   ├── compose                   # Docker Compose wrapper
+│   └── shell                     # Container shell access
+│
+├── ckan/                         # CKAN Docker configuration
+│   ├── Dockerfile                # Production CKAN image
+│   ├── Dockerfile.dev            # Development CKAN image
+│   ├── docker-entrypoint.d/      # Container startup scripts
+│   └── setup/                    # Override scripts for custom behavior
+│       ├── prerun.py.override
+│       ├── start_ckan.sh.override
+│       └── start_ckan_development.sh.override
+│
+├── nginx/                        # NGINX reverse proxy configuration
+│   ├── Dockerfile
+│   └── setup/
+│       ├── default.conf          # NGINX configuration
+│       └── ckan-local.*          # SSL certificates
+│
+├── postgresql/                   # PostgreSQL configuration
+│   ├── Dockerfile
+│   └── docker-entrypoint-initdb.d/
+│       ├── 10_create_ckandb.sh
+│       ├── 20_create_datastore.sh
+│       └── 30_setup_test_databases.sh
+│
+└── src/                          # CKAN extensions
+    ├── ckanext-doi_import/       # DOI import functionality
+    ├── ckanext-obis_theme/       # Custom OBIS theme and UI
+    │   ├── ckanext/obis_theme/
+    │   │   ├── assets/           # CSS and JavaScript
+    │   │   ├── public/           # Static files (images, etc.)
+    │   │   ├── templates/        # Jinja2 templates
+    │   │   │   ├── home/         # Homepage templates
+    │   │   │   ├── package/      # Dataset page templates
+    │   │   │   └── snippets/     # Reusable template components
+    │   │   └── helpers.py        # Template helper functions
+    │   └── scripts/              # Sync scripts for OBIS data
+    ├── ckanext-odis/             # ODIS Schema.org JSON-LD export
+    │   └── ckanext/odis/
+    │       └── plugin.py         # JSON-LD endpoint: /dataset/{id}/odis.jsonld
+    └── ckanext-zenodo/           # Zenodo integration and custom schema
+        └── ckanext/zenodo/
+            ├── zenodo_schema.yaml # Custom metadata schema
+            └── cli.py            # CLI commands for Zenodo import
+```
+
+## Key Features
+
+### 1. Custom OBIS Theme (`ckanext-obis_theme`)
+- **Responsive homepage** with product type and thematic area statistics
+- **2×5 grid layout** that adapts to mobile devices
+- **Custom dataset landing pages** with enhanced metadata display
+- **Helper functions** for dynamic statistics and recent datasets
+
+**Key Files:**
+- `src/ckanext-obis_theme/ckanext/obis_theme/templates/home/` - Homepage templates
+- `src/ckanext-obis_theme/ckanext/obis_theme/helpers.py` - Statistics and data helpers
+- `src/ckanext-obis_theme/ckanext/obis_theme/assets/` - Custom CSS/JS
+
+### 2. ODIS JSON-LD Export (`ckanext-odis`)
+Exposes dataset metadata as Schema.org-compliant JSON-LD according to ODIS specifications.
+
+**Endpoint:** `/dataset/{id}/odis.jsonld`
+
+**Features:**
+- Schema.org vocabulary with ODIS extensions
+- Support for authors, contributors, funding, spatial/temporal coverage
+- DOI and identifier mapping
+- Proper content-type headers (`application/ld+json`)
+
+**Key Files:**
+- `src/ckanext-odis/ckanext/odis/plugin.py` - JSON-LD transformation logic
+
+### 3. Custom Metadata Schema (`ckanext-zenodo`)
+Extended metadata schema supporting:
+- Product types (dataset, publication, software, etc.)
+- Thematic areas (biodiversity, climate change, etc.)
+- Author and contributor information with ORCID/ROR
+- Funding and grant details
+- Spatial and temporal coverage
+- DOI and canonical identifiers
+
+**Key Files:**
+- `src/ckanext-zenodo/ckanext/zenodo/zenodo_schema.yaml` - Schema definition
+
+### 4. DOI Import (`ckanext-doi_import`)
+Import datasets from DOI sources like Zenodo and DataCite.
+
+## Quick Start
+
+### Prerequisites
+- Docker and Docker Compose
+- Git
+
+### Initial Setup
+
+1. **Clone and configure:**
+   ```bash
+   git clone https://github.com/iobis/obis-products-catalog.git
+   cd obis-products-catalog
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
+2. **Build and start:**
+   ```bash
+   docker-compose -f docker-compose.dev.yml up -d --build
+   ```
+
+3. **Initialize database:**
+   ```bash
+   docker exec -it obis-ckan-211-ckan-dev-1 ckan -c /srv/app/ckan.ini db init
+   ```
+
+4. **Create admin user:**
+   ```bash
+   docker exec -it obis-ckan-211-ckan-dev-1 ckan -c /srv/app/ckan.ini sysadmin add admin email=admin@localhost
+   ```
+
+5. **Access CKAN:**
+   Open http://localhost:5000
+
+## Development
+
+### Modifying the Theme
+
+**Homepage layout:**
+Edit templates in `src/ckanext-obis_theme/ckanext/obis_theme/templates/home/`
+
+**Statistics and helpers:**
+Edit `src/ckanext-obis_theme/ckanext/obis_theme/helpers.py`
+
+**CSS/JavaScript:**
+Edit files in `src/ckanext-obis_theme/ckanext/obis_theme/assets/`
+
+**After changes:**
+```bash
+docker-compose -f docker-compose.dev.yml restart ckan-dev
+```
+
+### Modifying the Schema
+
+1. Edit `src/ckanext-zenodo/ckanext/zenodo/zenodo_schema.yaml`
+2. Restart: `docker-compose -f docker-compose.dev.yml restart ckan-dev`
+3. Changes apply immediately (no rebuild needed)
+
+### Testing JSON-LD Export
+
+Access any dataset's JSON-LD:
+```
+http://localhost:5000/dataset/{dataset-name}/odis.jsonld
+```
+
+## Environment Configuration
+
+Key environment variables in `.env`:
+
+```bash
+# CKAN settings
+CKAN_SITE_URL=http://localhost:5000
+CKAN_PORT_HOST=5000
+
+# Custom schema
+CKAN___SCHEMING__DATASET_SCHEMAS=ckanext.zenodo:zenodo_schema.yaml
+
+# Security (change in production!)
+CKAN___SECRET_KEY=your_secret_key_here
+CKAN___BEAKER__SESSION__SECRET=your_beaker_secret_here
+
+# ODIS catalog information
+CKAN___ODIS__CATALOG_NAME=OBIS Products Catalog
+CKAN___ODIS__CATALOG_LEGAL_NAME=Ocean Biodiversity Information System (OBIS) Products Catalog
+```
+
+## Extensions Overview
+
+| Extension | Purpose | Key Features |
+|-----------|---------|--------------|
+| `ckanext-obis_theme` | Custom UI/UX | Responsive homepage, statistics, dataset display |
+| `ckanext-odis` | JSON-LD export | Schema.org metadata, ODIS compliance |
+| `ckanext-zenodo` | Metadata schema | Custom fields, Zenodo import |
+| `ckanext-doi_import` | DOI integration | Import from DOI sources |
+
+## Useful Commands
+
+```bash
+# View logs
+docker-compose -f docker-compose.dev.yml logs -f ckan-dev
+
+# Restart CKAN
+docker-compose -f docker-compose.dev.yml restart ckan-dev
+
+# Shell access
+docker exec -it obis-ckan-211-ckan-dev-1 bash
+
+# Run CKAN commands
+docker exec -it obis-ckan-211-ckan-dev-1 ckan -c /srv/app/ckan.ini [command]
+
+# Clean rebuild
+docker-compose -f docker-compose.dev.yml down -v
+docker-compose -f docker-compose.dev.yml up -d --build
+```
+
+## Contributing
+
+1. Create a feature branch
+2. Make your changes
+3. Test locally with Docker
+4. Submit a pull request
+
+## License
+
+This project uses CKAN which is licensed under AGPL v3.0.
+
+---
+
+<details>
+  <summary>📋 Detailed Setup Documentation (Click to expand)</summary>
 
 ## CKAN 2.11 Docker Setup - What We Did
 
@@ -16,9 +243,9 @@ Solution:
    - `prerun.py.override` - handles database initialization
 - Modified `ckan/Dockerfile.dev` to copy these override files:
 
-```
-dockerfile  COPY --chown=ckan-sys:ckan-sys setup/start_ckan_development.sh.override /srv/app/start_ckan_development.sh
-  COPY --chown=ckan-sys:ckan-sys setup/prerun.py.override /srv/app/prerun.py
+```dockerfile
+COPY --chown=ckan-sys:ckan-sys setup/start_ckan_development.sh.override /srv/app/start_ckan_development.sh
+COPY --chown=ckan-sys:ckan-sys setup/prerun.py.override /srv/app/prerun.py
 ```
 
 - Commented out the problematic volume mount in docker-compose.dev.yml:
@@ -113,8 +340,10 @@ scheming.dataset_schemas=ckanext.zenodo:zenodo_schema.yaml
 1. `.env` - added SECRET_KEY and other secrets
 1. `ckan/setup/*.override` - custom startup scripts (already existed, just needed to be used)
 
+</details>
+
 <details>
-  <summary>Original Docker CKAN README</summary>
+  <summary>📖 Original Docker CKAN README (Click to expand)</summary>
 
 # Docker Compose setup for CKAN
 
@@ -182,8 +411,10 @@ Use this if you are a maintainer and will not be making code changes to CKAN or 
 
 Copy the included `.env.example` and rename it to `.env`. Modify it depending on your own needs.
 
-> [!WARNING]
-> There is a sysadmin user created by default with the values defined in `CKAN_SYSADMIN_NAME` and `CKAN_SYSADMIN_PASSWORD` (`ckan_admin` and `test1234` by default). These must be changed before running this setup as a public CKAN instance.
+Please note that when accessing CKAN directly (via a browser) ie: not going through NGINX you will need to make sure you have "ckan" set up
+to be an alias to localhost in the local hosts file. Either that or you will need to change the `.env` entry for CKAN_SITE_URL
+
+Using the default values on the `.env.example` file will get you a working CKAN instance. There is a sysadmin user created by default with the values defined in `CKAN_SYSADMIN_NAME` and `CKAN_SYSADMIN_PASSWORD`(`ckan_admin` and `test1234` by default). This should be obviously changed before running this setup as a public CKAN instance.
 
 To build the images:
 
@@ -197,129 +428,68 @@ This will start up the containers in the current window. By default the containe
 using a different colour. You could also use the -d "detach mode" option ie: `docker compose up -d` if you wished to use the current
 window for something else.
 
-At the end of the container start sequence there should be 6 containers running:
+Or, you can use the `bin/compose` script, which uses `docker compose` if the `docker compose` command is available, or `docker-compose` if it is not.
 
-```bash
-$ docker compose ps
-NAME                       IMAGE                              COMMAND                  SERVICE      CREATED         STATUS                   PORTS
-ckan-docker-ckan-1         ckan-docker-ckan                   "/srv/app/start_ckan…"   ckan         4 minutes ago   Up 3 minutes (healthy)   5000/tcp
-ckan-docker-datapusher-1   ckan/ckan-base-datapusher:0.0.20   "sh -c 'uwsgi --plug…"   datapusher   4 minutes ago   Up 4 minutes (healthy)   8800/tcp
-ckan-docker-db-1           ckan-docker-db                     "docker-entrypoint.s…"   db           4 minutes ago   Up 4 minutes (healthy)
-ckan-docker-nginx-1        ckan-docker-nginx                  "/bin/sh -c 'openssl…"   nginx        4 minutes ago   Up 2 minutes             80/tcp, 0.0.0.0:8443->443/tcp
-ckan-docker-redis-1        redis:6                            "docker-entrypoint.s…"   redis        4 minutes ago   Up 4 minutes (healthy)
-ckan-docker-solr-1         ckan/ckan-solr:2.10-solr9          "docker-entrypoint.s…"   solr         4 minutes ago   Up 4 minutes (healthy)
-```
+    ./bin/compose build
+    ./bin/compose up
 
-After this step, CKAN should be running at `CKAN_SITE_URL` (by default https://localhost:8443)
+Note: The `./bin/compose` script will silently prepend your commands with `-f docker-compose.yml` so you can use it as a drop-in replacement for `docker-compose` or `docker compose`.
+
+At the end of the container start sequence there should be 6 containers running
+
+![Screenshot 2023-01-13 at 1 36 02 pm](https://user-images.githubusercontent.com/54408245/212242267-f7662c46-574c-4894-a0be-6d713adc4a72.png)
+
+After this step, CKAN should be running at `CKAN_SITE_URL`.
 
 
 ### Development mode
 
-Use this mode if you are making code changes to CKAN and either creating new extensions or making code changes to existing extensions. This mode also uses the `.env` file for config options.
+Use this if you are making code changes to CKAN and to CKAN extensions
 
-To develop local extensions use the `docker-compose.dev.yml` file with help from the scripts under `bin`:
-
-dev script | description
---- | ---
-`bin/ckan …` | exec `ckan` cli within the ckan-dev container
-`bin/compose …` | dev docker compose commands
-`bin/generate_extension` | generate extension in `src` directory
-`bin/install_src` | install all extensions from `src` directory (ckan-dev does not need to be running)
-`bin/reload` | reload ckan within the ckan-dev container without restarting
-`bin/restart` | shut down and restart the whole ckan-dev container (use `bin/compose up -d` instead to reload new values from .env)
-`bin/shell` | exec bash prompt within the ckan-dev container
+Copy the included `.env.example` and rename it to `.env`. Modify it depending on your own needs.
 
 To build the images:
 
-	bin/compose build
-
-To install extensions from the `src` directory:
-
-	bin/install_src
+	docker compose -f docker-compose.dev.yml build
 
 To start the containers:
 
-	bin/compose up
+	docker compose -f docker-compose.dev.yml up
 
-See [CKAN images](#5-ckan-images) for more details of what happens when using development mode.
-
+See [CKAN Images](#ckan-images) for more details on how to add extensions or any other customizations
 
 #### Create an extension
 
 You can use the ckan [extension](https://docs.ckan.org/en/latest/extensions/tutorial.html#creating-a-new-extension) instructions to create a CKAN extension, only executing the command inside the CKAN container and setting the mounted `src/` folder as output:
 
-        bin/generate_extension
+    docker compose -f docker-compose.dev.yml exec ckan ckan generate extension --output-dir /srv/app/src_extensions
 
-```
-Extension's name [must begin 'ckanext-']: ckanext-mytheme
-Author's name []: Joe Bloggs
-Author's email []: joeb@example.com
-Your Github user or organization name []: example
-Brief description of the project []: My CKAN theme
-List of keywords (separated by spaces) [CKAN]:
-Do you want to include code examples? [y/N]: y
-
-Written: /srv/app/src_extensions/ckanext-mytheme
-```
-
-The new extension files and directories are created in the `/srv/app/src_extensions/` folder in the running container. They will also exist in the local src/ directory as local `/src` directory is mounted as `/srv/app/src_extensions/` on the ckan container.
-
+The new extension files and directories will be created in the `src/` folder in your host.
 
 #### Running HTTPS on development mode
 
 Sometimes is useful to run your local development instance under HTTPS, for instance if you are using authentication extensions like [ckanext-saml2auth](https://github.com/keitaroinc/ckanext-saml2auth). To enable it, set the following in your `.env` file:
 
-```
-  USE_HTTPS_FOR_DEV=true
-```
+    USE_HTTPS_FOR_DEV=true
 
 and update the site URL setting:
 
-```
-  CKAN_SITE_URL=https://localhost:5000
-```
+    CKAN_SITE_URL=https://localhost:5000
 
 After recreating the `ckan-dev` container, you should be able to access CKAN at https://localhost:5000
 
 
 #### Remote Debugging with VS Code
 
-[Visual Studio Code](https://code.visualstudio.com/) is a free IDE that includes remote
-debugging for Python applications. To debug CKAN you must enable `debugpy` for your
-development instance in your `.env` file:
+To enable remote debugging with VS Code, you need to set the `USE_DEBUGPY` environment variable to `true` in the `.env` file. This will launch the CKAN instance with remote debugging enabled. You can then attach your VS Code debugger to the running container (use `F5` or the `Debug: Attach to CKAN` command).
 
-```
-  USE_DEBUGPY_FOR_DEV=true
-```
-
-Next run the install script to install debugpy:
-
-	bin/install_src
-
-Then start the containers in [development mode](#development-mode) and launch VS Code.
-
-In VS Code:
-
-1. Install the "Dev Container" extension: press CTRL+SHIFT+X, type "dev container", click "install"
-2. Click the "Open a Remote Window" button in the bottom-left of the VS Code window
-3. Click "Attach to Running Container..." and select your ckan-dev container, e.g. "ckan-docker-ckan-dev-1"
-4. Click the "Run and Debug" icon on the left panel and choose to install the "Python Debugger"
-5. Click "create a launch.json", select "Python Debugger", "Remote Attach", host "localhost" and port "5678"
-6. Press F5 or click the "Run" menu and "Start Debugging"
-
-You can now set breakpoints and remote debug your CKAN development instance.
-
+You can also uncomment the example configuration in `.vscode/launch.json.example` and save it as `.vscode/launch.json` to have a pre-configured debugger ready to attach to the CKAN instance.
 
 #### Updating the environment file for development mode
 
-The Docker Compose environment `.env` file by default is set up for production mode. There are a few changes needed if you would like to run in Development mode:
-
-1. Change the `CKAN_SITE_URL` variable to be: http://localhost:5000
-2. Update the `CKAN__DATAPUSHER__CALLBACK_URL_BASE` variable to use the `ckan-dev` container name: http://ckan-dev:5000
-
+Remember to modify the `.env` file with the relevant environment variables for your setup like `CKAN_SITE_URL`, database connections or CKAN core or extension settings.
 
 ## 5. CKAN images
-![ckan images](https://user-images.githubusercontent.com/54408245/207079416-a01235af-2dea-4425-b6fd-f8c3687dd993.png)
 
 
 
