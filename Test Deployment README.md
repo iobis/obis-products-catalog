@@ -35,6 +35,16 @@ This guide will walk you through deploying the CKAN dev environment to Digital O
 ssh root@YOUR_DROPLET_IP
 ```
 
+### Reboot if kernel update recommended
+
+If you see a message about restarting the kernel:
+
+```bash
+reboot
+# Wait 30 seconds, then reconnect
+ssh root@YOUR_DROPLET_IP
+```
+
 ### Update system and install dependencies
 
 ```bash
@@ -70,6 +80,10 @@ echo \
 apt-get update
 apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
+# Start Docker
+systemctl start docker
+systemctl enable docker
+
 # Verify Docker installation
 docker --version
 docker compose version
@@ -81,10 +95,10 @@ docker compose version
 # Allow SSH (important - don't lock yourself out!)
 ufw allow OpenSSH
 
-# Allow HTTP (port 5000 for CKAN)
-ufw allow 5000/tcp
+# Allow HTTP (port 80 for NGINX)
+ufw allow 80/tcp
 
-# Allow HTTPS (if you set it up later)
+# Allow HTTPS (port 443 for NGINX)
 ufw allow 443/tcp
 
 # Enable firewall
@@ -107,9 +121,6 @@ cd obis-products-catalog
 ### Create and configure .env file
 
 ```bash
-# Copy example environment file
-cp .env.example .env
-
 # Generate secure secrets
 SECRET_KEY=$(openssl rand -base64 32)
 BEAKER_SECRET=$(openssl rand -base64 32)
@@ -117,8 +128,14 @@ JWT_ENCODE=$(openssl rand -base64 32)
 JWT_DECODE=$(openssl rand -base64 32)
 POSTGRES_PASSWORD=$(openssl rand -base64 16)
 
-# Update .env file with your droplet IP
-# Replace YOUR_DROPLET_IP with your actual IP address
+# Display them (copy these values)
+echo "SECRET_KEY=$SECRET_KEY"
+echo "BEAKER_SECRET=$BEAKER_SECRET"
+echo "JWT_ENCODE=$JWT_ENCODE"
+echo "JWT_DECODE=$JWT_DECODE"
+echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD"
+
+# Edit .env file
 nano .env
 ```
 
@@ -126,7 +143,7 @@ nano .env
 
 ```bash
 # Site URL - IMPORTANT: Use your droplet's IP
-CKAN_SITE_URL=http://YOUR_DROPLET_IP:5000
+CKAN_SITE_URL=http://YOUR_DROPLET_IP
 
 # Security - Use the generated secrets above
 CKAN___SECRET_KEY=<paste SECRET_KEY here>
@@ -153,35 +170,73 @@ Save and exit (Ctrl+X, Y, Enter in nano).
 ### Create htpasswd file
 
 ```bash
-# Navigate to project directory
 cd /root/obis-products-catalog
 
-# Create password file
-# Username: obis-tester
-# Password: enter something secure when prompted (e.g., ObisTest2024!)
-htpasswd -c .htpasswd obis-tester
+# Create password file with your desired username/password
+htpasswd -c .htpasswd YOUR_USERNAME
+# Enter password when prompted (e.g., obis / obis-pc-test)
 
 # Verify the file was created
 cat .htpasswd
 ```
 
+### Create self-signed SSL certificates
+
+```bash
+cd /root/obis-products-catalog/nginx/setup/
+
+openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 \
+  -subj "/C=US/ST=State/L=City/O=OBIS/CN=localhost" \
+  -keyout ckan-local.key -out ckan-local.crt
+
+# Verify certificates were created
+ls -la ckan-local.*
+```
+
 ### Update NGINX configuration
 
 ```bash
-# Edit the NGINX config
 nano nginx/setup/default.conf
 ```
 
-**Add basic auth to the location block.** Find the section that starts with `location / {` and add the auth lines:
+**Make these changes:**
 
+1. **Enable HTTP (port 80)** - Uncomment these lines at the top of the server block:
+```nginx
+server {
+    listen       80;           # UNCOMMENT THIS
+    listen  [::]:80;           # UNCOMMENT THIS
+    listen       443 ssl;
+    listen  [::]:443 ssl;
+```
+
+2. **Change server_name** - Find and change:
+```nginx
+server_name  localhost;
+```
+To:
+```nginx
+server_name  _;
+```
+
+3. **Fix proxy_pass** - Find and change:
+```nginx
+proxy_pass http://ckan:5000/;
+```
+To:
+```nginx
+proxy_pass http://ckan-dev:5000/;
+```
+
+4. **Add basic authentication** - In the `location /` block, add:
 ```nginx
 location / {
-    # Add these two lines for basic authentication
+    # Add basic authentication
     auth_basic "OBIS Testing - Please Login";
     auth_basic_user_file /etc/nginx/.htpasswd;
     
     # Existing proxy configuration
-    proxy_pass http://ckan:5000/;
+    proxy_pass http://ckan-dev:5000/;
     proxy_set_header X-Forwarded-For $remote_addr;
     proxy_set_header Host $host;
     proxy_cache cache;
@@ -192,15 +247,24 @@ location / {
 }
 ```
 
+5. **Remove 401 from error_page** - Find the error_page line and remove `401`:
+```nginx
+# BEFORE:
+error_page 400 401 402 403 404 ... /error.html;
+
+# AFTER (remove 401):
+error_page 400 402 403 404 405 406 407 408 409 410 411 412 413 414 415 416 417 418 421 422 423 424 425 426 428 429 431 451 500 501 502 503 504 505 506 507 508 510 511 /error.html;
+```
+
 Save and exit.
 
-### Mount htpasswd file in docker-compose
+### Add NGINX to docker-compose.dev.yml
 
 ```bash
 nano docker-compose.dev.yml
 ```
 
-**Find the `nginx` service and add the volume mount.** It should look like this:
+**Add this NGINX service at the end of the services section:**
 
 ```yaml
   nginx:
@@ -208,14 +272,14 @@ nano docker-compose.dev.yml
     depends_on:
       - ckan-dev
     ports:
-      - "0.0.0.0:${NGINX_PORT_HOST}:${NGINX_PORT}"
-      - "0.0.0.0:${NGINX_SSLPORT_HOST}:${NGINX_SSLPORT}"
+      - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/setup/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/setup/default.conf:/etc/nginx/conf.d/default.conf
-      - ./nginx/setup/index.html:/usr/share/nginx/html/index.html
-      - ./nginx/setup/error.html:/usr/share/nginx/html/error.html
-      - ./.htpasswd:/etc/nginx/.htpasswd:ro  # ADD THIS LINE
+      - ./nginx/setup/ckan-local.crt:/etc/nginx/certs/ckan-local.crt:ro
+      - ./nginx/setup/ckan-local.key:/etc/nginx/certs/ckan-local.key:ro
+      - ./.htpasswd:/etc/nginx/.htpasswd:ro
     restart: unless-stopped
 ```
 
@@ -223,40 +287,65 @@ Save and exit.
 
 ## Step 5: Build and Start CKAN
 
-### Build the containers
+### Fix source folder permissions
 
 ```bash
 cd /root/obis-products-catalog
-
-# Build the images (this will take 5-10 minutes)
-docker compose -f docker-compose.dev.yml build
+chmod -R 777 src/
 ```
 
-### Start the containers
+### Build and start containers
 
 ```bash
-# Start all services
+# Build the images (this will take 5-10 minutes)
+docker compose -f docker-compose.dev.yml build
+
+# Start all services (watch the output, don't use -d yet)
+docker compose -f docker-compose.dev.yml up ckan-dev
+```
+
+**Watch the logs**. When you see the extensions installing and CKAN starting up successfully (look for "Running on http://0.0.0.0:5000"), press **Ctrl+C** and start in detached mode:
+
+```bash
+# Start in background
 docker compose -f docker-compose.dev.yml up -d
 
-# Check that all containers are running
+# Check all containers are running
 docker ps
 ```
 
-You should see 5 containers running:
+You should see 6 containers running:
 - ckan-dev
 - db
 - solr
 - redis
-- nginx (if included in dev compose)
+- datapusher
+- nginx
+
+### Install extensions manually (if needed)
+
+If the extensions fail to install automatically, install them manually:
+
+```bash
+docker exec -u 0 obis-products-catalog-ckan-dev-1 chown -R ckan-sys:ckan-sys /srv/app/src_extensions
+
+docker exec -u 0 obis-products-catalog-ckan-dev-1 pip install -e /srv/app/src_extensions/ckanext-doi-import
+docker exec -u 0 obis-products-catalog-ckan-dev-1 pip install -e /srv/app/src_extensions/ckanext-obis_theme
+docker exec -u 0 obis-products-catalog-ckan-dev-1 pip install -e /srv/app/src_extensions/ckanext-odis
+docker exec -u 0 obis-products-catalog-ckan-dev-1 pip install -e /srv/app/src_extensions/ckanext-zenodo
+
+# Restart CKAN
+docker compose -f docker-compose.dev.yml restart ckan-dev
+```
 
 ### Initialize the database
 
 ```bash
-# Wait about 30 seconds for services to be ready, then initialize
-docker exec obis-products-catalog-ckan-dev-1 ckan -c /srv/app/ckan.ini db init
+# Wait about 30 seconds for services to be ready
+sleep 30
 
-# If the container name is different, find it with:
-docker ps | grep ckan-dev
+# Initialize database
+docker exec obis-products-catalog-ckan-dev-1 ckan -c /srv/app/ckan.ini db init
 ```
 
 ## Step 6: Create Admin Account
@@ -273,7 +362,6 @@ docker exec obis-products-catalog-ckan-dev-1 ckan -c /srv/app/ckan.ini sysadmin 
 ### Create the user creation script
 
 ```bash
-# Create a script file
 nano /root/create_test_users.sh
 ```
 
@@ -283,52 +371,69 @@ nano /root/create_test_users.sh
 #!/bin/bash
 
 # Script to create 100 test users for OBIS CKAN testing
-# Usage: ./create_test_users.sh
+# Usage: ./create_test_users.sh [number_of_users] [password]
 
 CONTAINER_NAME="obis-products-catalog-ckan-dev-1"
-PASSWORD="test1234"
-NUM_USERS=100
+DEFAULT_PASSWORD="test1234"
+DEFAULT_NUM_USERS=100
 
-echo "Creating $NUM_USERS test users..."
-echo "Default password for all users: $PASSWORD"
+NUM_USERS="${1:-$DEFAULT_NUM_USERS}"
+PASSWORD="${2:-$DEFAULT_PASSWORD}"
+
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+echo "========================================"
+echo "OBIS CKAN Test User Creation Script"
+echo "========================================"
 echo ""
+echo "Creating $NUM_USERS test users with password: $PASSWORD"
+echo ""
+
+SUCCESS_COUNT=0
+FAIL_COUNT=0
 
 for i in $(seq 1 $NUM_USERS); do
     USERNAME="user${i}"
     EMAIL="user${i}@test.obis.org"
     
-    echo "Creating user: $USERNAME ($EMAIL)"
-    
-    docker exec $CONTAINER_NAME ckan -c /srv/app/ckan.ini user add \
-        $USERNAME \
-        email=$EMAIL \
-        password=$PASSWORD 2>&1 | grep -v "WARNING"
-    
-    if [ $? -eq 0 ]; then
-        echo "✓ Successfully created $USERNAME"
-    else
-        echo "✗ Failed to create $USERNAME"
+    if [ $((i % 10)) -eq 0 ]; then
+        echo "Progress: $i/$NUM_USERS users processed..."
     fi
     
-    # Small delay to avoid overwhelming the system
-    sleep 0.2
+    OUTPUT=$(docker exec $CONTAINER_NAME ckan -c /srv/app/ckan.ini user add \
+        $USERNAME \
+        email=$EMAIL \
+        password=$PASSWORD 2>&1)
+    
+    if [ $? -eq 0 ]; then
+        ((SUCCESS_COUNT++))
+    else
+        echo -e "${RED}✗ Failed to create $USERNAME${NC}"
+        ((FAIL_COUNT++))
+    fi
+    
+    sleep 0.1
 done
 
 echo ""
 echo "========================================"
-echo "User creation complete!"
+echo "User Creation Complete!"
 echo "========================================"
-echo "Username format: user1, user2, ..., user100"
-echo "Email format: user1@test.obis.org, etc."
-echo "Password (all users): $PASSWORD"
+echo -e "${GREEN}✓ Successfully created: $SUCCESS_COUNT users${NC}"
+if [ $FAIL_COUNT -gt 0 ]; then
+    echo -e "${RED}✗ Failed: $FAIL_COUNT users${NC}"
+fi
 echo ""
-echo "You can also share this CSV for easy distribution:"
-echo ""
-echo "username,email,password" > /root/test_users.csv
+
+# Generate CSV
+CSV_FILE="/root/test_users.csv"
+echo "username,email,password" > $CSV_FILE
 for i in $(seq 1 $NUM_USERS); do
-    echo "user${i},user${i}@test.obis.org,$PASSWORD" >> /root/test_users.csv
+    echo "user${i},user${i}@test.obis.org,$PASSWORD" >> $CSV_FILE
 done
-echo "CSV saved to: /root/test_users.csv"
+echo "CSV saved to: $CSV_FILE"
 ```
 
 Save and exit (Ctrl+X, Y, Enter).
@@ -336,33 +441,19 @@ Save and exit (Ctrl+X, Y, Enter).
 ### Make the script executable and run it
 
 ```bash
-# Make executable
 chmod +x /root/create_test_users.sh
-
-# Run the script (takes ~1-2 minutes)
 /root/create_test_users.sh
-```
-
-### Download the user list (optional)
-
-```bash
-# View the CSV file
-cat /root/test_users.csv
-
-# Or download it to your local machine
-# On your LOCAL machine (not on the droplet):
-scp root@YOUR_DROPLET_IP:/root/test_users.csv ~/Desktop/obis_test_users.csv
 ```
 
 ## Step 8: Verify Everything Works
 
-### Check that CKAN is accessible
+### Check that CKAN is accessible via NGINX
 
 1. Open your browser
-2. Go to: `http://YOUR_DROPLET_IP:5000`
-3. You should see a login prompt:
-   - Username: `obis-tester`
-   - Password: `ObisTest2024!` (or whatever you set)
+2. Go to: `http://YOUR_DROPLET_IP` (no port number)
+3. You should see a browser authentication prompt:
+   - Username: `obis` (or whatever you set)
+   - Password: `obis-pc-test` (or whatever you set)
 4. After basic auth, you should see the CKAN homepage
 
 ### Test a user account
@@ -379,8 +470,11 @@ scp root@YOUR_DROPLET_IP:/root/test_users.csv ~/Desktop/obis_test_users.csv
 # View all logs
 docker compose -f docker-compose.dev.yml logs -f
 
-# Or view just CKAN logs
+# View CKAN logs
 docker compose -f docker-compose.dev.yml logs -f ckan-dev
+
+# View NGINX logs
+docker compose -f docker-compose.dev.yml logs -f nginx
 
 # Check container status
 docker ps
@@ -393,11 +487,11 @@ docker ps
 ```
 OBIS Products Catalog - Test Instance
 
-🌐 URL: http://YOUR_DROPLET_IP:5000
+🌐 URL: http://YOUR_DROPLET_IP
 
 🔐 Initial Gate Access (Browser Popup):
-   Username: obis-tester
-   Password: ObisTest2024!
+   Username: obis
+   Password: obis-pc-test
 
 👤 Your CKAN Test Account:
    Username: user1 (through user100)
@@ -416,20 +510,34 @@ OBIS Products Catalog - Test Instance
 
 ### Create an assignment spreadsheet
 
-Distribute specific accounts to specific testers to track who's testing what:
+Distribute specific accounts to specific testers:
 
 | Tester Name | Username | Email | Password |
 |-------------|----------|-------|----------|
 | Alice Smith | user1 | user1@test.obis.org | test1234 |
 | Bob Jones | user2 | user2@test.obis.org | test1234 |
-| ... | ... | ... | ... |
 
 ## Maintenance Commands
+
+### Change NGINX username/password
+
+```bash
+cd /root/obis-products-catalog
+
+# Remove old password file
+rm .htpasswd
+
+# Create new one
+htpasswd -c .htpasswd NEW_USERNAME
+# Enter new password when prompted
+
+# Restart NGINX
+docker compose -f docker-compose.dev.yml restart nginx
+```
 
 ### Restart CKAN after making changes
 
 ```bash
-cd /root/obis-products-catalog
 docker compose -f docker-compose.dev.yml restart ckan-dev
 ```
 
@@ -441,6 +549,9 @@ docker compose -f docker-compose.dev.yml logs -f
 
 # Just CKAN
 docker compose -f docker-compose.dev.yml logs -f ckan-dev
+
+# Just NGINX
+docker compose -f docker-compose.dev.yml logs -f nginx
 ```
 
 ### Stop everything
@@ -455,28 +566,16 @@ docker compose -f docker-compose.dev.yml down
 docker compose -f docker-compose.dev.yml up -d
 ```
 
-### Access CKAN shell
+### Check system resources
 
 ```bash
-docker exec -it obis-products-catalog-ckan-dev-1 bash
-```
-
-### Check disk space
-
-```bash
+# Disk space
 df -h
-```
 
-### Check memory usage
-
-```bash
+# Memory usage
 free -h
-htop  # (press q to quit)
-```
 
-### Monitor Docker container resources
-
-```bash
+# Container resources
 docker stats
 ```
 
@@ -487,7 +586,7 @@ docker stats
 **Check firewall:**
 ```bash
 ufw status
-# Make sure 5000/tcp is allowed
+# Make sure 80/tcp and 443/tcp are allowed
 ```
 
 **Check containers are running:**
@@ -496,59 +595,73 @@ docker ps
 # All containers should show "Up" status
 ```
 
-**Check logs:**
+**Check NGINX logs:**
 ```bash
-docker compose -f docker-compose.dev.yml logs ckan-dev
+docker compose -f docker-compose.dev.yml logs nginx
 ```
 
-### Issue: NGINX basic auth not working
+### Issue: NGINX showing 404
 
-**Verify htpasswd file is mounted:**
+This usually means the config isn't correct. Verify:
+
 ```bash
-docker exec obis-products-catalog-nginx-1 cat /etc/nginx/.htpasswd
-# Should show your username and encrypted password
+# Check active NGINX config
+docker exec obis-products-catalog-nginx-1 nginx -T | grep -A 10 "location /"
+
+# Should show proxy_pass to ckan-dev, not ckan
+# Should show auth_basic lines
+# Server_name should be _ not localhost
 ```
 
-**Restart NGINX:**
+**Fix and restart:**
 ```bash
+nano nginx/setup/default.conf
+# Make corrections
 docker compose -f docker-compose.dev.yml restart nginx
 ```
 
-### Issue: User creation fails
+### Issue: NGINX password prompt not working
 
-**Check CKAN container name:**
+This happens if 401 is in the error_page directive.
+
 ```bash
-docker ps | grep ckan-dev
-# Use the exact name in your create_test_users.sh script
+nano nginx/setup/default.conf
+# Remove 401 from error_page line
+docker compose -f docker-compose.dev.yml restart nginx
 ```
 
-**Try creating one user manually:**
+### Issue: CKAN container keeps restarting
+
+**Check if extensions are installed:**
 ```bash
-docker exec obis-products-catalog-ckan-dev-1 ckan -c /srv/app/ckan.ini user add testuser email=test@test.com password=test123
+docker exec obis-products-catalog-ckan-dev-1 pip list | grep ckanext
+```
+
+**If extensions are missing, install manually** (see Step 5).
+
+**Check permissions:**
+```bash
+ls -la /root/obis-products-catalog/src/
+# Should show 92 92 or 777 permissions
 ```
 
 ### Issue: Out of memory
 
-**Check memory usage:**
 ```bash
+# Check memory
 free -h
 docker stats
-```
 
-**If consistently over 80% RAM usage, upgrade to 8GB droplet:**
-1. Power off the droplet in Digital Ocean console
-2. Click "Resize"
-3. Choose 8GB plan
-4. Restart droplet
+# If consistently over 80%, upgrade droplet to 8GB
+```
 
 ### Issue: Database not initializing
 
-**Reset and reinitialize:**
 ```bash
-cd /root/obis-products-catalog
+# Reset and reinitialize
 docker compose -f docker-compose.dev.yml down -v
 docker compose -f docker-compose.dev.yml up -d
-sleep 30
+sleep 60
 docker exec obis-products-catalog-ckan-dev-1 ckan -c /srv/app/ckan.ini db init
 ```
 
@@ -557,10 +670,10 @@ docker exec obis-products-catalog-ckan-dev-1 ckan -c /srv/app/ckan.ini db init
 ### Backup the database
 
 ```bash
-# Backup PostgreSQL database
+# Backup PostgreSQL
 docker exec obis-products-catalog-db-1 pg_dump -U postgres ckan > /root/ckan_backup_$(date +%Y%m%d).sql
 
-# Download to your local machine
+# Download to local machine
 scp root@YOUR_DROPLET_IP:/root/ckan_backup_*.sql ~/Desktop/
 ```
 
@@ -568,84 +681,61 @@ scp root@YOUR_DROPLET_IP:/root/ckan_backup_*.sql ~/Desktop/
 
 ```bash
 cd /root/obis-products-catalog
-
-# Stop and remove containers, networks, and volumes
 docker compose -f docker-compose.dev.yml down -v
-
-# Remove Docker images (optional, saves space)
 docker system prune -a
 ```
 
 ### Destroy the droplet
 
-When testing is complete and you no longer need the instance:
-1. Log into Digital Ocean
+1. Log into Digital Ocean console
 2. Select your droplet
 3. Click "Destroy"
-4. Confirm destruction
+4. Confirm
 
-⚠️ **Make sure to backup any data you want to keep before destroying!**
+⚠️ **Backup data before destroying!**
 
-## Security Notes for Production
+## Security Notes
 
-This setup is appropriate for **testing only**. For production, you need:
+This setup is for **testing only**. For production:
 
-- [ ] Proper SSL/TLS certificates (Let's Encrypt)
-- [ ] Strong, unique passwords (not shared test passwords)
-- [ ] Proper user authentication (SSO, OAuth)
+- [ ] Use Let's Encrypt SSL certificates
+- [ ] Strong, unique passwords
+- [ ] Proper user authentication (SSO/OAuth)
 - [ ] Regular backups
 - [ ] Monitoring and alerting
-- [ ] Security updates and patches
-- [ ] Proper firewall configuration
+- [ ] Security updates
 - [ ] Rate limiting
 - [ ] DDoS protection
 
 ## Estimated Costs
 
-- Droplet: $24/month (can be prorated daily)
-- Backups (optional): +$4.80/month
-- Snapshots: ~$0.05/GB/month
+- Droplet: $24/month (prorated daily ~$0.80/day)
+- **For 2-week testing: ~$12-15 total**
 
-**For a 2-week testing period: ~$12-15 total**
-
-## Next Steps
-
-After successful testing:
-1. Gather and incorporate user feedback
-2. Plan production deployment
-3. Set up proper production infrastructure
-4. Implement monitoring and backups
-5. Configure SSL and domain name
-6. Review security hardening checklist
-
----
-
-## Quick Reference Commands
+## Quick Reference
 
 ```bash
 # SSH to droplet
 ssh root@YOUR_DROPLET_IP
 
-# Go to project directory
+# Go to project
 cd /root/obis-products-catalog
 
 # View logs
 docker compose -f docker-compose.dev.yml logs -f ckan-dev
 
-# Restart CKAN
+# Restart services
 docker compose -f docker-compose.dev.yml restart ckan-dev
+docker compose -f docker-compose.dev.yml restart nginx
 
-# Create admin user
-docker exec obis-products-catalog-ckan-dev-1 ckan -c /srv/app/ckan.ini sysadmin add USERNAME email=EMAIL@example.com
-
-# Access CKAN shell
-docker exec -it obis-products-catalog-ckan-dev-1 bash
-
-# Check container status
+# Check status
 docker ps
 
-# Check system resources
-htop
+# Check resources
 free -h
 df -h
 ```
+
+---
+
+**Last Updated:** October 2025
