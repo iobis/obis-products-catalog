@@ -23,3 +23,7 @@ __pycache__/
 
 # OS
 Thumbs.db
+.env
+.htpasswd
+nginx/setup/ckan-local.crt
+nginx/setup/ckan-local.key
