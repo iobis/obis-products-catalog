@@ -9,25 +9,27 @@
 {% block primary_content %}
   <article class="module">
     <div class="module-content">
-      <h3><em>The OBIS Products Catalog is in development. We are interested in improving it to be as useful as possible to the OBIS community. Please feel free to offer feedback via helpdesk@obis.org</em></h3>
+      <div class="alert alert-info">
+        <strong>Note:</strong> The OBIS Products Catalog is in development. We are interested in improving it to be as useful as possible to the OBIS community. Please feel free to offer feedback via <a href="mailto:helpdesk@obis.org">helpdesk@obis.org</a>
+      </div>
       
-      <br>
-
       <h1 class="page-heading">{{ _('About the OBIS Products Catalog') }}</h1>
       
       <h2>Discover OBIS-mediated Information Products</h2>
-      <p>The OBIS Data Products Catalog helps you find and access information products built from OBIS-mediated marine biodiversity data. As our network has grown, we've found that it was challenging to keep track of all the amazing products that have been created from OBIS-mediated data. This metadata catalog helps users find and access those products.</p>
+      <p>The OBIS Products Catalog helps you find and access information products built from OBIS-mediated marine biodiversity data. As our network has grown, we've found that it was challenging to keep track of all the amazing products that have been created from OBIS-mediated data. This metadata catalog helps users find and access those products.</p>
       
       <h2>What's in the Catalog</h2>
-      <p>Our catalog includes diverse products created from OBIS-mediated data:</p>
+      <p>Our catalog includes diverse products created from OBIS-mediated data, organized using Zenodo's resource type classification:</p>
       <ul>
-        <li>Maps</li>
-        <li>Models</li>
-        <li>Dashboards</li>
-        <li>Data visualizations</li>
-        <li>Infographics</li>
-        <li>Derived datasets (e.g. improved for a specific purpose)</li>
-        <li>Reports and Presentations</li>
+        <li><strong>Datasets</strong> - Derived datasets improved or aggregated for specific purposes</li>
+        <li><strong>Publications</strong> - Research articles, reports, and technical documents</li>
+        <li><strong>Presentations</strong> - Conference presentations and slideshows</li>
+        <li><strong>Posters</strong> - Scientific posters and visual communications</li>
+        <li><strong>Images</strong> - Maps, data visualizations, and infographics</li>
+        <li><strong>Videos</strong> - Animated visualizations and educational content</li>
+        <li><strong>Software</strong> - Analysis tools, dashboards, and applications</li>
+        <li><strong>Lessons</strong> - Educational materials and tutorials</li>
+        <li><strong>Other</strong> - Additional product types that don't fit the above categories</li>
       </ul>
       <p>Each product includes detailed metadata about data sources, methods, authors, and how to access or cite the work.</p>
       
@@ -35,7 +37,7 @@
       <p>We try as much as possible to use linked data so that the people who created the products don't have to do extra work to maintain metadata. We pull institution records from the OBIS and OceanExpert APIs. We have a tool for import of Zenodo records via a DOI.</p>
       
       <h2>Community Effort</h2>
-      <p>This catalog is developed through the OBIS Products Coordination Group (PCG). The PCG is tasked with coordinating data and information products, from any type of analysis (e.g. description, data visualisation, etc.) that synthesise and generate new information from data hosted on OBIS and other sources.  The PCG meets every other month and is open to attendance by the OBIS community. More information on the PCG can be found in the [OBIS Manual](https://manual.obis.org/nodes.html#obis-products-coordination-group), and by contacting the OBIS Helpdesk (helpdesk@obis.org). </p>
+      <p>This catalog is developed through the OBIS Products Coordination Group (PCG). The PCG is tasked with coordinating data and information products, from any type of analysis (e.g. description, data visualisation, etc.) that synthesise and generate new information from data hosted on OBIS and other sources. The PCG meets every other month and is open to attendance by the OBIS community. More information on the PCG can be found in the <a href="https://manual.obis.org/nodes.html#obis-products-coordination-group" target="_blank" rel="noopener noreferrer">OBIS Manual</a>, and by contacting the OBIS Helpdesk (<a href="mailto:helpdesk@obis.org">helpdesk@obis.org</a>).</p>
       
     </div>
   </article>
