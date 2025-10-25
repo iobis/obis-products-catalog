@@ -1,19 +1,21 @@
 ---
 layout: default
 title: User Guide
+nav_order: 2
+has_children: false
 ---
 
-# OBIS Products Catalog - User Guide
+# User Guide
+{: .no_toc }
 
-## Table of Contents
+A comprehensive guide to using the OBIS Products Catalog.
+{: .fs-6 .fw-300 }
 
-1. [Why We Created This Catalog](#why-we-created-this-catalog)
-2. [Understanding the Data Model](#understanding-the-data-model)
-3. [Product Types](#product-types)
-4. [Thematic Areas](#thematic-areas)
-5. [JSON-LD and Semantic Web](#json-ld-and-semantic-web)
-6. [Searching and Browsing](#searching-and-browsing)
-7. [Contributing Products](#contributing-products)
+## Table of contents
+{: .no_toc .text-delta }
+
+1. TOC
+{:toc}
 
 ---
 
