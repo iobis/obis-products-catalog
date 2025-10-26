@@ -2,7 +2,7 @@ title: OBIS Products Catalog
 description: A comprehensive metadata catalog for ocean biodiversity data products
 
 # Remote theme only (no "theme:" line)
-remote_theme: just-the-docs/just-the-docs
+theme: just-the-docs
 
 # Plugins
 plugins:
