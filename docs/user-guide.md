@@ -1,16 +1,8 @@
 ---
 layout: default
-title: User Guide
+title: OBIS Products Catalog User Guide
 nav_order: 2
 has_children: false
----
-
-# User Guide
-{: .no_toc }
-
-A comprehensive guide to using the OBIS Products Catalog.
-{: .fs-6 .fw-300 }
-
 ---
 
 ## Why We Created This Catalog
@@ -83,7 +75,7 @@ The catalog organizes metadata using three main entities that reflect the OBIS o
 **How they work in the catalog:**
 - Each institution is represented as a **Group** in CKAN
 - Products can be tagged with relevant institutions
-- Institution metadata is enriched with data from Ocean Expert, including:
+- OBIS Institution metadata is enriched with data from Ocean Expert, including:
   - Contact information (email, phone, address)
   - Geographic location and region
   - Institution type and activities
@@ -93,11 +85,6 @@ The catalog organizes metadata using three main entities that reflect the OBIS o
 **Data Sources:** 
 - [https://api.obis.org/v3/institute](https://api.obis.org/v3/institute)
 - [https://oceanexpert.org/api/v1/institute/](https://oceanexpert.org/api/v1/institute/)
-
-**Data Quality Indicators:**
-- `ocean_expert_full` - Complete Ocean Expert metadata retrieved
-- `ocean_expert_partial` - Partial Ocean Expert data available
-- `obis_only` - Only OBIS data available (Ocean Expert unavailable)
 
 ### Relationship Between Nodes and Institutions
 
@@ -192,13 +179,6 @@ The catalog uses [Zenodo's resource type vocabulary](https://help.zenodo.org/doc
 - Data management plans
 - Citizen science projects
 
-### Why These Categories?
-
-This classification system:
-- **Aligns with international standards** (DataCite)
-- **Matches Zenodo**, making import seamless
-- **Covers the full spectrum** of OBIS-related outputs
-- **Is recognized** by research communities and indexing services
 
 ---
 
@@ -221,88 +201,6 @@ Products can be tagged with thematic areas that describe the scientific domains 
 ### Adding New Themes
 
 Themes are managed as CKAN vocabulary tags and can be expanded by the community. To suggest new themes, contact [helpdesk@obis.org](mailto:helpdesk@obis.org).
-
----
-
-## JSON-LD and Semantic Web
-
-### What is JSON-LD?
-
-JSON-LD (JavaScript Object Notation for Linked Data) is a method of encoding linked data using JSON. It allows the catalog to expose metadata in a format that machines can understand and reason about.
-
-### Why It Matters
-
-**For researchers:**
-- Your products become part of the semantic web
-- Metadata can be automatically harvested by search engines and discovery services
-- Links between products, datasets, and researchers are machine-readable
-
-**For the community:**
-- Enables automated aggregation of OBIS products across platforms
-- Facilitates integration with other marine data infrastructures (e.g., ODIS, EDMO)
-- Supports FAIR principles (Findable, Accessible, Interoperable, Reusable)
-
-### How It Works
-
-Every dataset in the catalog has a JSON-LD endpoint that follows the [Schema.org](https://schema.org) vocabulary with ODIS extensions:
-
-**Endpoint format:**
-```
-https://products.obis.org/dataset/{dataset-name}/odis.jsonld
-```
-
-**Example:**
-```
-https://products.obis.org/dataset/arctic-fish-distributions/odis.jsonld
-```
-
-### What's Included in JSON-LD
-
-The JSON-LD export includes:
-
-- **Basic metadata:** Title, description, keywords, publication date
-- **Authors and contributors:** Names, affiliations, ORCID identifiers
-- **Organizations:** ROR identifiers for institutional affiliations
-- **Identifiers:** DOI, URLs, canonical identifiers
-- **Spatial coverage:** Geographic bounding boxes, place names
-- **Temporal coverage:** Time periods covered by the product
-- **Funding:** Grant information and funding agencies
-- **Related resources:** Citations, source datasets, derived products
-
-### Schema.org + ODIS
-
-The catalog uses [Schema.org](https://schema.org) as the base vocabulary (widely recognized by search engines like Google Scholar) and extends it with [ODIS (Ocean Data and Information System)](https://book.oceaninfohub.org/) properties for marine-specific metadata.
-
-**Standard Schema.org types used:**
-- `Dataset` - For data products
-- `ScholarlyArticle` - For publications
-- `SoftwareSourceCode` - For software
-- `CreativeWork` - For other products
-
-**ODIS extensions include:**
-- Marine ecosystem types
-- Ocean regions and features
-- Oceanographic parameters
-- Marine species identifiers
-
-### Using JSON-LD
-
-**For web developers:**
-```html
-<script type="application/ld+json">
-  <!-- Embed JSON-LD in your web page -->
-</script>
-```
-
-**For harvesters:**
-```bash
-curl -H "Accept: application/ld+json" \
-  https://products.obis.org/dataset/dataset-name/odis.jsonld
-```
-
-**For validation:**
-- [Google Rich Results Test](https://search.google.com/test/rich-results)
-- [Schema.org Validator](https://validator.schema.org/)
 
 ---
 
@@ -359,7 +257,6 @@ curl "https://products.obis.org/api/3/action/package_show?id=dataset-name"
 
 1. **Zenodo Import** - Add your DOI to the harvest registry
 2. **Direct Entry** - Create a record directly in the catalog
-3. **API Upload** - Use the CKAN API to batch upload products
 
 ### Recommended: Use Zenodo
 

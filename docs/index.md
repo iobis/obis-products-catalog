@@ -9,8 +9,6 @@ permalink: /
 [User Guide](/user-guide){: .btn .fs-5 .mb-4 .mb-md-0 }
 [View on GitHub](https://github.com/iobis/obis-products-catalog){: .btn .fs-5 .mb-4 .mb-md-0 }
 
----
-
 ## What is the OBIS Products Catalog?
 
 The OBIS Products Catalog is a cmetadata repository that helps users discover and access data products created from OBIS-mediated marine biodiversity data, or designed to support the OBIS network. As the OBIS network has grown, it became challenging to track the diverse products, like maps, models, training, visualizations, software, and presentations, that researchers have created. This catalog provides a searchable focal point for the products, and also ensures the metadata are exposed to catalogs like ODIS for increased findability.
