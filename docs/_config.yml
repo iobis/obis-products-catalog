@@ -1,10 +1,14 @@
 title: OBIS Products Catalog
 description: A comprehensive metadata catalog for ocean biodiversity data products
 
-# Use just-the-docs theme (better for documentation)
+# Remote theme only (no "theme:" line)
 remote_theme: just-the-docs/just-the-docs
 
-# Color scheme
+# Plugins
+plugins:
+  - jekyll-remote-theme
+
+# Color scheme - change to a valid one
 color_scheme: default
 
 # Logo (optional - add your logo file to docs/assets/images/)
