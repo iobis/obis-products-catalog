@@ -5,7 +5,7 @@ description: A comprehensive metadata catalog for ocean biodiversity data produc
 remote_theme: just-the-docs/just-the-docs
 
 # Color scheme
-color_scheme: blue
+color_scheme: default
 
 # Logo (optional - add your logo file to docs/assets/images/)
 # logo: "/assets/images/obis-logo.png"
