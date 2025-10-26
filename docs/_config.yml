@@ -5,8 +5,7 @@ show_downloads: false
 
 # Navigation
 nav_links:
-  - title: Home
-    url: /
+  - title: OBIS Products Catalog
   - title: User Guide
     url: /user-guide
   - title: GitHub
@@ -15,9 +14,6 @@ nav_links:
 # Footer
 footer_text: |
   Maintained by the OBIS Products Coordination Group
-  
-# Google Analytics (optional - add your tracking ID)
-# google_analytics: UA-XXXXXXXXX-X
 
 # Exclude from processing
 exclude:
