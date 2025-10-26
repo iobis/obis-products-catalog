@@ -9,7 +9,9 @@ permalink: /
 # OBIS Products Catalog
 {: .fs-9 }
 
-A comprehensive metadata catalog for ocean biodiversity data products built on CKAN 2.11.
+A metadata catalog for products built on, or for, the OBIS network
+Built on [CKAN](https://ckan.org/) 2.11.
+
 {: .fs-6 .fw-300 }
 
 [Get Started with the User Guide](/user-guide){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
@@ -19,16 +21,16 @@ A comprehensive metadata catalog for ocean biodiversity data products built on C
 
 ## What is the OBIS Products Catalog?
 
-The OBIS Products Catalog is a centralized metadata repository that helps users discover and access data products created from OBIS-mediated marine biodiversity data. As the OBIS network has grown, it became challenging to track the diverse products—from maps and models to publications and software—that researchers have created. This catalog provides a searchable, well-organized metadata registry with semantic web capabilities.
+The OBIS Products Catalog is a cmetadata repository that helps users discover and access data products created from OBIS-mediated marine biodiversity data, or designed to support the OBIS network. As the OBIS network has grown, it became challenging to track the diverse products, like maps, models, training, visualizations, software, and presentations, that researchers have created. This catalog provides a searchable focal point for the products, and also ensures the metadata are exposed to catalogs like ODIS for increased findability.
 
 ## Key Features
 
 {: .highlight }
 > **Centralized Discovery** - Find data products from across the OBIS network
 >
-> **Rich Metadata** - Enhanced schemas with author tracking, funding info, and spatial/temporal coverage
+> **Lightweight** - Focuses metadata focused across multiple repositories without manipulation
 >
-> **Semantic Web Ready** - JSON-LD export for machine-readable metadata
+> **Semantic Web Ready** - JSON-LD export for machine-readable metadata and sharing with ODIS
 >
 > **Linked Data** - Connections to OBIS nodes, institutions, and Ocean Expert
 >

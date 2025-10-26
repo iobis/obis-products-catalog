@@ -23,7 +23,7 @@ A comprehensive guide to using the OBIS Products Catalog.
 
 ### The Challenge
 
-As the Ocean Biodiversity Information System (OBIS) network has grown to encompass 38 regional and thematic nodes and 668 institutions worldwide, researchers have created an incredible variety of data products from OBIS-mediated marine biodiversity data. These products include:
+As the Ocean Biodiversity Information System (OBIS) network has grown to encompass 38 regional and thematic nodes, with data published by thousands of institutions worldwide, researchers have created an incredible variety of data products from OBIS-mediated marine biodiversity data. Examples include:
 
 - Scientific publications and reports
 - Interactive maps and dashboards
@@ -33,7 +33,7 @@ As the Ocean Biodiversity Information System (OBIS) network has grown to encompa
 - Software tools and applications
 - Educational materials
 
-However, these products were scattered across institutional repositories, personal websites, and various data platforms, making it difficult for the community to discover and access them.
+However, these products were scattered across repositories and platforms, making it difficult for the community to discover and access them. This challenge was flagged by the OBIS Products Coordination Group as important for mitigation.
 
 ### The Solution
 
@@ -63,23 +63,22 @@ The catalog organizes metadata using three main entities that reflect the OBIS o
 **What they are:** The 38 regional and thematic nodes that form the OBIS network.
 
 **Examples:**
-- OBIS USA
 - EurOBIS (European node)
 - Antarctic OBIS
 - Caribbean OBIS
 - Ocean Tracking Network (OTN)
 
 **How they work in the catalog:**
-- Each node is represented as an **Organization** in CKAN
+- Each node is represented as an **Organization**. The OBIS Secretariat and OBIS Community (non-nodes) are represented as organizations.
 - Products are associated with the node(s) that stewarded the underlying data
 - Node metadata is synchronized from the OBIS API
-- Organizations are prefixed with `node-` (e.g., `node-obis-usa`) to avoid naming conflicts
+- In the database, Organizations are prefixed with `node-` (e.g., `node-obis-usa`) to avoid naming conflicts
 
 **Data Source:** [https://api.obis.org/v3/node](https://api.obis.org/v3/node)
 
 ### OBIS Institutions (Groups)
 
-**What they are:** The 668+ research institutions, universities, and organizations that contribute data to OBIS.
+**What they are:** The 668+ research institutions, universities, and organizations that contribute data to OBIS _and_ are registered in [Institutes in Ocean Expert](https://oceanexpert.org/institutes).
 
 **Examples:**
 - CSIRO National Collections
