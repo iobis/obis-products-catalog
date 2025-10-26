@@ -1,49 +1,27 @@
 title: OBIS Products Catalog
 description: A comprehensive metadata catalog for ocean biodiversity data products
+theme: jekyll-theme-cayman
+show_downloads: false
 
-# Remote theme only (no "theme:" line)
-theme: just-the-docs
-
-# Plugins
-plugins:
-  - jekyll-remote-theme
-
-# Color scheme - change to a valid one
-color_scheme: default
-
-# Logo (optional - add your logo file to docs/assets/images/)
-# logo: "/assets/images/obis-logo.png"
-
-# Aux links (top right)
-aux_links:
-  "OBIS Website":
-    - "https://obis.org"
-  "GitHub":
-    - "https://github.com/iobis/obis-products-catalog"
+# Navigation
+nav_links:
+  - title: Home
+    url: /
+  - title: User Guide
+    url: /user-guide
+  - title: API Docs
+    url: /api-docs
+  - title: Developer Guide
+    url: /developer-guide
+  - title: GitHub
+    url: https://github.com/iobis/obis-products-catalog
 
 # Footer
-footer_content: "Maintained by the OBIS Products Coordination Group. Licensed under AGPL v3.0."
-
-# Search enabled
-search_enabled: true
-search:
-  heading_level: 2
-  previews: 3
-  preview_words_before: 5
-  preview_words_after: 10
-  tokenizer_separator: /[\s/]+/
-  rel_url: true
-  button: false
-
-# Enable copy code button
-enable_copy_code_button: true
-
-# Back to top link
-back_to_top: true
-back_to_top_text: "Back to top"
-
-# Google Analytics (optional)
-# ga_tracking: UA-XXXXXXXXX-X
+footer_text: |
+  Maintained by the OBIS Products Coordination Group
+  
+# Google Analytics (optional - add your tracking ID)
+# google_analytics: UA-XXXXXXXXX-X
 
 # Exclude from processing
 exclude:
