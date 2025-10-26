@@ -1,6 +1,6 @@
 ---
 layout: default
-title: Home
+title: OBIS Products Catalog
 nav_order: 1
 description: "OBIS Products Catalog - A metadata catalog for products built on, or for, the OBIS network"
 permalink: /
@@ -12,9 +12,7 @@ permalink: /
 A metadata catalog for products built on, or for, the OBIS network
 Built on [CKAN](https://ckan.org/) 2.11.
 
-{: .fs-6 .fw-300 }
-
-[Get Started with the User Guide](/user-guide){: .btn .btn-primary .fs-5 .mb-4 .mb-md-0 .mr-2 }
+[Get Started with the User Guide](/user-guide){: .btn .fs-5 .mb-4 .mb-md-0 }
 [View on GitHub](https://github.com/iobis/obis-products-catalog){: .btn .fs-5 .mb-4 .mb-md-0 }
 
 ---
