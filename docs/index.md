@@ -2,17 +2,11 @@
 layout: default
 title: OBIS Products Catalog
 nav_order: 1
-description: "OBIS Products Catalog - A metadata catalog for products built on, or for, the OBIS network"
+description: "A metadata catalog for products built on, or for, the OBIS network"
 permalink: /
 ---
 
-# OBIS Products Catalog
-{: .fs-9 }
-
-A metadata catalog for products built on, or for, the OBIS network
-Built on [CKAN](https://ckan.org/) 2.11.
-
-[Get Started with the User Guide](/user-guide){: .btn .fs-5 .mb-4 .mb-md-0 }
+[User Guide](/user-guide){: .btn .fs-5 .mb-4 .mb-md-0 }
 [View on GitHub](https://github.com/iobis/obis-products-catalog){: .btn .fs-5 .mb-4 .mb-md-0 }
 
 ---
