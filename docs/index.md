@@ -2,7 +2,7 @@
 layout: default
 title: Home
 nav_order: 1
-description: "OBIS Products Catalog - A comprehensive metadata catalog for ocean biodiversity data products"
+description: "OBIS Products Catalog - A metadata catalog for products built on, or for, the OBIS network"
 permalink: /
 ---
 
@@ -43,7 +43,7 @@ The OBIS Products Catalog is a cmetadata repository that helps users discover an
 | **Core Stack** | CKAN 2.11, PostgreSQL, Solr, Redis, NGINX |
 | **Data Sources** | OBIS API, Ocean Expert API, Zenodo |
 | **Organizations** | 38 OBIS regional/thematic nodes |
-| **Institutions** | 668 OBIS institutions with enhanced metadata |
+| **Institutions** | 668 Ocean Expert Institutions |
 | **API** | Full CKAN API v3 + custom JSON-LD endpoints |
 
 ## Community

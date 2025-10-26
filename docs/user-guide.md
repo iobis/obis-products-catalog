@@ -11,12 +11,6 @@ has_children: false
 A comprehensive guide to using the OBIS Products Catalog.
 {: .fs-6 .fw-300 }
 
-## Table of contents
-{: .no_toc .text-delta }
-
-1. TOC
-{:toc}
-
 ---
 
 ## Why We Created This Catalog

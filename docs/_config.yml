@@ -1,5 +1,5 @@
 title: OBIS Products Catalog
-description: A comprehensive metadata catalog for ocean biodiversity data products
+description: A metadata catalog for products built on, or for, the OBIS network
 theme: jekyll-theme-cayman
 show_downloads: false
 
@@ -9,10 +9,6 @@ nav_links:
     url: /
   - title: User Guide
     url: /user-guide
-  - title: API Docs
-    url: /api-docs
-  - title: Developer Guide
-    url: /developer-guide
   - title: GitHub
     url: https://github.com/iobis/obis-products-catalog
 
