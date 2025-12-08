@@ -30,7 +30,6 @@ services:
       - site_packages:/usr/local/lib/python3.10/site-packages
       - local_bin:/usr/local/bin
       #- home_dir:/srv/app/
-    command: gunicorn --workers=8 --worker-class=gevent --timeout=120 --bind=0.0.0.0:5000 --worker-connections=1000 ckan.config.middleware:make_app
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:5000"]
