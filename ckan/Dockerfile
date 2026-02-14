@@ -16,10 +16,6 @@ RUN pip3 install -e /srv/app/src/ckanext-obis_theme && \
     pip3 install -e /srv/app/src/ckanext-zenodo && \
     pip3 install -e /srv/app/src/ckanext-doi-import
 
-# Copy startup overrides
-COPY --chown=ckan-sys:ckan-sys ckan/setup/start_ckan.sh.override /srv/app/start_ckan.sh
-COPY --chown=ckan-sys:ckan-sys ckan/setup/prerun.py.override /srv/app/prerun.py
-
 # Copy custom initialization scripts
 COPY --chown=ckan-sys:ckan-sys ckan/docker-entrypoint.d/* /docker-entrypoint.d/
 
