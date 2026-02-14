@@ -10,7 +10,7 @@ services:
   nginx:
     build:
       context: nginx/
-      dockerfile: ckan/Dockerfile
+      dockerfile: Dockerfile
     networks:
       - webnet
       - ckannet
