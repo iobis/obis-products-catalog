@@ -1,5 +1,7 @@
 FROM ckan/ckan-base:2.11
 
+USER root
+
 # Install community extensions
 RUN pip3 install -e 'git+https://github.com/ckan/ckanext-scheming.git@master#egg=ckanext-scheming'
 
