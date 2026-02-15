@@ -18,6 +18,7 @@ services:
       ckan:
         condition: service_healthy
     ports:
+      - "0.0.0.0:80:80"
       - "0.0.0.0:${NGINX_SSLPORT_HOST}:${NGINX_SSLPORT}"
     
   ckan:
