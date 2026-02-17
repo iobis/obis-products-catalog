@@ -1,0 +1,44 @@
+site_name: OBIS Products Catalog
+site_description: Documentation for the OBIS Products Catalog — a CKAN-based metadata catalog for ocean biodiversity research products.
+site_url: https://iobis.github.io/obis-products-catalog/
+
+repo_name: iobis/obis-products-catalog
+repo_url: https://github.com/iobis/obis-products-catalog
+
+theme:
+  name: material
+  palette:
+    primary: custom
+    accent: custom
+  font:
+    text: Noto Sans
+    code: Roboto Mono
+  features:
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+    - toc.integrate
+
+extra_css:
+  - stylesheets/extra.css
+
+nav:
+  - Home: index.md
+  - User Guide: user-guide.md
+  - Theming & Aesthetics: theming.md
+  - Architecture: architecture.md
+  - Extensions: extensions.md
+  - Operations: operations.md
+  - Data Model: data-model.md
+  - Contributing Code: contributing.md
+
+markdown_extensions:
+  - admonitions
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - attr_list
+  - def_list
