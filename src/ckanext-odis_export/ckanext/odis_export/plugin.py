@@ -16,11 +16,11 @@ class OdisPlugin(plugins.SingletonPlugin):
     def update_config(self, config_):
         toolkit.add_template_directory(config_, "templates")
         toolkit.add_public_directory(config_, "public")
-        toolkit.add_resource("assets", "odis")
+        toolkit.add_resource("assets", "odis_export")
 
     # IBlueprint
     def get_blueprint(self):
-        blueprint = Blueprint('odis', self.__module__)
+        blueprint = Blueprint('odis_export', self.__module__)
         blueprint.add_url_rule(
             '/dataset/<id>/odis.jsonld',
             'export_odis',
