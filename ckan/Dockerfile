@@ -10,11 +10,13 @@ COPY --chown=ckan-sys:ckan-sys src/ckanext-obis_theme /srv/app/src/ckanext-obis_
 COPY --chown=ckan-sys:ckan-sys src/ckanext-odis /srv/app/src/ckanext-odis
 COPY --chown=ckan-sys:ckan-sys src/ckanext-zenodo /srv/app/src/ckanext-zenodo
 COPY --chown=ckan-sys:ckan-sys src/ckanext-doi-import /srv/app/src/ckanext-doi-import
+COPY --chown=ckan-sys:ckan-sys src/ckanext-obis_sync /srv/app/src/ckanext-obis_sync
 
 RUN pip3 install -e /srv/app/src/ckanext-obis_theme && \
     pip3 install -e /srv/app/src/ckanext-odis && \
     pip3 install -e /srv/app/src/ckanext-zenodo && \
-    pip3 install -e /srv/app/src/ckanext-doi-import
+    pip3 install -e /srv/app/src/ckanext-doi-import && \
+    pip3 install -e /srv/app/src/ckanext-obis_sync
 
 # Copy custom initialization scripts
 COPY --chown=ckan-sys:ckan-sys ckan/docker-entrypoint.d/* /docker-entrypoint.d/
