@@ -33,15 +33,15 @@ class ZenodoPlugin(plugins.SingletonPlugin):
         
         # Solr needs these as proper lists for multi-valued fields
         # The field names need _ss suffix for multi-valued string fields
-        if 'product_type_tags' in pkg_dict:
-            if isinstance(pkg_dict['product_type_tags'], str):
+        if 'product_type' in pkg_dict:
+            if isinstance(pkg_dict['product_type'], str):
                 try:
                     import json
-                    tags = json.loads(pkg_dict['product_type_tags'])
+                    tags = json.loads(pkg_dict['product_type'])
                 except:
-                    tags = [pkg_dict['product_type_tags']]
+                    tags = [pkg_dict['product_type']]
             else:
-                tags = pkg_dict['product_type_tags']
+                tags = pkg_dict['product_type']
             # Store with _ss suffix for Solr dynamic multi-valued field
             pkg_dict['vocab_product_type_tags'] = tags
         
@@ -71,14 +71,14 @@ class ZenodoPlugin(plugins.SingletonPlugin):
     
     def group_facets(self, facets_dict, group_type, package_type):
         """Add custom facets to group search"""
-        facets_dict['product_type_tags'] = toolkit._('Product Types')
-        facets_dict['thematic_tags'] = toolkit._('Thematic Areas')
+        facets_dict['vocab_product_type_tags'] = toolkit._('Product Types')
+        facets_dict['vocab_thematic_tags'] = toolkit._('Thematic Areas')
         return facets_dict
     
     def organization_facets(self, facets_dict, organization_type, package_type):
         """Add custom facets to organization search"""
-        facets_dict['product_type_tags'] = toolkit._('Product Types')
-        facets_dict['thematic_tags'] = toolkit._('Thematic Areas')
+        facets_dict['vocab_product_type_tags'] = toolkit._('Product Types')
+        facets_dict['vocab_thematic_tags'] = toolkit._('Thematic Areas')
         return facets_dict
     
     def get_helpers(self):
