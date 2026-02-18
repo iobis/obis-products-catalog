@@ -93,7 +93,7 @@ class DoiImportPlugin(plugins.SingletonPlugin):
 
             try:
                 groups = toolkit.get_action("group_list")(
-                    context, {"all_fields": True}
+                    context, {"all_fields": True, "limit": 1000}
                 )
                 contributing_orgs = [
                     {"value": g["id"], "label": g["display_name"]} for g in groups
@@ -286,10 +286,9 @@ def doi_create_dataset(context, data_dict):
         metadata["owner_org"] = owner_org
 
     if contributing_orgs:
-        if isinstance(contributing_orgs, list):
-            metadata["contributing_organizations"] = contributing_orgs
-        else:
-            metadata["contributing_organizations"] = [contributing_orgs]
+        if not isinstance(contributing_orgs, list):
+            contributing_orgs = [contributing_orgs]
+        metadata["groups"] = [{"id": org_id} for org_id in contributing_orgs]
 
     # Generate a URL-safe name for new datasets
     if "id" not in metadata:
