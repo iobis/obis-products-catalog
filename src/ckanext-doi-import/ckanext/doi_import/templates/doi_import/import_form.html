@@ -38,8 +38,9 @@
           <div class="col-sm-10">
             <select id="owner_org" name="owner_org" class="form-control" required>
               <option value="">{{ _('Select organization...') }}</option>
+              {% set selected_org = request.args.get("owner_org", "") %}
               {% for org in user_orgs %}
-                <option value="{{ org.id }}">{{ org.display_name }}</option>
+                <option value="{{ org.id }}"{% if org.id == selected_org %} selected{% endif %}>{{ org.display_name }}</option>
               {% endfor %}
             </select>
             <p class="help-block">{{ _('The organization that will own this dataset') }}</p>
