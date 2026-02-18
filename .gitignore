@@ -27,3 +27,6 @@ Thumbs.db
 .htpasswd
 nginx/setup/ckan-local.crt
 nginx/setup/ckan-local.key
+
+# backup db
+*.dump
