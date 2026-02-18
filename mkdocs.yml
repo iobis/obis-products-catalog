@@ -33,7 +33,7 @@ nav:
   - Contributing Code: contributing.md
 
 markdown_extensions:
-  - admonitions
+  - admonition
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.superfences
