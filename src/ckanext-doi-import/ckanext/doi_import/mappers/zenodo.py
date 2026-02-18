@@ -107,12 +107,10 @@ def _map_authors(creators):
             affiliation = ", ".join(affiliation)
 
         authors.append({
-            "name": creator.get("name", ""),
-            "affiliation": str(affiliation) if affiliation else "",
-            "email": creator.get("email", ""),
+            "author_name": creator.get("name", ""),
+            "author_affiliation_name": str(affiliation) if affiliation else "",
         })
     return authors
-
 
 def _map_resources(files, record_id):
     """Map Zenodo files to CKAN resource list."""

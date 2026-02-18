@@ -198,16 +198,11 @@ class OdisPlugin(plugins.SingletonPlugin):
             'value': doi_value,
             'url': doi
         }
-    
+
     def _build_authors(self, authors_data):
         """
-        Build array of Person objects from authors data
-        
-        Args:
-            authors_data: List of author dicts
-            
-        Returns:
-            list: Array of Person objects
+        Build array of Person objects from authors data.
+        Handles both schema format (author_name) and legacy format (name).
         """
         if not isinstance(authors_data, list):
             return []
@@ -219,35 +214,37 @@ class OdisPlugin(plugins.SingletonPlugin):
             
             person = {'@type': 'Person'}
             
-            # Add @id if ORCID present
-            if author.get('author_orcid'):
-                person['@id'] = author['author_orcid']
+            # ORCID
+            orcid = author.get('author_orcid') or author.get('orcid')
+            if orcid:
+                person['@id'] = orcid
             
-            # Name (required)
-            if author.get('author_name'):
-                person['name'] = author['author_name']
+            # Name (schema format: author_name, legacy: name)
+            name = author.get('author_name') or author.get('name')
+            if name:
+                person['name'] = name
             
-            # Given name and family name (optional)
+            # Given/family name
             if author.get('author_given_name'):
                 person['givenName'] = author['author_given_name']
-            
             if author.get('author_family_name'):
                 person['familyName'] = author['author_family_name']
             
-            # Affiliation (optional)
-            if author.get('author_affiliation_name'):
+            # Affiliation (schema format: author_affiliation_name, legacy: affiliation)
+            aff_name = author.get('author_affiliation_name') or author.get('affiliation')
+            if aff_name:
                 affiliation = {
                     '@type': 'Organization',
-                    'name': author['author_affiliation_name']
+                    'name': aff_name
                 }
-                if author.get('author_affiliation_ror'):
-                    affiliation['@id'] = author['author_affiliation_ror']
-                
+                aff_ror = author.get('author_affiliation_ror')
+                if aff_ror:
+                    affiliation['@id'] = aff_ror
                 person['affiliation'] = [affiliation]
             
             authors.append(person)
         
-        return authors
+        return authors    
     
     def _extract_contributor_organizations(self, contributors_data):
         """
