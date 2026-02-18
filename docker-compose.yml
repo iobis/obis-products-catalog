@@ -20,6 +20,10 @@ services:
     ports:
       - "0.0.0.0:80:80"
       - "0.0.0.0:${NGINX_SSLPORT_HOST}:${NGINX_SSLPORT}"
+    volumes:
+      - /etc/letsencrypt/live/obis-catalog.dev.thedatapatch.com/fullchain.pem:/etc/nginx/certs/fullchain.pem:ro
+      - /etc/letsencrypt/live/obis-catalog.dev.thedatapatch.com/privkey.pem:/etc/nginx/certs/privkey.pem:ro
+      - /etc/letsencrypt/archive/obis-catalog.dev.thedatapatch.com:/etc/letsencrypt/archive/obis-catalog.dev.thedatapatch.com:ro
     
   ckan:
     build:
