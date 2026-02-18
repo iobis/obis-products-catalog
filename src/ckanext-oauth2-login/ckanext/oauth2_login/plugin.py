@@ -8,7 +8,8 @@ Flow:
 1. User clicks "Sign in with ORCID" → redirected to ORCID authorization page
 2. User authorizes → ORCID redirects back with an authorization code
 3. Extension exchanges code for access token + ORCID iD
-4. Extension creates or finds a matching CKAN user, logs them in
+4. Extension checks ORCID iD against whitelist
+5. Extension creates or finds a matching CKAN user, logs them in
 
 Requires these .env variables:
     CKANEXT__OAUTH2_LOGIN__ORCID_CLIENT_ID
@@ -20,8 +21,8 @@ Optional (defaults to production ORCID):
 """
 
 import logging
+import os
 import secrets
-import re
 
 import requests as http_requests
 from flask import Blueprint, redirect, request, session
@@ -72,6 +73,67 @@ def _userinfo_url():
 
 
 # ---------------------------------------------------------------------------
+# Whitelist
+# ---------------------------------------------------------------------------
+
+_whitelist_cache = None
+
+
+def _load_whitelist():
+    """Load approved ORCID iDs from the whitelist file.
+
+    The file is searched in this order:
+    1. Path set in CKANEXT__OAUTH2_LOGIN__WHITELIST_PATH
+    2. orcid_whitelist.txt in the extension directory
+    3. /srv/app/orcid_whitelist.txt (Docker default)
+
+    Returns a set of ORCID iD strings (e.g. {'0000-0001-7418-1244', ...}).
+    """
+    global _whitelist_cache
+    if _whitelist_cache is not None:
+        return _whitelist_cache
+
+    # Search paths
+    custom_path = _config('whitelist_path')
+    ext_dir = os.path.dirname(os.path.abspath(__file__))
+    candidates = [
+        custom_path,
+        os.path.join(ext_dir, '..', '..', 'orcid_whitelist.txt'),
+        '/srv/app/orcid_whitelist.txt',
+    ]
+
+    whitelist = set()
+    for path in candidates:
+        if path and os.path.isfile(path):
+            log.info(f'Loading ORCID whitelist from: {path}')
+            with open(path, 'r') as f:
+                for line in f:
+                    line = line.split('#')[0].strip()
+                    if line:
+                        whitelist.add(line)
+            log.info(f'Loaded {len(whitelist)} approved ORCID iDs')
+            _whitelist_cache = whitelist
+            return whitelist
+
+    log.warning('No ORCID whitelist file found — all ORCID logins will be rejected')
+    _whitelist_cache = whitelist
+    return whitelist
+
+
+def _is_orcid_approved(orcid_id):
+    """Check if an ORCID iD is on the approved whitelist."""
+    whitelist = _load_whitelist()
+    return orcid_id in whitelist
+
+
+def reload_whitelist():
+    """Force reload of the whitelist (e.g. after editing the file)."""
+    global _whitelist_cache
+    _whitelist_cache = None
+    return _load_whitelist()
+
+
+# ---------------------------------------------------------------------------
 # User management helpers
 # ---------------------------------------------------------------------------
 
@@ -90,11 +152,21 @@ def _find_or_create_user(orcid_id, name, email=None):
     """
     username = _sanitize_username(orcid_id)
 
-    # Try to find existing user
+    # Try to find existing user (including deleted/inactive)
     try:
         user = toolkit.get_action('user_show')(
-            {'ignore_auth': True}, {'id': username}
+            {'ignore_auth': True}, {'id': username, 'include_deleted': True}
         )
+        # Reactivate if user was deleted (but still on whitelist)
+        if user.get('state') == 'deleted':
+            log.info(f'Reactivating deleted user: {username}')
+            userobj = model.User.by_name(username)
+            if userobj:
+                userobj.state = 'active'
+                model.Session.commit()
+                user = toolkit.get_action('user_show')(
+                    {'ignore_auth': True}, {'id': username}
+                )
         log.info(f'Found existing user: {username}')
         return user
     except logic.NotFound:
@@ -126,6 +198,21 @@ def _find_or_create_user(orcid_id, name, email=None):
             }
         )
         log.info(f'Created new user: {username} (ORCID: {orcid_id})')
+
+        # Auto-assign to OBIS Community organization as editor
+        try:
+            toolkit.get_action('organization_member_create')(
+                {'ignore_auth': True},
+                {
+                    'id': 'obis-community',
+                    'username': username,
+                    'role': 'editor',
+                }
+            )
+            log.info(f'Added {username} to obis-community as editor')
+        except Exception as e:
+            log.warning(f'Could not add {username} to obis-community: {e}')
+
         return user
     except logic.ValidationError as e:
         log.error(f'Failed to create user for ORCID {orcid_id}: {e.error_dict}')
@@ -133,12 +220,29 @@ def _find_or_create_user(orcid_id, name, email=None):
 
 
 def _login_user(username):
-    """Set the CKAN session to log in the given user."""
+    """Set the CKAN session to log in the given user.
+
+    Mirrors CKAN 2.11 login flow: regenerate session, login, rotate token.
+    """
     userobj = model.User.by_name(username)
     if userobj:
-        # CKAN 2.10+ uses Flask-Login
+        from flask import current_app, session as flask_session
         from ckan.common import login_user as ckan_login_user
+
+        # Regenerate session (same as CKAN native login)
+        regenerate = getattr(current_app.session_interface, "regenerate", None)
+        if regenerate is not None:
+            regenerate(flask_session)
+
         ckan_login_user(userobj)
+
+        # Rotate CSRF token (same as CKAN native login)
+        try:
+            from ckan.views.user import rotate_token
+            rotate_token()
+        except ImportError:
+            pass
+
         log.info(f'Logged in user: {username}')
     else:
         log.error(f'Cannot find user object for: {username}')
@@ -248,6 +352,15 @@ def orcid_callback():
         return redirect('/')
 
     log.info(f'ORCID login successful for: {orcid_id} ({name})')
+
+    # Check whitelist
+    if not _is_orcid_approved(orcid_id):
+        log.warning(f'ORCID {orcid_id} ({name}) not on whitelist — login rejected')
+        toolkit.h.flash_error(
+            'Your ORCID iD is not yet approved for this catalog. '
+            'Please contact helpdesk@obis.org to request access.'
+        )
+        return redirect('/')
 
     # Optionally fetch more user info from the userinfo endpoint
     email = None

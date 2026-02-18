@@ -66,11 +66,18 @@ Authorization policy extension that enables cross-node curation. Any logged-in u
 
 ## ckanext-oauth2-login
 
-ORCID OAuth2 login for researchers. Allows users to sign in with their ORCID iD instead of a CKAN username and password. Creates a CKAN account on first login and auto-assigns new users to the OBIS Community organization as editors.
+ORCID OAuth2 login for researchers. Allows users to sign in with their ORCID iD instead of a CKAN username and password. Only ORCID iDs on the approved whitelist can log in. Creates a CKAN account on first login and auto-assigns new users to the OBIS Community organization as editors.
 
 **Plugin name**: `oauth2_login`
 
-**Status**: Built but not yet active — requires HTTPS and ORCID application credentials to activate.
+**Access control**: Login is restricted to ORCID iDs listed in `orcid_whitelist.txt` in the extension root. Unapproved users are shown a message to contact helpdesk@obis.org. See [Operations > User Management](operations.md#orcid-whitelist) for how to manage the whitelist.
+
+**Key behaviors**:
+
+- Whitelist checked after ORCID authentication, before account creation
+- First-time approved users get a CKAN account and OBIS Community membership automatically
+- Deleted users are reactivated on next login (remove from whitelist to block)
+- Session handling mirrors CKAN's native login (session regeneration + CSRF token rotation)
 
 **Routes**:
 
@@ -86,7 +93,7 @@ ORCID OAuth2 login for researchers. Allows users to sign in with their ORCID iD 
 | `h.oauth2_login_orcid_enabled()` | `True` if ORCID client ID is configured |
 | `h.oauth2_login_orcid_url()` | URL to start ORCID login |
 
-**Required `.env` variables** (when activated):
+**Required `.env` variables**:
 
 ```
 CKANEXT__OAUTH2_LOGIN__ORCID_CLIENT_ID=APP-XXXXXXXXXXXXXXXX

@@ -1,0 +1,13 @@
+# OBIS Products Catalog — Approved ORCID iDs
+# One ORCID iD per line. Lines starting with # are comments.
+# To add a new user: add their ORCID iD here, rebuild and restart.
+
+0000-0001-7418-1244  # Stephen Formel
+0000-0002-4236-0384  # Pieter Provoost
+0000-0002-8059-6304  # Silas Candido Principe de Souza
+0000-0002-3237-4547  # Ward Appeltans
+0000-0003-2807-5867  # Jonathan Pye
+0000-0002-6446-7342  # Emilie Boulanger
+0000-0002-5304-941X  # Elizabeth Lawrence
+0000-0002-5806-0837  # Dan Lear
+0000-0001-7843-3074  # Katherine Lesley Tattersall

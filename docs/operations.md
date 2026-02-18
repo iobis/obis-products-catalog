@@ -30,12 +30,53 @@ docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-institutions
 
 ## User Management
 
+### ORCID Whitelist
+
+Access to the catalog is controlled by an ORCID whitelist. Only researchers whose ORCID iDs appear in the whitelist can log in via ORCID. Unapproved users see a message directing them to contact helpdesk@obis.org.
+
+**Whitelist file location:** `src/ckanext-oauth2-login/orcid_whitelist.txt`
+
+**Adding a new user:**
+
+1. Edit the whitelist file and add their ORCID iD (one per line, comments after `#`):
+   ```
+   0000-0002-1234-5678  # Researcher Name
+   ```
+2. Rebuild and restart:
+   ```bash
+   docker compose build ckan && docker compose up -d
+   ```
+
+The next time the researcher clicks "Sign in with ORCID", their account will be created automatically and they'll be added to the OBIS Community organization as an editor.
+
+**Removing a user:**
+
+Remove their ORCID iD from the whitelist file, rebuild, and restart. They won't be able to log in again via ORCID. Their existing CKAN account will remain in the system but will be inactive.
+
+To fully delete the account:
+
+```bash
+docker compose exec -it ckan ckan -c /srv/app/ckan.ini shell
+```
+
+Then in the shell:
+
+```python
+from ckan import model
+user = model.User.by_name('orcid-XXXX-XXXX-XXXX-XXXX')
+user.purge()
+model.Session.commit()
+```
+
+!!! warning
+    If you only set a user to `deleted` state (via the CKAN UI or `user remove` CLI) without removing them from the whitelist, they will be **automatically reactivated** the next time they log in via ORCID.
+
 ### Adding a user to an organization
 
 Use the web UI at `/organization/<org-name>/members` or the API:
 
 ```bash
-curl -X POST http://YOUR_HOST/api/3/action/organization_member_create \
+curl -X POST https://YOUR_HOST/api/3/action/organization_member_create \
   -H "Authorization: YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"id": "obis-community", "username": "the_username", "role": "editor"}'
@@ -43,7 +84,9 @@ curl -X POST http://YOUR_HOST/api/3/action/organization_member_create \
 
 Roles: `member` (read-only), `editor` (create/edit), `admin` (full control including delete and member management).
 
-### Creating a user
+### Creating a user manually
+
+For non-ORCID accounts (e.g. service accounts):
 
 ```bash
 docker compose exec ckan ckan -c /srv/app/ckan.ini user add USERNAME email=EMAIL password=PASSWORD

@@ -46,14 +46,13 @@ For more information, see the [OBIS Manual](https://manual.obis.org/nodes.html#o
 
 The catalog supports signing in with your **ORCID iD**. Click "Sign in with ORCID" on the login page to authenticate using your existing ORCID account.
 
-On your first login, the catalog will:
+Access is controlled by an **approved ORCID whitelist**. If your ORCID iD is not on the list, you'll see a message directing you to contact [helpdesk@obis.org](mailto:helpdesk@obis.org) to request access.
+
+On your first approved login, the catalog will:
 
 - Create a catalog account linked to your ORCID iD
 - Add you to the **OBIS Community** organization as an editor
 - Use your name and email from your ORCID profile
-
-!!! note
-    ORCID login requires HTTPS and is not yet active on the demo instance. It will be enabled once the production domain and SSL certificates are in place.
 
 ### What You Can Do
 
