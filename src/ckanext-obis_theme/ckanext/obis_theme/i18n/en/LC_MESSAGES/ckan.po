@@ -1,0 +1,278 @@
+# OBIS Products Catalog — English overrides
+# Replaces "Dataset" with "Product" throughout the UI
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+
+msgid "Dataset"
+msgstr "Product"
+
+msgid "Datasets"
+msgstr "Products"
+
+msgid "dataset"
+msgstr "product"
+
+msgid "{num} Dataset"
+msgid_plural "{num} Datasets"
+msgstr[0] "{num} Product"
+msgstr[1] "{num} Products"
+
+msgid "{number} dataset found for \"{query}\""
+msgid_plural "{number} datasets found for \"{query}\""
+msgstr[0] "{number} product found for \"{query}\""
+msgstr[1] "{number} products found for \"{query}\""
+
+msgid "{number} dataset found"
+msgid_plural "{number} datasets found"
+msgstr[0] "{number} product found"
+msgstr[1] "{number} products found"
+
+msgid "0 Datasets"
+msgstr "0 Products"
+
+msgid "Add Dataset"
+msgstr "Add Product"
+
+msgid "Add data to the dataset"
+msgstr "Add data to the product"
+
+msgid "All dataset revisions"
+msgstr "All product revisions"
+
+msgid "Are you sure you want to delete dataset - {name}?"
+msgstr "Are you sure you want to delete product - {name}?"
+
+msgid "Are you sure you want to delete this dataset?"
+msgstr "Are you sure you want to delete this product?"
+
+msgid "Are you sure you want to purge datasets?"
+msgstr "Are you sure you want to purge products?"
+
+msgid "Associate this group with this dataset"
+msgstr "Associate this group with this product"
+
+msgid "Before you can create a dataset you need to create an organization."
+msgstr "Before you can create a product you need to create an organization."
+
+msgid "Create Dataset"
+msgstr "Create Product"
+
+msgid "Create datasets, groups and other exciting things"
+msgstr "Create products, groups and other exciting things"
+
+msgid "Dataset Revisions per Week"
+msgstr "Product Revisions per Week"
+
+msgid "Dataset collaborators not enabled"
+msgstr "Product collaborators not enabled"
+
+msgid "Dataset description:"
+msgstr "Product description:"
+
+msgid "Dataset has been deleted."
+msgstr "Product has been deleted."
+
+msgid "Dataset id already exists"
+msgstr "Product id already exists"
+
+msgid "Dataset not found or you have no permission to view it"
+msgstr "Product not found or you have no permission to view it"
+
+msgid "Dataset not found"
+msgstr "Product not found"
+
+msgid "Datasets in group: {group}"
+msgstr "Products in group: {group}"
+
+msgid "Datasets in organization: {group}"
+msgstr "Products in organization: {group}"
+
+msgid "Datasets per page"
+msgstr "Products per page"
+
+msgid "Datasets with no organization can't be private."
+msgstr "Products with no organization can't be private."
+
+msgid "Deleted datasets"
+msgstr "Deleted products"
+
+msgid "Edit datasets"
+msgstr "Edit products"
+
+msgid "Error validating the schema of the dataset to follow."
+msgstr "Error validating the schema of the product to follow."
+
+msgid "Most Edited Datasets"
+msgstr "Most Edited Products"
+
+msgid "My Datasets"
+msgstr "My Products"
+
+msgid "New datasets"
+msgstr "New products"
+
+msgid "No dataset id provided, cannot check auth."
+msgstr "No product id provided, cannot check auth."
+
+msgid "No datasets found for \"{query}\""
+msgstr "No products found for \"{query}\""
+
+msgid "No datasets found"
+msgstr "No products found"
+
+msgid "No edited datasets"
+msgstr "No edited products"
+
+msgid "Number of Datasets"
+msgstr "Number of Products"
+
+msgid "Number of datasets"
+msgstr "Number of products"
+
+msgid "Organization cannot be deleted while it still has datasets"
+msgstr "Organization cannot be deleted while it still has products"
+
+msgid "Purge deleted datasets, organizations or groups forever and irreversibly."
+msgstr "Purge deleted products, organizations or groups forever and irreversibly."
+
+msgid "Remove dataset from this group"
+msgstr "Remove product from this group"
+
+msgid "Search Datasets..."
+msgstr "Search Products..."
+
+msgid "Search datasets"
+msgstr "Search products"
+
+msgid "Search datasets..."
+msgstr "Search products..."
+
+msgid "Sorry no datasets found for \"{query}\""
+msgstr "Sorry no products found for \"{query}\""
+
+msgid "Source: <a href=\"%(url)s\">%(dataset)s</a>"
+msgstr "Source: <a href=\"%(url)s\">%(dataset)s</a>"
+
+msgid "The dataset {id} could not be found."
+msgstr "The product {id} could not be found."
+
+msgid "The detail of this dataset activity is not available"
+msgstr "The detail of this product activity is not available"
+
+msgid "There are no datasets to purge"
+msgstr "There are no products to purge"
+
+msgid "There are no groups associated with this dataset"
+msgstr "There are no groups associated with this product"
+
+msgid "There are no organizations to which you can assign this dataset."
+msgstr "There are no organizations to which you can assign this product."
+
+msgid "There are no {object_type}s associated with this dataset"
+msgstr "There are no {object_type}s associated with this product"
+
+msgid "There is no description for this dataset"
+msgstr "There is no description for this product"
+
+msgid "This dataset has no data"
+msgstr "This product has no data"
+
+msgid "This dataset satisfies the Open Definition."
+msgstr "This product satisfies the Open Definition."
+
+msgid "This organization has no datasets associated to it"
+msgstr "This organization has no products associated to it"
+
+msgid "Total Number of Datasets"
+msgstr "Total Number of Products"
+
+msgid "Total datasets"
+msgstr "Total products"
+
+msgid "Total number of Datasets"
+msgstr "Total number of Products"
+
+msgid "Unauthorized to read dataset %s"
+msgstr "Unauthorized to read product %s"
+
+msgid "Unauthorized to update dataset"
+msgstr "Unauthorized to update product"
+
+msgid "Update Dataset"
+msgstr "Update Product"
+
+msgid "User %s not authorized to add collaborators to this dataset"
+msgstr "User %s not authorized to add collaborators to this product"
+
+msgid "User %s not authorized to add dataset to this organization"
+msgstr "User %s not authorized to add product to this organization"
+
+msgid "User %s not authorized to create resources on dataset %s"
+msgstr "User %s not authorized to create resources on product %s"
+
+msgid "User %s not authorized to list collaborators from this dataset"
+msgstr "User %s not authorized to list collaborators from this product"
+
+msgid "User %s not authorized to remove collaborators from this dataset"
+msgstr "User %s not authorized to remove collaborators from this product"
+
+msgid "User hasn't created any datasets."
+msgstr "User hasn't created any products."
+
+msgid "Users Creating Most Datasets"
+msgstr "Users Creating Most Products"
+
+msgid "View dataset"
+msgstr "View product"
+
+msgid "Viewing datasets of type \"{package_type}\" is not supported ({file_!r})."
+msgstr "Viewing products of type \"{package_type}\" is not supported ({file_!r})."
+
+msgid "What are datasets?"
+msgstr "What are products?"
+
+msgid "You cannot add a dataset to this organization"
+msgstr "You cannot add a product to this organization"
+
+msgid "You cannot move this dataset to another organization"
+msgstr "You cannot move this product to another organization"
+
+msgid "You haven't created any datasets."
+msgstr "You haven't created any products."
+
+msgid "eg. my-dataset"
+msgstr "eg. my-product"
+
+msgid "http://example.com/dataset.json"
+msgstr "http://example.com/product.json"
+
+msgid "{actor} added the resource {resource} to the dataset {dataset}"
+msgstr "{actor} added the resource {resource} to the product {dataset}"
+
+msgid "{actor} added the tag {tag} to the dataset {dataset}"
+msgstr "{actor} added the tag {tag} to the product {dataset}"
+
+msgid "{actor} created the {dataset_type} {dataset}"
+msgstr "{actor} created the {dataset_type} {dataset}"
+
+msgid "{actor} deleted the resource {resource} from the dataset {dataset}"
+msgstr "{actor} deleted the resource {resource} from the product {dataset}"
+
+msgid "{actor} deleted the {dataset_type} {dataset}"
+msgstr "{actor} deleted the {dataset_type} {dataset}"
+
+msgid "{actor} removed the tag {tag} from the dataset {dataset}"
+msgstr "{actor} removed the tag {tag} from the product {dataset}"
+
+msgid "{actor} started following {dataset}"
+msgstr "{actor} started following {dataset}"
+
+msgid "{actor} updated the resource {resource} in the dataset {dataset}"
+msgstr "{actor} updated the resource {resource} in the product {dataset}"
+
+msgid "{actor} updated the {dataset_type} {dataset}"
+msgstr "{actor} updated the {dataset_type} {dataset}"
+
+msgid "{number} datasets have been purged"
+msgstr "{number} products have been purged"
