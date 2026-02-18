@@ -1,0 +1,22 @@
+title: OBIS Products Catalog
+description: A metadata catalog for products built on, or for, the OBIS network
+theme: jekyll-theme-cayman
+show_downloads: false
+
+# Navigation
+nav_links:
+  - title: OBIS Products Catalog
+  - title: User Guide
+    url: /user-guide
+  - title: GitHub
+    url: https://github.com/iobis/obis-products-catalog
+
+# Footer
+footer_text: |
+  Maintained by the OBIS Products Coordination Group
+
+# Exclude from processing
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
