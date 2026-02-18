@@ -1,0 +1,18 @@
+[project]
+name = "ckanext-oauth2-login"
+version = "0.1.0"
+description = "ORCID OAuth2 login for CKAN. Lets researchers sign in with their ORCID iD."
+readme = "README.md"
+license = {text = "AGPL-3.0"}
+requires-python = ">=3.8"
+dependencies = ["requests"]
+
+[project.entry-points."ckan.plugins"]
+oauth2_login = "ckanext.oauth2_login.plugin:OAuth2LoginPlugin"
+
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["ckanext*"]

@@ -1,0 +1,26 @@
+{% ckan_extends %}
+
+{% block form %}
+
+{% if h.oauth2_login_orcid_enabled() %}
+<div class="oauth2-login-options" style="margin-bottom: 24px; text-align: center;">
+  <a href="{{ h.oauth2_login_orcid_url() }}?came_from={{ request.args.get('came_from', '/') | urlencode }}"
+     class="btn btn-primary btn-lg"
+     style="display: inline-flex; align-items: center; gap: 10px; background-color: #a6ce39; border-color: #a6ce39; color: #fff; font-weight: 600; padding: 10px 24px; border-radius: 4px; text-decoration: none;">
+    <img src="https://orcid.org/assets/vectors/orcid.logo.icon.svg"
+         alt="ORCID"
+         style="width: 24px; height: 24px;">
+    Sign in with ORCID
+  </a>
+
+  <div style="margin: 20px 0; display: flex; align-items: center; gap: 12px;">
+    <hr style="flex: 1; border: none; border-top: 1px solid #ddd;">
+    <span style="color: #999; font-size: 13px;">or sign in with your CKAN account</span>
+    <hr style="flex: 1; border: none; border-top: 1px solid #ddd;">
+  </div>
+</div>
+{% endif %}
+
+{{ super() }}
+
+{% endblock %}
