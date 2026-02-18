@@ -28,6 +28,27 @@ docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-nodes
 docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-institutions
 ```
 
+## User Management
+
+### Adding a user to an organization
+
+Use the web UI at `/organization/<org-name>/members` or the API:
+
+```bash
+curl -X POST http://YOUR_HOST/api/3/action/organization_member_create \
+  -H "Authorization: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"id": "obis-community", "username": "the_username", "role": "editor"}'
+```
+
+Roles: `member` (read-only), `editor` (create/edit), `admin` (full control including delete and member management).
+
+### Creating a user
+
+```bash
+docker compose exec ckan ckan -c /srv/app/ckan.ini user add USERNAME email=EMAIL password=PASSWORD
+```
+
 ## Troubleshooting
 
 | Symptom | Likely Cause |
@@ -38,6 +59,26 @@ docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-institutions
 | Nginx "host not found" | CKAN service isn't running |
 | Extensions not found | Forgot to rebuild after code change |
 | Exit code 137 | Out of memory — check `docker stats` |
+| Org dropdown still editable for non-admins | `public_edit` must load before `scheming_datasets` in plugins |
+| `group_list` returns TypeError on `limit` | Set `CKAN___CKAN__GROUP_AND_ORGANIZATION_LIST_MAX=1000` in `.env` |
+
+## Gotchas
+
+### Plugin load order matters
+
+The `CKAN__PLUGINS` order in `.env` affects template priority. Plugins loaded **earlier** in the list have **higher** template priority. Current required ordering:
+
+- `public_edit` must come **before** `scheming_datasets` (so its organization field override takes effect)
+- `public_edit` must come **before** `scheming_datasets` was also true for `obis_theme` template overrides
+
+Example:
+```
+CKAN__PLUGINS="envvars image_view text_view public_edit scheming_datasets scheming_groups obis_theme obis_sync odis_export zenodo doi_import"
+```
+
+### `.env` is never committed
+
+Each deployment maintains its own `.env` from `.env.example`. Database passwords appear in multiple env vars (standalone vars AND connection URL strings) — they must match.
 
 ## Git Workflow
 

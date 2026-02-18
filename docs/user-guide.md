@@ -40,6 +40,44 @@ For more information, see the [OBIS Manual](https://manual.obis.org/nodes.html#o
 
 ---
 
+## Signing In
+
+### ORCID Login
+
+The catalog supports signing in with your **ORCID iD**. Click "Sign in with ORCID" on the login page to authenticate using your existing ORCID account.
+
+On your first login, the catalog will:
+
+- Create a catalog account linked to your ORCID iD
+- Add you to the **OBIS Community** organization as an editor
+- Use your name and email from your ORCID profile
+
+!!! note
+    ORCID login requires HTTPS and is not yet active on the demo instance. It will be enabled once the production domain and SSL certificates are in place.
+
+### What You Can Do
+
+Once signed in, you can:
+
+| Action | Available to |
+|---|---|
+| **Browse and search** all products | Everyone (no login required) |
+| **Edit any public dataset** | Any logged-in user |
+| **Create new datasets** | Any logged-in user |
+| **Import datasets from DOIs** | Any logged-in user |
+| **Delete datasets** | Organization admins only |
+| **Change a dataset's organization** | Organization admins only |
+
+This means any researcher can improve metadata across the entire catalog — adding thematic tags, linking institutions, correcting descriptions — without needing to be a member of the owning OBIS node.
+
+### Organization Membership
+
+When you create a new dataset, it will be assigned to one of your organizations. By default, all new users belong to **OBIS Community**. If you need to create datasets under a specific OBIS node, contact [helpdesk@obis.org](mailto:helpdesk@obis.org) to request membership.
+
+When editing an existing dataset, you cannot change its owning organization — it stays with the node that originally created it. Only organization admins can reassign datasets.
+
+---
+
 ## Understanding the Data Model
 
 The catalog organizes metadata using three main entities that reflect the OBIS organizational structure:
@@ -255,8 +293,10 @@ curl "https://products.obis.org/api/3/action/package_show?id=dataset-name"
 
 ### Ways to Contribute
 
-1. **Zenodo Import** - Add your DOI to the harvest registry
-2. **Direct Entry** - Create a record directly in the catalog
+1. **Zenodo Import** — Import a product from its DOI (recommended)
+2. **Direct Entry** — Create a record directly in the catalog
+
+Both methods are available to any logged-in user.
 
 ### Recommended: Use Zenodo
 
@@ -272,7 +312,19 @@ We recommend publishing products to [Zenodo](https://zenodo.org) first, then imp
 1. Create account on Zenodo
 2. Upload your product and fill in metadata
 3. Obtain the DOI
-4. Contact [helpdesk@obis.org](mailto:helpdesk@obis.org) to add your DOI to the harvest registry
+4. Log in to the catalog and use the DOI import form, or contact [helpdesk@obis.org](mailto:helpdesk@obis.org) to add your DOI to the harvest registry
+
+### Editing Existing Products
+
+Any logged-in user can edit the metadata of any public product in the catalog. Common curation tasks include:
+
+- Adding or correcting **thematic area** tags
+- Linking products to the correct **institutions** (groups)
+- Improving **descriptions** and **titles**
+- Adding **spatial coverage** information
+- Correcting **author** information
+
+When editing, the product remains under its original owning organization — your edits will not change which OBIS node owns the product.
 
 ### Metadata Best Practices
 
@@ -308,4 +360,4 @@ At minimum, products should include:
 
 ---
 
-*This user guide is maintained by the OBIS Products Coordination Group. Last updated: October 2025.*
+*This user guide is maintained by the OBIS Products Coordination Group. Last updated: February 2026.*
