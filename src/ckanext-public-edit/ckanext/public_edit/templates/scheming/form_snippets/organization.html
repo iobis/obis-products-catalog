@@ -1,0 +1,67 @@
+{# Override of scheming's organization form snippet.
+   Shows read-only org for non-admins editing existing datasets.
+   Falls back to default scheming behavior otherwise. #}
+
+{% set is_existing_dataset = data.id and data.owner_org %}
+{% set can_change_org = h.public_edit_user_can_change_org(data.owner_org) if is_existing_dataset else true %}
+
+{% if is_existing_dataset and not can_change_org %}
+  {# Read-only org display + hidden field #}
+  <div data-module="dataset-visibility">
+    <div class="form-group control-medium">
+      <label class="form-label">{{ h.scheming_language_text(field.label) }}</label>
+      <div class="controls">
+        {% set org_dict = h.get_organization(data.owner_org) %}
+        <p class="form-control-static">
+          <strong>{{ org_dict.display_name if org_dict else data.owner_org }}</strong>
+        </p>
+        <input type="hidden" name="owner_org" value="{{ data.owner_org }}" />
+        <span class="info-block info-inline">
+          <i class="fa fa-info-circle"></i>
+          Organization cannot be changed. Contact an admin to reassign.
+        </span>
+      </div>
+    </div>
+    <div class="form-group control-medium">
+      <label class="form-label">{{ _('Visibility') }}</label>
+      <div class="controls">
+        <p class="form-control-static">
+          {{ _('Public') if data.private == 'False' or not data.private else _('Private') }}
+        </p>
+        <input type="hidden" name="private" value="{{ data.private|default('False', true) }}" />
+      </div>
+    </div>
+  </div>
+
+{% else %}
+  {# Default scheming behavior #}
+  {% macro organization_option_tag(organization, selected_org) %}
+    {% block organization_option scoped %}
+      <option value="{{ organization.id }}"{%
+        if selected_org %} selected="selected"{% endif
+        %}>{{ organization.display_name }}</option>
+    {% endblock %}
+  {% endmacro %}
+    <div data-module="dataset-visibility">
+    {% snippet "scheming/form_snippets/_organization_select.html",
+      field=field,
+      data=data,
+      errors=errors,
+      organizations_available=h.organizations_available('create_dataset'),
+      org_required=not h.check_config_permission('create_unowned_dataset')
+        or h.scheming_field_required(field),
+      organization_option_tag=organization_option_tag %}
+    {% block package_metadata_fields_visibility %}
+      <div class="control-group form-group control-medium">
+        <label for="field-private" class="control-label">{{ _('Visibility') }}</label>
+        <div class="controls">
+          <select id="field-private" name="private" class="form-control form-select">
+            {% for option in [('True', _('Private')), ('False', _('Public'))] %}
+            <option value="{{ option[0] }}" {% if option[0] == data.private|trim %}selected="selected"{% endif %}>{{ option[1] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    {% endblock %}
+    </div>
+{% endif %}
