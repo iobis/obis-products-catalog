@@ -14,7 +14,7 @@ def zenodo():
 
 
 @zenodo.command()
-@click.option('--registry', default='/srv/app/src_extensions/ckanext-zenodo/ckanext/zenodo/config/zenodo_dois.txt',
+@click.option('--registry', default='/srv/app/doi_registry.txt',
               help='Path to DOI registry file')
 @click.option('--org', default='obis-community',
               help='Organization to import datasets into')

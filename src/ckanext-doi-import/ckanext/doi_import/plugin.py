@@ -1,11 +1,24 @@
 """CKAN DOI Import Extension — import datasets from DOIs."""
 
 import re
+import os
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
 
 from ckanext.doi_import.mappers.base import extract_doi_from_url, detect_source
 from ckanext.doi_import.mappers import zenodo as zenodo_mapper
+
+# Default path for DOI registry (volume-mounted from repo root)
+DOI_REGISTRY_PATH = '/srv/app/doi_registry.txt'
+
+# Fields that curators may have edited — never overwrite these on update
+PROTECTED_FIELDS = {
+    'thematic_tags',
+    'product_type',
+    'groups',
+    'owner_org',
+    'tag_string',
+}
 
 
 class DoiImportPlugin(plugins.SingletonPlugin):
@@ -277,31 +290,104 @@ def doi_fetch_metadata(context, data_dict):
 
 
 def doi_create_dataset(context, data_dict):
-    """Create or update a dataset from fetched DOI metadata."""
+    """Create or update a dataset from fetched DOI metadata.
+
+    On create: sets all fields from source metadata, appends DOI to registry.
+    On update: preserves curated fields (thematic_tags, product_type,
+    groups, owner_org, tag_string) — only overwrites fields where the
+    source provides a non-empty value.
+    """
     metadata = data_dict.get("metadata", {})
     owner_org = data_dict.get("owner_org")
     contributing_orgs = data_dict.get("contributing_organizations", [])
+    is_update = data_dict.get("is_update", False)
 
-    if owner_org:
-        metadata["owner_org"] = owner_org
+    if is_update and "id" in metadata:
+        # Fetch existing dataset to merge with
+        existing = toolkit.get_action("package_show")(
+            context, {"id": metadata["id"]}
+        )
 
-    if contributing_orgs:
-        if not isinstance(contributing_orgs, list):
-            contributing_orgs = [contributing_orgs]
-        metadata["groups"] = [{"id": org_id} for org_id in contributing_orgs]
+        # Build merged dict: start with existing, overlay non-empty source fields
+        merged = dict(existing)
+        for key, value in metadata.items():
+            if key in PROTECTED_FIELDS:
+                continue
+            if _is_empty(value):
+                continue
+            merged[key] = value
 
-    # Generate a URL-safe name for new datasets
-    if "id" not in metadata:
+        metadata = merged
+    else:
+        # New dataset
+        if owner_org:
+            metadata["owner_org"] = owner_org
+
+        if contributing_orgs:
+            if not isinstance(contributing_orgs, list):
+                contributing_orgs = [contributing_orgs]
+            metadata["groups"] = [{"id": org_id} for org_id in contributing_orgs]
+
+        # Generate a URL-safe name
         base_name = re.sub(r"[^\w\s-]", "", metadata.get("title", "dataset")).lower()
         base_name = re.sub(r"[-\s]+", "-", base_name)[:50]
         metadata["name"] = base_name or "imported-dataset"
 
-    if "id" in metadata:
+    if "id" in metadata and is_update:
         dataset_dict = toolkit.get_action("package_update")(context, metadata)
     else:
         dataset_dict = toolkit.get_action("package_create")(context, metadata)
 
+        # Append DOI to registry on successful creation
+        doi_url = metadata.get("url", "")
+        _append_to_registry(doi_url)
+
     return dataset_dict
+
+
+def _is_empty(value):
+    """Check if a value is empty/missing."""
+    if value is None:
+        return True
+    if isinstance(value, str) and value.strip() == "":
+        return True
+    if isinstance(value, list) and len(value) == 0:
+        return True
+    if isinstance(value, str):
+        # Check for empty JSON arrays
+        try:
+            import json
+            parsed = json.loads(value)
+            if isinstance(parsed, list) and len(parsed) == 0:
+                return True
+        except (json.JSONDecodeError, TypeError):
+            pass
+    return False
+
+
+def _append_to_registry(doi_url):
+    """Append a DOI URL to the registry file if not already present."""
+    if not doi_url:
+        return
+
+    registry_path = DOI_REGISTRY_PATH
+    try:
+        # Read existing entries
+        existing = set()
+        if os.path.exists(registry_path):
+            with open(registry_path, 'r') as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith('#'):
+                        existing.add(line)
+
+        # Only append if not already present
+        if doi_url not in existing:
+            with open(registry_path, 'a') as f:
+                f.write(f"\n{doi_url}")
+    except Exception:
+        # Don't fail the import if registry write fails
+        pass
 
 
 # --- Helpers ---
