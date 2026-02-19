@@ -87,6 +87,8 @@ dataset_fields:
         label: Coral Reefs
       - value: Species Distribution
         label: Species Distribution
+      - value: Near-Realtime
+        label: Near-Realtime
     help_text: Select one or more thematic areas
 
   - field_name: owner_org
