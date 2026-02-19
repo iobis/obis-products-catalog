@@ -59,7 +59,7 @@ def obis_get_product_type_stats():
             'other': 'fa-folder',
         }
         
-        # Label mapping
+        # All product types in vocabulary (keys match stored values)
         label_mapping = {
             'dataset': 'Dataset',
             'publication': 'Publication',
@@ -77,7 +77,6 @@ def obis_get_product_type_stats():
         product_counts = {}
         for value_str, count in results:
             try:
-                # Parse the JSON array
                 product_types = json.loads(value_str) if value_str else []
                 if isinstance(product_types, list):
                     for ptype in product_types:
@@ -85,16 +84,17 @@ def obis_get_product_type_stats():
             except (json.JSONDecodeError, TypeError):
                 pass
         
+        # Build stats for ALL product types, even those with 0 count
         stats = []
-        for ptype, count in product_counts.items():
+        for ptype, label in label_mapping.items():
             stats.append(StatObject(
                 name=ptype,
-                count=count,
-                icon=icon_mapping.get(ptype.lower(), 'fa-folder'),
-                display_name=label_mapping.get(ptype, ptype.title())
+                count=product_counts.get(ptype, 0),
+                icon=icon_mapping.get(ptype, 'fa-folder'),
+                display_name=label
             ))
         
-        return sorted(stats, key=lambda x: x.count, reverse=True)
+        return sorted(stats, key=lambda x: (-x.count, x.display_name))
     except Exception as e:
         return []
 
@@ -115,7 +115,7 @@ def obis_get_thematic_stats():
             Package.private == False
         ).group_by(PackageExtra.value).all()
         
-        # Icon mapping for different thematic areas
+        # Icon mapping (lowercase keys for lookup)
         icon_mapping = {
             'biodiversity': 'fa-leaf',
             'climate change': 'fa-cloud',
@@ -129,13 +129,30 @@ def obis_get_thematic_stats():
             'deep sea': 'fa-water',
             'coral reefs': 'fa-pagelines',
             'species distribution': 'fa-map-marker',
+            'near-realtime': 'fa-clock-o',
+        }
+        
+        # All thematic areas (keys match stored values in DB)
+        label_mapping = {
+            'Biodiversity': 'Biodiversity',
+            'Climate Change': 'Climate Change',
+            'Ocean Acidification': 'Ocean Acidification',
+            'Marine Protected Areas': 'Marine Protected Areas',
+            'eDNA': 'eDNA',
+            'Invasives': 'Invasives',
+            'Fisheries': 'Fisheries',
+            'Pollution': 'Pollution',
+            'Coastal Management': 'Coastal Management',
+            'Deep Sea': 'Deep Sea',
+            'Coral Reefs': 'Coral Reefs',
+            'Species Distribution': 'Species Distribution',
+            'Near-Realtime': 'Near-Realtime',
         }
         
         # Parse the results - value is JSON string like '["Biodiversity", "Climate Change"]'
         thematic_counts = {}
         for value_str, count in results:
             try:
-                # Parse the JSON array
                 thematic_tags = json.loads(value_str) if value_str else []
                 if isinstance(thematic_tags, list):
                     for tag in thematic_tags:
@@ -143,16 +160,17 @@ def obis_get_thematic_stats():
             except (json.JSONDecodeError, TypeError):
                 pass
         
+        # Build stats for ALL thematic areas, even those with 0 count
         stats = []
-        for tag, count in thematic_counts.items():
+        for tag, label in label_mapping.items():
             stats.append(StatObject(
                 name=tag,
-                count=count,
+                count=thematic_counts.get(tag, 0),
                 icon=icon_mapping.get(tag.lower(), 'fa-tag'),
-                display_name=tag
+                display_name=label
             ))
         
-        return sorted(stats, key=lambda x: x.count, reverse=True)
+        return sorted(stats, key=lambda x: (-x.count, x.display_name))
     except Exception as e:
         return []
 
@@ -177,10 +195,8 @@ def obis_get_recent_datasets(limit=4):
         
         datasets = []
         for pkg in result.get('results', []):
-            # Get extras as a dictionary
             extras_dict = {item['key']: item['value'] for item in pkg.get('extras', [])}
             
-            # Parse product_type and thematic_tags from extras
             try:
                 product_types = json.loads(extras_dict.get('product_type', '[]'))
             except (json.JSONDecodeError, TypeError):
