@@ -196,7 +196,7 @@ def import_dataset(doi, org):
 
 
 def update_dataset(dataset_id, doi, org):
-    """Update existing dataset with fresh metadata"""
+    """Update existing dataset with fresh metadata, preserving curated fields"""
     try:
         context = {'ignore_auth': True, 'user': 'default'}
         
@@ -207,18 +207,23 @@ def update_dataset(dataset_id, doi, org):
         )
         
         # Preserve the existing dataset ID and name
-        metadata['id'] = dataset_id
-        
-        # Get existing dataset to preserve name
         existing = toolkit.get_action('package_show')(
             context,
             {'id': dataset_id}
         )
+        metadata['id'] = dataset_id
         metadata['name'] = existing['name']
-        metadata['owner_org'] = org
         
-        # Update the dataset
-        toolkit.get_action('package_update')(context, metadata)
+        # Use doi_create_dataset with smart update (preserves curated fields)
+        toolkit.get_action('doi_create_dataset')(
+            context,
+            {
+                'metadata': metadata,
+                'owner_org': org,
+                'contributing_organizations': [],
+                'is_update': True,
+            }
+        )
         
         return True
     

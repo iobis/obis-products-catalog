@@ -374,8 +374,9 @@ def doi_create_dataset(context, data_dict):
         dataset_dict = toolkit.get_action("package_create")(context, metadata)
 
         # Append DOI to registry on successful creation
-        doi_url = metadata.get("url", "")
-        _append_to_registry(doi_url)
+        identifier = metadata.get("identifier", {})
+        if isinstance(identifier, dict) and identifier.get("url"):
+            _append_to_registry(identifier["url"])
 
     return dataset_dict
 
