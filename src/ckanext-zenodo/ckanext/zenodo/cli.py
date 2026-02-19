@@ -272,30 +272,20 @@ def export_whitelist(output):
     writer.writerow(['doi', 'title', 'source_url', 'catalog_url'])
 
     for ds in sorted(datasets, key=lambda d: d.get('title', '')):
-        # Get DOI from extras
+        # Get source URL — try zenodo_url first, fall back to url
         extras = {e['key']: e['value'] for e in ds.get('extras', [])}
-        zenodo_url = ds.get('zenodo_url', extras.get('zenodo_url', ''))
+        source_url = ds.get('zenodo_url') or extras.get('zenodo_url') or ds.get('url') or ''
 
-        # Try to build DOI URL from canonical_id or zenodo_url
-        canonical_id = ds.get('canonical_id', extras.get('canonical_id', ''))
-        if canonical_id and canonical_id.startswith('http'):
-            doi = canonical_id
-        elif canonical_id and canonical_id.startswith('10.'):
-            doi = f'https://doi.org/{canonical_id}'
-        elif zenodo_url:
-            # Extract record ID and build DOI
+        # Build DOI from source URL
+        doi = ''
+        if source_url:
             import re
-            match = re.search(r'/record/(\d+)', zenodo_url)
+            match = re.search(r'/record/(\d+)', source_url)
             if match:
                 doi = f'https://doi.org/10.5281/zenodo.{match.group(1)}'
-            else:
-                doi = ''
-        else:
-            doi = ''
 
         catalog_url = f"{site_url}/dataset/{ds['name']}"
-
-        writer.writerow([doi, ds.get('title', ''), zenodo_url, catalog_url])
+        writer.writerow([doi, ds.get('title', ''), source_url, catalog_url])
 
     if output:
         f.close()
