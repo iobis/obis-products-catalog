@@ -2,14 +2,15 @@
 
 import re
 import os
+import csv
 import ckan.plugins as plugins
 import ckan.plugins.toolkit as toolkit
 
 from ckanext.doi_import.mappers.base import extract_doi_from_url, detect_source
 from ckanext.doi_import.mappers import zenodo as zenodo_mapper
 
-# Default path for DOI registry (volume-mounted from repo root)
-DOI_REGISTRY_PATH = '/srv/app/doi_registry.txt'
+# Blacklist CSV path (volume-mounted from repo root)
+BLACKLIST_PATH = '/srv/app/catalog_blacklist.csv'
 
 # Fields that curators may have edited — never overwrite these on update
 PROTECTED_FIELDS = {
@@ -19,6 +20,21 @@ PROTECTED_FIELDS = {
     'owner_org',
     'tag_string',
 }
+
+
+def _is_blacklisted(doi_url):
+    """Check if a DOI is on the blacklist. Returns reason string or None."""
+    if not doi_url or not os.path.exists(BLACKLIST_PATH):
+        return None
+    try:
+        with open(BLACKLIST_PATH, 'r') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                if row.get('doi', '').strip() == doi_url.strip():
+                    return row.get('reason', 'Marked as out of scope')
+    except Exception:
+        pass
+    return None
 
 
 class DoiImportPlugin(plugins.SingletonPlugin):
@@ -129,6 +145,16 @@ class DoiImportPlugin(plugins.SingletonPlugin):
             flash("Please provide a DOI URL", "error")
             return redirect(url_for("doi_import.import_doi_form"))
 
+        # Check blacklist before fetching
+        blacklist_reason = _is_blacklisted(doi_url)
+        if blacklist_reason:
+            flash(
+                f'This DOI has been reviewed and excluded from the catalog. '
+                f'Reason: {blacklist_reason}',
+                'alert-warning'
+            )
+            return redirect(url_for("doi_import.import_doi_form"))
+
         try:
             metadata = toolkit.get_action("doi_fetch_metadata")(
                 context, {"doi_url": doi_url}
@@ -221,6 +247,13 @@ class DoiImportPlugin(plugins.SingletonPlugin):
                 return jsonify({"error": "doi_url required in JSON body"}), 400
 
             doi_url = data["doi_url"]
+
+            # Check blacklist
+            blacklist_reason = _is_blacklisted(doi_url)
+            if blacklist_reason:
+                return jsonify({
+                    "error": f"DOI is blacklisted: {blacklist_reason}"
+                }), 403
 
             # Fetch metadata
             metadata = toolkit.get_action("doi_fetch_metadata")(
@@ -319,7 +352,7 @@ def doi_fetch_metadata(context, data_dict):
 def doi_create_dataset(context, data_dict):
     """Create or update a dataset from fetched DOI metadata.
 
-    On create: sets all fields from source metadata, appends DOI to registry.
+    On create: sets all fields from source metadata.
     On update: preserves curated fields (thematic_tags, product_type,
     groups, owner_org, tag_string) — only overwrites fields where the
     source provides a non-empty value.
@@ -373,11 +406,6 @@ def doi_create_dataset(context, data_dict):
     else:
         dataset_dict = toolkit.get_action("package_create")(context, metadata)
 
-        # Append DOI to registry on successful creation
-        identifier = metadata.get("identifier", {})
-        if isinstance(identifier, dict) and identifier.get("url"):
-            _append_to_registry(identifier["url"])
-
     return dataset_dict
 
 
@@ -399,31 +427,6 @@ def _is_empty(value):
         except (json.JSONDecodeError, TypeError):
             pass
     return False
-
-
-def _append_to_registry(doi_url):
-    """Append a DOI URL to the registry file if not already present."""
-    if not doi_url:
-        return
-
-    registry_path = DOI_REGISTRY_PATH
-    try:
-        # Read existing entries
-        existing = set()
-        if os.path.exists(registry_path):
-            with open(registry_path, 'r') as f:
-                for line in f:
-                    line = line.strip()
-                    if line and not line.startswith('#'):
-                        existing.add(line)
-
-        # Only append if not already present
-        if doi_url not in existing:
-            with open(registry_path, 'a') as f:
-                f.write(f"\n{doi_url}")
-    except Exception:
-        # Don't fail the import if registry write fails
-        pass
 
 
 # --- Helpers ---

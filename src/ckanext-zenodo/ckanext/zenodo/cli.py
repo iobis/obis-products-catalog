@@ -231,6 +231,70 @@ def update_dataset(dataset_id, doi, org):
         click.echo(f"    Update error: {str(e)}", err=True)
         return False
     
+
+@zenodo.command()
+@click.option('--output', default=None,
+              help='Output file path (default: stdout)')
+def export_whitelist(output):
+    """Export catalog whitelist as CSV (doi, title, source_url, catalog_url)"""
+    import csv
+    import io
+
+    click.echo("=== Exporting Catalog Whitelist ===", err=True)
+
+    context = {'ignore_auth': True}
+    site_url = toolkit.config.get('ckan.site_url', 'http://localhost:5000')
+
+    # Fetch all active datasets
+    result = toolkit.get_action('package_search')(
+        context, {'rows': 10000, 'include_private': False}
+    )
+
+    datasets = result.get('results', [])
+    click.echo(f"Found {len(datasets)} products", err=True)
+
+    # Build CSV
+    if output:
+        f = open(output, 'w', newline='')
+    else:
+        f = io.StringIO()
+
+    writer = csv.writer(f)
+    writer.writerow(['doi', 'title', 'source_url', 'catalog_url'])
+
+    for ds in sorted(datasets, key=lambda d: d.get('title', '')):
+        # Get DOI from extras
+        extras = {e['key']: e['value'] for e in ds.get('extras', [])}
+        zenodo_url = ds.get('zenodo_url', extras.get('zenodo_url', ''))
+
+        # Try to build DOI URL from canonical_id or zenodo_url
+        canonical_id = ds.get('canonical_id', extras.get('canonical_id', ''))
+        if canonical_id and canonical_id.startswith('http'):
+            doi = canonical_id
+        elif canonical_id and canonical_id.startswith('10.'):
+            doi = f'https://doi.org/{canonical_id}'
+        elif zenodo_url:
+            # Extract record ID and build DOI
+            import re
+            match = re.search(r'/record/(\d+)', zenodo_url)
+            if match:
+                doi = f'https://doi.org/10.5281/zenodo.{match.group(1)}'
+            else:
+                doi = ''
+        else:
+            doi = ''
+
+        catalog_url = f"{site_url}/dataset/{ds['name']}"
+
+        writer.writerow([doi, ds.get('title', ''), zenodo_url, catalog_url])
+
+    if output:
+        f.close()
+        click.echo(f"Written to {output}", err=True)
+    else:
+        click.echo(f.getvalue())
+
+
 @zenodo.command()
 def init_vocabularies():
     """Initialize controlled vocabularies for product types and thematics"""
