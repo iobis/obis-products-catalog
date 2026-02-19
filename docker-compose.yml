@@ -49,7 +49,6 @@ services:
       - ckan_storage:/var/lib/ckan
       - pip_cache:/root/.cache/pip
       - site_packages:/usr/lib/python3.10/site-packages
-      - ./doi_registry.txt:/srv/app/doi_registry.txt
       - ./catalog_blacklist.csv:/srv/app/catalog_blacklist.csv
     restart: unless-stopped
     healthcheck:
