@@ -157,6 +157,7 @@ def _map_to_schema(zenodo_data, doi):
         "title": metadata.get("title", "Untitled Dataset"),
         "notes": metadata.get("description", ""),
         "url": f"https://zenodo.org/record/{record_id}",
+        "zenodo_url": f"https://zenodo.org/record/{record_id}",
         "identifier": {
             "propertyID": "DOI",
             "value": doi_value,

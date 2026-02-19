@@ -133,17 +133,43 @@ class DoiImportPlugin(plugins.SingletonPlugin):
             metadata = toolkit.get_action("doi_fetch_metadata")(
                 context, {"doi_url": doi_url}
             )
-            dataset_dict = toolkit.get_action("doi_create_dataset")(
-                context,
-                {
-                    "metadata": metadata,
-                    "owner_org": selected_org,
-                    "contributing_organizations": contributing_orgs,
-                },
-            )
-            flash(
-                f'Dataset "{dataset_dict["title"]}" imported successfully!', "success"
-            )
+
+            # Check for existing dataset
+            metadata_url = metadata.get("zenodo_url", metadata.get("url", ""))
+            existing_dataset = _find_existing_dataset(context, metadata_url)
+
+            if existing_dataset:
+                metadata["id"] = existing_dataset["id"]
+                metadata["name"] = existing_dataset["name"]
+                dataset_dict = toolkit.get_action("doi_create_dataset")(
+                    context,
+                    {
+                        "metadata": metadata,
+                        "owner_org": existing_dataset.get("owner_org", selected_org),
+                        "contributing_organizations": contributing_orgs,
+                        "is_update": True,
+                    },
+                )
+                flash(
+                    f'Product "{dataset_dict["title"]}" updated from source. '
+                    f'Organization, tags, thematic areas, and contributing institutions '
+                    f'were preserved. These fields can be managed by editing the product directly.',
+                    "warning"
+                )
+            else:
+                dataset_dict = toolkit.get_action("doi_create_dataset")(
+                    context,
+                    {
+                        "metadata": metadata,
+                        "owner_org": selected_org,
+                        "contributing_organizations": contributing_orgs,
+                        "is_update": False,
+                    },
+                )
+                flash(
+                    f'Product "{dataset_dict["title"]}" imported successfully!', "success"
+                )
+
             return redirect(url_for("dataset.read", id=dataset_dict["name"]))
 
         except Exception as e:
@@ -201,7 +227,7 @@ class DoiImportPlugin(plugins.SingletonPlugin):
             )
 
             # Check for existing dataset by matching Zenodo URL
-            metadata_url = metadata.get("url", "")
+            metadata_url = metadata.get("zenodo_url", metadata.get("url", ""))
             existing_dataset = _find_existing_dataset(context, metadata_url)
 
             site_url = toolkit.config.get("ckan.site_url", "http://localhost:5000")
@@ -328,10 +354,18 @@ def doi_create_dataset(context, data_dict):
                 contributing_orgs = [contributing_orgs]
             metadata["groups"] = [{"id": org_id} for org_id in contributing_orgs]
 
-        # Generate a URL-safe name
-        base_name = re.sub(r"[^\w\s-]", "", metadata.get("title", "dataset")).lower()
-        base_name = re.sub(r"[-\s]+", "-", base_name)[:50]
-        metadata["name"] = base_name or "imported-dataset"
+        # Generate a URL-safe name from the DOI (stable, unique)
+        doi_url = metadata.get("url", "")
+        identifier = metadata.get("identifier", {})
+        doi_value = identifier.get("value", "") if isinstance(identifier, dict) else ""
+        if doi_value:
+            slug = re.sub(r"[^\w-]", "-", doi_value.lower()).strip("-")
+        elif doi_url:
+            slug = re.sub(r"[^\w-]", "-", doi_url.split("doi.org/")[-1].lower()).strip("-")
+        else:
+            slug = re.sub(r"[^\w\s-]", "", metadata.get("title", "dataset")).lower()
+            slug = re.sub(r"[-\s]+", "-", slug)[:50].rstrip("-") or "imported-dataset"
+        metadata["name"] = slug
 
     if "id" in metadata and is_update:
         dataset_dict = toolkit.get_action("package_update")(context, metadata)
@@ -399,11 +433,11 @@ def _find_existing_dataset(context, zenodo_url):
         return None
 
     search_results = toolkit.get_action("package_search")(
-        context, {"fq": "url:*zenodo.org/record*", "rows": 1000}
+        context, {"fq": "zenodo_url:*zenodo.org/record*", "rows": 1000}
     )
 
     for result in search_results.get("results", []):
-        if result.get("url") == zenodo_url:
+        if result.get("zenodo_url") == zenodo_url:
             return result
 
     return None
