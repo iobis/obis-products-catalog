@@ -3,3 +3,10 @@ body {
   border-radius: 0;
 }
 */
+
+/* DOI import update notice - yellow background */
+.flash-messages .alert-info {
+    background-color: #fff3cd !important;
+    border-color: #ffc107 !important;
+    color: #664d03 !important;
+}

@@ -151,10 +151,11 @@ class DoiImportPlugin(plugins.SingletonPlugin):
                     },
                 )
                 flash(
-                    f'Product "{dataset_dict["title"]}" updated from source. '
-                    f'Organization, tags, thematic areas, and contributing institutions '
-                    f'were preserved. These fields can be managed by editing the product directly.',
-                    "warning"
+                    f'Product already in catalog. "{dataset_dict["title"]}" has been '
+                    f'updated from source. Organization, tags, thematic areas, and contributing '
+                    f'institutions were preserved. These fields can be managed by editing the '
+                    f'product directly.',
+                    'alert-warning'
                 )
             else:
                 dataset_dict = toolkit.get_action("doi_create_dataset")(
