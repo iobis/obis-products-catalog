@@ -2,10 +2,10 @@
 CKAN CLI commands for Zenodo harvesting
 """
 import click
+from ckanext.doi_import.plugin import _is_blacklisted
 import requests
 from datetime import datetime
 import ckan.plugins.toolkit as toolkit
-
 
 @click.group()
 def zenodo():
@@ -33,12 +33,20 @@ def harvest(registry, org):
         'found': 0,
         'imported': 0,
         'updated': 0,
-        'failed': 0
+        'failed': 0,
+        'skipped': 0,
     }
     
     for doi in dois:
         click.echo(f"Checking: {doi}")
         
+        # Check blacklist
+        blacklist_reason = _is_blacklisted(doi)
+        if blacklist_reason:
+            click.echo(f"  ⊘ Blacklisted: {blacklist_reason}")
+            stats['skipped'] += 1
+            continue
+
         try:
             # Check if dataset exists
             dataset = find_dataset_by_doi(doi)
@@ -85,6 +93,7 @@ def harvest(registry, org):
     click.echo(f"  Imported: {stats['imported']} new datasets")
     click.echo(f"  Updated: {stats['updated']} datasets")
     click.echo(f"  Failed: {stats['failed']} operations")
+    click.echo(f"  Skipped: {stats['skipped']} blacklisted")
 
 
 def load_doi_registry(registry_file):
