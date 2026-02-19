@@ -234,6 +234,7 @@ Products can be tagged with thematic areas that describe the scientific domains 
 - **Ocean Acidification** - pH impacts on marine organisms
 - **Pollution** - Marine debris, chemical contaminants, impacts
 - **Species Distribution** - Range maps, ecological niche models, habitat suitability
+- **Near-Realtime** - Products providing near-realtime data streams or monitoring, such as live species tracking, sensor networks, or rapid biodiversity assessments
 
 ### Adding New Themes
 
@@ -324,6 +325,30 @@ Any logged-in user can edit the metadata of any public product in the catalog. C
 - Correcting **author** information
 
 When editing, the product remains under its original owning organization — your edits will not change which OBIS node owns the product.
+
+### Importing from a DOI
+
+1. Sign in with your ORCID
+2. Click "Add Product" and choose "Import from DOI"
+3. Paste the DOI URL (e.g., `https://doi.org/10.5281/zenodo.11464531`)
+4. Select the owning organization (OBIS node)
+5. Optionally select contributing institutions
+6. Click Import
+
+The system fetches metadata from Zenodo automatically — title, description, authors, files, and license.
+
+**Re-importing a DOI**: If the product already exists in the catalog, it will be updated from the source. Curated fields (organization, tags, thematic areas, contributing institutions) are preserved. You'll see a yellow notice confirming this.
+
+**Blacklisted DOIs**: Some DOIs have been reviewed and excluded from the catalog. If you try to import one, you'll see a warning with the reason. Contact [helpdesk@obis.org](mailto:helpdesk@obis.org) if you believe this is an error.
+
+### Catalog Manifest
+
+The catalog maintains a version-controlled record of all products:
+
+- **`catalog_whitelist.csv`** — Exported nightly from the database. Contains DOI, title, source URL, and catalog URL for every product. This file is committed to git automatically, providing a full audit trail.
+- **`catalog_blacklist.csv`** — Manually curated list of DOIs that have been reviewed and excluded. Contact [helpdesk@obis.org](mailto:helpdesk@obis.org) to request additions or removals.
+
+These files can be archived in Zenodo as a citable record of the catalog's contents.
 
 ### Metadata Best Practices
 

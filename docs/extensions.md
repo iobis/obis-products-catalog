@@ -33,10 +33,27 @@ Schema definition and Zenodo-specific facets/indexing. Defines the dataset schem
 
 **Plugin name**: `zenodo`
 
+**CLI Commands**:
+
+- `ckan zenodo harvest` — Bulk import/update from a DOI registry file. Checks blacklist, uses smart update to preserve curated fields.
+- `ckan zenodo export-whitelist` — Export all catalog products as CSV (`doi`, `title`, `source_url`, `catalog_url`). Used by the nightly cron job.
+- `ckan zenodo init-vocabularies` — Initialize controlled vocabularies (product types, thematic areas).
+
 ## ckanext-doi-import
 
 Import datasets from DOIs (currently Zenodo). Provides a web UI for DOI import and an API endpoint for automated harvesting. Uses a mapper pattern — adding new sources requires writing one mapper file.
 
+**Plugin name**: `doi_import`
+
+**Key features**:
+
+- **Duplicate detection**: Checks for existing datasets by matching `zenodo_url` before importing. If found, updates instead of creating a duplicate.
+- **Smart update**: On re-import, preserves curated fields (`thematic_tags`, `product_type`, `groups`, `owner_org`, `tag_string`) and only updates fields where the source provides new values.
+- **DOI-based URL slugs**: New imports use the DOI as the URL slug (e.g., `/dataset/10-5281-zenodo-17537386`) for stability and uniqueness.
+- **Blacklist check**: Checks `catalog_blacklist.csv` before importing. Blacklisted DOIs are rejected with an explanation.
+- **Web form**: `/dataset/import-doi` — paste a DOI, select an organization, import.
+- **API endpoint**: `POST /api/harvest-doi` — for automated imports.
+- **Mapper pattern**: `mappers/base.py` (DOI detection), `mappers/zenodo.py` (Zenodo-specific). Adding a new source requires one new mapper file.
 **Plugin name**: `doi_import`
 
 ## ckanext-public-edit
@@ -44,6 +61,8 @@ Import datasets from DOIs (currently Zenodo). Provides a web UI for DOI import a
 Authorization policy extension that enables cross-node curation. Any logged-in user can edit public datasets and create new datasets, but only organization admins can delete datasets or reassign a dataset to a different organization.
 
 **Plugin name**: `public_edit`
+
+**Note**: Must be loaded BEFORE `scheming_datasets` in the plugin load order for template overrides to work.
 
 **What it overrides**:
 
@@ -71,6 +90,8 @@ ORCID OAuth2 login for researchers. Allows users to sign in with their ORCID iD 
 **Plugin name**: `oauth2_login`
 
 **Access control**: Login is restricted to ORCID iDs listed in `orcid_whitelist.txt` in the extension root. Unapproved users are shown a message to contact helpdesk@obis.org. See [Operations > User Management](operations.md#orcid-whitelist) for how to manage the whitelist.
+
+**Whitelist**: `src/ckanext-oauth2-login/orcid_whitelist.txt` — one ORCID per line. Rebuild required after changes.
 
 **Key behaviors**:
 

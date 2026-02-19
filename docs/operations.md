@@ -26,6 +26,15 @@ docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-nodes
 
 # Sync institutions
 docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-institutions
+
+# Export catalog whitelist
+docker compose exec ckan ckan -c /srv/app/ckan.ini zenodo export-whitelist
+
+# Export whitelist to file
+docker compose exec ckan ckan -c /srv/app/ckan.ini zenodo export-whitelist --output /srv/app/catalog_whitelist.csv
+
+# Bulk harvest from DOI registry
+docker compose exec ckan ckan -c /srv/app/ckan.ini zenodo harvest --registry /srv/app/doi_registry.txt
 ```
 
 ## User Management
@@ -91,6 +100,40 @@ For non-ORCID accounts (e.g. service accounts):
 ```bash
 docker compose exec ckan ckan -c /srv/app/ckan.ini user add USERNAME email=EMAIL password=PASSWORD
 ```
+
+## Catalog Manifest
+
+The catalog maintains two CSV files at the repo root that serve as the archivable, citable record of the catalog's contents:
+
+**`catalog_whitelist.csv`** — Every product in the catalog, exported nightly from the database. Columns: `doi`, `title`, `source_url`, `catalog_url`. This file is version-controlled in git, providing an audit trail of catalog changes over time.
+
+**`catalog_blacklist.csv`** — DOIs that have been reviewed and determined to be out of scope. Manually curated. Columns: `doi`, `title`, `source_url`, `reason`, `reviewed_date`. The import system checks this file and blocks blacklisted DOIs from being imported.
+
+### Nightly Export
+
+A cron job runs at 2am UTC daily, exports the whitelist from the database, and commits to git if there are changes:
+```bash
+# Manual run
+/root/bin/export-whitelist.sh
+
+# Cron log
+cat /var/log/whitelist-export.log
+```
+
+### Adding to the Blacklist
+
+Edit `catalog_blacklist.csv` at the repo root and add a row:
+```
+https://doi.org/10.5281/zenodo.99999,Some Product Title,https://zenodo.org/record/99999,Not OBIS-derived,2026-02-19
+```
+
+The blacklist is checked by the web form, API endpoint, and bulk harvest CLI. No rebuild is required — the file is volume-mounted into the container.
+```
+
+**Add to the Troubleshooting table:**
+```
+| DOI import says "excluded from catalog" | DOI is on the blacklist (`catalog_blacklist.csv`) — remove it if this was a mistake |
+| DOI import says "already in catalog" | Product exists — it will be updated, not duplicated. Curated fields are preserved. |
 
 ## Troubleshooting
 
