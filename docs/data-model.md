@@ -17,7 +17,7 @@ dataset, publication, software, presentation, poster, image, video, lesson, phys
 
 Controlled vocabulary defined in `zenodo_schema.yaml`:
 
-Biodiversity, Climate Change, Ocean Acidification, Marine Protected Areas, eDNA, Invasives, Fisheries, Pollution, Coastal Management, Deep Sea, Coral Reefs, Species Distribution
+Biodiversity, Climate Change, Ocean Acidification, Marine Protected Areas, eDNA, Invasives, Fisheries, Pollution, Coastal Management, Deep Sea, Coral Reefs, Species Distribution, Near-Realtime
 
 ## Organizations
 
@@ -31,7 +31,8 @@ Research institutions synced from the OBIS API and enriched with Ocean Expert da
 
 | Field | Purpose |
 |---|---|
-| `canonical_id` | DOI or persistent identifier (used as `@id` in ODIS export) |
+| `canonical_id` | DOI URL as persistent identifier (used as `@id` in ODIS export) |
+| `source_url` | URL of the original record at the source repository (e.g. Zenodo) |
 | `resource_type` | Schema.org type (e.g., `Dataset`, `PresentationDigitalDocument`) |
 | `authors` | JSON array of author objects |
 | `contributors` | JSON array of contributor objects |

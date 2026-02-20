@@ -21,7 +21,7 @@ OBIS data synchronization CLI commands. Syncs OBIS nodes as organizations and in
 
 ## ckanext-odis_export
 
-ODIS Schema.org JSON-LD export. Adds a `/dataset/<id>/odis.jsonld` endpoint to every dataset, transforming CKAN metadata to ODIS-compliant Schema.org JSON-LD.
+ODIS Schema.org JSON-LD export. Adds a `/dataset/<id>/odis.jsonld` endpoint to every dataset, transforming CKAN metadata to ODIS-compliant Schema.org JSON-LD. Also serves a dynamic `/sitemap.xml` listing all JSON-LD endpoints for ODIS harvesting.
 
 **Plugin name**: `odis_export`
 
@@ -47,14 +47,13 @@ Import datasets from DOIs (currently Zenodo). Provides a web UI for DOI import a
 
 **Key features**:
 
-- **Duplicate detection**: Checks for existing datasets by matching `zenodo_url` before importing. If found, updates instead of creating a duplicate.
+- **Duplicate detection**: Checks for existing datasets by matching `source_url` before importing. If found, updates instead of creating a duplicate.
 - **Smart update**: On re-import, preserves curated fields (`thematic_tags`, `product_type`, `groups`, `owner_org`, `tag_string`) and only updates fields where the source provides new values.
 - **DOI-based URL slugs**: New imports use the DOI as the URL slug (e.g., `/dataset/10-5281-zenodo-17537386`) for stability and uniqueness.
 - **Blacklist check**: Checks `catalog_blacklist.csv` before importing. Blacklisted DOIs are rejected with an explanation.
 - **Web form**: `/dataset/import-doi` — paste a DOI, select an organization, import.
 - **API endpoint**: `POST /api/harvest-doi` — for automated imports.
 - **Mapper pattern**: `mappers/base.py` (DOI detection), `mappers/zenodo.py` (Zenodo-specific). Adding a new source requires one new mapper file.
-**Plugin name**: `doi_import`
 
 ## ckanext-public-edit
 
