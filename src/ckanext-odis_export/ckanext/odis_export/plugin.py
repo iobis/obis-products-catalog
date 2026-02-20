@@ -12,6 +12,41 @@ class OdisPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IConfigurer)
     plugins.implements(plugins.IBlueprint)
 
+    def sitemap(self):
+        """Generate an ODIS-compliant sitemap.xml listing all dataset JSON-LD endpoints."""
+        try:
+            context = {'ignore_auth': True}
+            result = toolkit.get_action('package_search')(
+                context, {'rows': 10000, 'include_private': False}
+            )
+            datasets = result.get('results', [])
+
+            site_url = toolkit.config.get('ckan.site_url', 'http://localhost:5000')
+
+            xml_lines = [
+                '<?xml version="1.0" encoding="UTF-8"?>',
+                '<urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">',
+            ]
+
+            for ds in datasets:
+                lastmod = ds.get('metadata_modified', '')[:10]
+                xml_lines.append('  <url>')
+                xml_lines.append(f'    <loc>{site_url}/dataset/{ds["name"]}/odis.jsonld</loc>')
+                if lastmod:
+                    xml_lines.append(f'    <lastmod>{lastmod}</lastmod>')
+                xml_lines.append('    <changefreq>monthly</changefreq>')
+                xml_lines.append('  </url>')
+
+            xml_lines.append('</urlset>')
+
+            response = make_response('\n'.join(xml_lines))
+            response.headers['Content-Type'] = 'application/xml; charset=utf-8'
+            return response
+
+        except Exception as e:
+            log.error(f"Error generating sitemap: {str(e)}")
+            abort(500, f'Error generating sitemap: {str(e)}')
+
     # IConfigurer
     def update_config(self, config_):
         toolkit.add_template_directory(config_, "templates")
@@ -25,6 +60,12 @@ class OdisPlugin(plugins.SingletonPlugin):
             '/dataset/<id>/odis.jsonld',
             'export_odis',
             view_func=self.export_odis,
+            methods=['GET']
+        )
+        blueprint.add_url_rule(
+            '/sitemap.xml',
+            'sitemap',
+            view_func=self.sitemap,
             methods=['GET']
         )
         return blueprint

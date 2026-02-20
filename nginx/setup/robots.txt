@@ -1,0 +1,13 @@
+User-agent: *
+Disallow: /dataset/rate/
+Disallow: /revision/
+Disallow: /dataset/*/history
+Disallow: /api/
+Disallow: /user/
+Disallow: /dashboard/
+Disallow: /dataset/new
+Disallow: /dataset/new-choice
+Disallow: /dataset/import-doi
+Crawl-Delay: 10
+
+Sitemap: https://products.obis.org/sitemap.xml
