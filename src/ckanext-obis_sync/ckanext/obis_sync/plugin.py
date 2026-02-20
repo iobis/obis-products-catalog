@@ -81,12 +81,32 @@ def sync_nodes():
     click.echo(f"Created: {created}, Updated: {updated}")
     click.echo(f"Total: {len(nodes)}")
 
+    # Ensure OBIS Community org exists
+    community_name = "obis-community"
+    community = (
+        model.Session.query(Group)
+        .filter_by(name=community_name, type="organization")
+        .first()
+    )
+    if not community:
+        community = Group(
+            name=community_name,
+            title="OBIS Community",
+            description="An organization for products that aren't associated with a specific node or the Secretariat.",
+            type="organization",
+            is_organization=True,
+        )
+        model.Session.add(community)
+        model.Session.commit()
+        click.echo("Created: OBIS Community (obis-community)")
+    else:
+        click.echo("OBIS Community already exists")
+        
     model.Session.expire_all()
     final_count = (
         model.Session.query(Group).filter_by(type="organization").count()
     )
     click.echo(f"\n{final_count} organizations in database after commit")
-
 
 @obis.command("sync-institutions")
 @click.option(

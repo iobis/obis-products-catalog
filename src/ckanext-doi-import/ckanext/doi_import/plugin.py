@@ -161,7 +161,7 @@ class DoiImportPlugin(plugins.SingletonPlugin):
             )
 
             # Check for existing dataset
-            metadata_url = metadata.get("zenodo_url", metadata.get("url", ""))
+            metadata_url = metadata.get("source_url", metadata.get("url", ""))
             existing_dataset = _find_existing_dataset(context, metadata_url)
 
             if existing_dataset:
@@ -261,7 +261,7 @@ class DoiImportPlugin(plugins.SingletonPlugin):
             )
 
             # Check for existing dataset by matching Zenodo URL
-            metadata_url = metadata.get("zenodo_url", metadata.get("url", ""))
+            metadata_url = metadata.get("source_url", metadata.get("url", ""))
             existing_dataset = _find_existing_dataset(context, metadata_url)
 
             site_url = toolkit.config.get("ckan.site_url", "http://localhost:5000")
@@ -432,17 +432,17 @@ def _is_empty(value):
 # --- Helpers ---
 
 
-def _find_existing_dataset(context, zenodo_url):
-    """Search for an existing dataset that matches a Zenodo record URL."""
-    if not zenodo_url:
+def _find_existing_dataset(context, source_url):
+    """Search for an existing dataset that matches a source record URL."""
+    if not source_url:
         return None
 
     search_results = toolkit.get_action("package_search")(
-        context, {"fq": "zenodo_url:*zenodo.org/record*", "rows": 1000}
+        context, {"fq": "source_url:*", "rows": 1000}
     )
 
     for result in search_results.get("results", []):
-        if result.get("zenodo_url") == zenodo_url:
+        if result.get("source_url") == source_url:
             return result
 
     return None

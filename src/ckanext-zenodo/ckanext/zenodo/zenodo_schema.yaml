@@ -95,11 +95,11 @@ dataset_fields:
     label: Organization
     preset: dataset_organization
 
-  - field_name: zenodo_url
+  - field_name: source_url
     label: Source URL
     form_placeholder: https://zenodo.org/records/...
     display_snippet: link.html
-    help_text: URL to the Zenodo landing page
+    help_text: URL of the original record at the source repository (e.g. Zenodo)
     validators: ignore_missing
 
   # Direct metadata fields
@@ -114,7 +114,7 @@ dataset_fields:
     label: Canonical ID
     form_placeholder: https://doi.org/10.5281/zenodo.11464531
     display_snippet: link.html
-    help_text: Canonical identifier for this resource
+    help_text: Persistent identifier (DOI URL) used as @id in ODIS JSON-LD export
     required: true
     validators: ignore_missing
 

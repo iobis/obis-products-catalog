@@ -214,10 +214,10 @@
       {% endif %}
 
       {# Zenodo URL #}
-      {% if pkg_dict.zenodo_url %}
+      {% if pkg_dict.source_url %}
         <tr>
-          <th scope="row">{{ _('Zenodo URL') }}</th>
-          <td><a href="{{ pkg_dict.zenodo_url }}" target="_blank">{{ pkg_dict.zenodo_url }}</a></td>
+          <th scope="row">{{ _('Source URL') }}</th>
+          <td><a href="{{ pkg_dict.source_url }}" target="_blank">{{ pkg_dict.source_url }}</a></td>
         </tr>
       {% endif %}
 

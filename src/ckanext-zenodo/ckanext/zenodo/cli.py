@@ -272,9 +272,9 @@ def export_whitelist(output):
     writer.writerow(['doi', 'title', 'source_url', 'catalog_url'])
 
     for ds in sorted(datasets, key=lambda d: d.get('title', '')):
-        # Get source URL — try zenodo_url first, fall back to url
+        # Get source URL — try source_url first, fall back to url
         extras = {e['key']: e['value'] for e in ds.get('extras', [])}
-        source_url = ds.get('zenodo_url') or extras.get('zenodo_url') or ds.get('url') or ''
+        source_url = ds.get('source_url') or extras.get('source_url') or ds.get('url') or ''
 
         # Build DOI from source URL
         doi = ''
