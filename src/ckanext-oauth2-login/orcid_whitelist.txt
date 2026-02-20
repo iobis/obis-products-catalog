@@ -11,3 +11,7 @@
 0000-0002-5304-941X  # Elizabeth Lawrence
 0000-0002-5806-0837  # Dan Lear
 0000-0001-7843-3074  # Katherine Lesley Tattersall
+0000-0002-6446-7342  # Emilie Boulanger
+0000-0001-9401-8460  # Saara Suominen
+0009-0002-4462-423X  # Laurent Chmiel
+0009-0001-3827-7318  # Lisa Benedetti
