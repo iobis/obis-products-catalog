@@ -37,4 +37,5 @@ class ObisThemePlugin(plugins.SingletonPlugin, DefaultTranslation):
             "obis_get_product_type_stats": helpers.obis_get_product_type_stats,
             "obis_get_thematic_stats": helpers.obis_get_thematic_stats,
             "obis_get_recent_datasets": helpers.obis_get_recent_datasets,
+            "obis_parse_json_field": helpers.obis_parse_json_field,
         }

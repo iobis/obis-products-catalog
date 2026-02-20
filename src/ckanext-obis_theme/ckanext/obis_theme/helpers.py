@@ -28,7 +28,18 @@ class StatObject:
         self.icon = icon
         self.display_name = display_name
 
-
+def obis_parse_json_field(value):
+    """Parse a JSON string field into a Python object for templates."""
+    if not value:
+        return None
+    if isinstance(value, (list, dict)):
+        return value
+    try:
+        parsed = json.loads(value)
+        return parsed if parsed else None
+    except (json.JSONDecodeError, TypeError):
+        return None
+        
 def obis_get_product_type_stats():
     """Get statistics for product types from product_type field."""
     try:

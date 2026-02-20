@@ -36,18 +36,43 @@
       {% endif %}
 
       {# Authors #}
-      {% if pkg_dict.authors %}
+      {% set authors = h.obis_parse_json_field(pkg_dict.authors) %}
+      {% if authors %}
         <tr>
           <th scope="row">{{ _('Authors') }}</th>
-          <td><pre style="background: #f5f5f5; padding: 10px; border-radius: 4px; font-size: 0.9em; margin: 0; white-space: pre-wrap;">{{ pkg_dict.authors | tojson(indent=2) }}</pre></td>
+          <td>
+            {% for author in authors %}
+              <div style="margin-bottom: 6px;">
+                <strong>{{ author.author_name or author.name or 'Unknown' }}</strong>
+                {% if author.author_affiliation_name or author.affiliation %}
+                  <span style="color: #666;"> — {{ author.author_affiliation_name or author.affiliation }}</span>
+                {% endif %}
+                {% if author.author_orcid or author.orcid %}
+                  <a href="{{ author.author_orcid or author.orcid }}" target="_blank" style="margin-left: 6px;">
+                    <i class="fa fa-external-link"></i> ORCID
+                  </a>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </td>
         </tr>
       {% endif %}
 
       {# Contributors #}
-      {% if pkg_dict.contributors %}
+      {% set contributors = h.obis_parse_json_field(pkg_dict.contributors) %}
+      {% if contributors %}
         <tr>
           <th scope="row">{{ _('Contributors') }}</th>
-          <td><pre style="background: #f5f5f5; padding: 10px; border-radius: 4px; font-size: 0.9em; margin: 0; white-space: pre-wrap;">{{ pkg_dict.contributors | tojson(indent=2) }}</pre></td>
+          <td>
+            {% for contrib in contributors %}
+              <div style="margin-bottom: 6px;">
+                <strong>{{ contrib.contributor_name or contrib.name or 'Unknown' }}</strong>
+                {% if contrib.contributor_affiliation_name or contrib.affiliation %}
+                  <span style="color: #666;"> — {{ contrib.contributor_affiliation_name or contrib.affiliation }}</span>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </td>
         </tr>
       {% endif %}
 
@@ -194,10 +219,24 @@
       {% endif %}
 
       {# Funding #}
-      {% if pkg_dict.funding %}
+      {% set funding = h.obis_parse_json_field(pkg_dict.funding) %}
+      {% if funding %}
         <tr>
           <th scope="row">{{ _('Funding') }}</th>
-          <td><pre style="background: #f5f5f5; padding: 10px; border-radius: 4px; font-size: 0.9em; margin: 0; white-space: pre-wrap;">{{ pkg_dict.funding | tojson(indent=2) }}</pre></td>
+          <td>
+            {% for fund in funding %}
+              <div style="margin-bottom: 6px;">
+                {% if fund.funder_name %}<strong>{{ fund.funder_name }}</strong>{% endif %}
+                {% if fund.grant_name %} — {{ fund.grant_name }}{% endif %}
+                {% if fund.grant_id %} ({{ fund.grant_id }}){% endif %}
+                {% if fund.grant_url %}
+                  <a href="{{ fund.grant_url }}" target="_blank" style="margin-left: 6px;">
+                    <i class="fa fa-external-link"></i>
+                  </a>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </td>
         </tr>
       {% endif %}
 
