@@ -15,7 +15,6 @@ BLACKLIST_PATH = '/srv/app/catalog_blacklist.csv'
 # Fields that curators may have edited — never overwrite these on update
 PROTECTED_FIELDS = {
     'thematic_tags',
-    'product_type',
     'groups',
     'owner_org',
     'tag_string',
