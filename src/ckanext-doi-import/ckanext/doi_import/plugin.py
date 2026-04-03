@@ -81,6 +81,12 @@ class DoiImportPlugin(plugins.SingletonPlugin):
             self._harvest_doi_endpoint,
             methods=["POST"],
         )
+        blueprint.add_url_rule(
+            "/dataset/<dataset_id>/sync",
+            "sync_dataset",
+            self._sync_dataset,
+            methods=["POST"],
+        )
         return blueprint
 
     # IActions
@@ -308,7 +314,55 @@ class DoiImportPlugin(plugins.SingletonPlugin):
             return jsonify({"error": str(e)}), 400
         except Exception as e:
             return jsonify({"error": f"Server error: {e}"}), 500
+    def _sync_dataset(self, dataset_id):
+        """Sync a dataset with its source DOI."""
+        from flask import redirect, url_for, flash
 
+        context = {"user": toolkit.c.user, "auth_user_obj": toolkit.c.userobj}
+
+        try:
+            toolkit.check_access("package_update", context, {"id": dataset_id})
+        except toolkit.NotAuthorized:
+            toolkit.abort(403, "Not authorized to update this dataset")
+
+        existing = toolkit.get_action("package_show")(context, {"id": dataset_id})
+
+        source_url = existing.get("source_url") or existing.get("url")
+        if not source_url:
+            flash("This product has no source URL — cannot sync.", "alert-warning")
+            return redirect(url_for("dataset.read", id=existing["name"]))
+
+        blacklist_reason = _is_blacklisted(source_url)
+        if blacklist_reason:
+            flash(f"This DOI is blacklisted and cannot be synced. Reason: {blacklist_reason}", "alert-warning")
+            return redirect(url_for("dataset.read", id=existing["name"]))
+
+        try:
+            metadata = toolkit.get_action("doi_fetch_metadata")(
+                context, {"doi_url": source_url}
+            )
+            metadata["id"] = existing["id"]
+            metadata["name"] = existing["name"]
+
+            dataset_dict = toolkit.get_action("doi_create_dataset")(
+                context,
+                {
+                    "metadata": metadata,
+                    "owner_org": existing["owner_org"],
+                    "contributing_organizations": [],
+                    "is_update": True,
+                },
+            )
+
+            import ckan.lib.search as search
+            search.rebuild(package_id=dataset_dict["id"])
+
+            flash(f'"{dataset_dict["title"]}" has been synced with source. Curated fields were preserved.', "success")
+
+        except Exception as e:
+            flash(f"Sync failed: {e}", "error")
+
+        return redirect(url_for("dataset.read", id=existing["name"]))
 
 # --- Action functions ---
 
