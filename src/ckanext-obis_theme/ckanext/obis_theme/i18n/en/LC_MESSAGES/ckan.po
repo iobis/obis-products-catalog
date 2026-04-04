@@ -276,3 +276,52 @@ msgstr "{actor} updated the {dataset_type} {dataset}"
 
 msgid "{number} datasets have been purged"
 msgstr "{number} products have been purged"
+
+msgid "Organizations"
+msgstr "Nodes"
+
+msgid "Organization"
+msgstr "Node"
+
+msgid "organization"
+msgstr "node"
+
+msgid "Add Organization"
+msgstr "Add Node"
+
+msgid "There are currently no organizations for this site"
+msgstr "There are currently no nodes for this site"
+
+msgid "Search organizations..."
+msgstr "Search nodes..."
+
+msgid "My Organization"
+msgstr "My Node"
+
+msgid "Groups"
+msgstr "Institutions"
+
+msgid "Group"
+msgstr "Institution"
+
+msgid "group"
+msgstr "institution"
+
+msgid "Add Group"
+msgstr "Add Institution"
+
+msgid "There are currently no groups for this site"
+msgstr "There are currently no institutions for this site"
+
+msgid "Search groups..."
+msgstr "Search institutions..."
+
+msgid "{number} organization found"
+msgid_plural "{number} organizations found"
+msgstr[0] "{number} node found"
+msgstr[1] "{number} nodes found"
+
+msgid "{number} group found"
+msgid_plural "{number} groups found"
+msgstr[0] "{number} institution found"
+msgstr[1] "{number} institutions found"
