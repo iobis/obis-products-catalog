@@ -10,3 +10,28 @@ body {
     border-color: #ffc107 !important;
     color: #664d03 !important;
 }
+
+/* Browse dropdown - override CKAN's dark hover from main.css */
+.dropdown-menu li a:hover,
+.dropdown-menu li:hover a {
+    background: none !important;
+    color: inherit !important;
+    font-weight: bold;
+}
+
+.dropdown-menu li a,
+.dropdown-menu li a:hover {
+    border-bottom-style: none !important;
+    border-width: 0 !important;
+    text-decoration: none !important;
+}
+
+.dropdown-menu {
+    white-space: nowrap;
+    width: auto;
+}
+
+.masthead .main-navbar ul li:hover a,
+.masthead .main-navbar ul li:focus a {
+    background-color: transparent !important;
+}

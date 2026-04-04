@@ -7,8 +7,8 @@
 #     preload:
 #       - base/main
 
-# obis_theme-css:
-#   filter: cssrewrite
-#   output: ckanext-obis_theme/%(version)s-obis_theme.css
-#   contents:
-#     - css/obis_theme.css
+obis_theme-css:
+  filter: cssrewrite
+  output: ckanext-obis_theme/%(version)s-obis_theme.css
+  contents:
+    - style.css

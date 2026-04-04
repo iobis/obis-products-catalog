@@ -231,3 +231,15 @@ def obis_get_recent_datasets(limit=4):
         return datasets
     except Exception as e:
         return []
+
+def obis_get_node_orgs():
+    """Get all OBIS node organizations (those prefixed with 'node-'), sorted by title."""
+    try:
+        orgs = toolkit.get_action('organization_list')(
+            {'ignore_auth': True},
+            {'all_fields': True, 'limit': 100}
+        )
+        nodes = [o for o in orgs if o['name'].startswith('node-')]
+        return sorted(nodes, key=lambda x: x.get('title', '').lower())
+    except Exception:
+        return []

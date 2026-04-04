@@ -16,21 +16,21 @@
     background: white !important;
     padding: 0rem !important;
 }
-.masthead .main-navbar ul li a {
-  padding: 0.6rem 0.9rem !important;
-  color: var(--main-a-color) !important;
-  text-decoration: none !important;
-  border-color: transparent !important;
-  border-bottom-style: solid;
-  border-width: medium;
-  margin-left: 5px !important;
-  margin-right: 5px !important;
+.masthead .main-navbar ul li > a {
+    padding: 0.6rem 0.9rem !important;
+    color: var(--main-a-color) !important;
+    text-decoration: none !important;
+    border-color: transparent !important;
+    border-bottom-style: solid;
+    border-width: medium;
+    margin-left: 5px !important;
+    margin-right: 5px !important;
 }
-.masthead .main-navbar ul li:hover a,
-.masthead .main-navbar ul li:focus a,
-.masthead .main-navbar ul li.active a {
+.masthead .main-navbar ul li:hover > a,
+.masthead .main-navbar ul li:focus > a,
+.masthead .main-navbar ul li.active > a {
     border-radius: 0px !important;
-    background-color: white !important;
+    background-color: transparent !important;
     color: var(--main-a-hover-color) !important;
     border-color: var(--main-a-hover-color) !important;
     border-bottom-style: solid;

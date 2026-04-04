@@ -64,6 +64,11 @@
 </div>
 {% endblock %}-->
 <header class="masthead" style="padding: 0rem !important;">
+ {% if 'dev' in request.host %}
+  <div style="background-color: #e74c3c; color: white; text-align: center; padding: 4px; font-size: 13px; font-weight: 500;">
+    Development environment — changes here are not live
+  </div>
+  {% endif %} 
  <div class="masthead-container-1">
     
 
@@ -104,19 +109,28 @@
       </button>
 
       <div class="main-navbar collapse navbar-collapse" id="main-navigation-toggle">
-        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+        <ul class="nav nav-pills navbar-nav ms-auto mb-2 mb-lg-0">
           {% block header_site_navigation %}
             {% block header_site_navigation_tabs %}
               {% set org_type = h.default_group_type('organization') %}
               {% set group_type = h.default_group_type('group') %}
 
 		          {{ h.build_nav_main(
-		            (dataset_type ~ '.search', h.humanize_entity_type('package', dataset_type, 'main nav') or _('Datasets'), ["dataset", "resource"]),
-		            (org_type ~ '.index',
-                  h.humanize_entity_type('organization', org_type, 'main nav') or _('Organizations'), ['organization']),
-		            (group_type ~ '.index',
-                  h.humanize_entity_type('group_type', group_type, 'main nav') or _('Groups'), ['group']),
-		            ('home.about', _('About')) ) }}
+                  (dataset_type ~ '.search', h.humanize_entity_type('package', dataset_type, 'main nav') or _('Datasets'), ["dataset", "resource"]),
+                  ('home.about', _('About')) ) }}
+
+              <li class="dropdown">
+                <a data-bs-toggle="dropdown" aria-expanded="false">
+                  Browse <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu">
+                  <li><a href="{{ h.url_for('organization.read', id='node-obis-secretariat') }}">OBIS Secretariat</a></li>
+                  <li><a href="{{ h.url_for('organization.read', id='obis-community') }}">OBIS Community</a></li>
+                  <li><a href="{{ h.url_for('organization.index') }}">Nodes</a></li>
+                  <li><a href="{{ h.url_for('group.index') }}">Institutions</a></li>
+                </ul>
+              </li>
+
               <li><a href="https://iobis.github.io/obis-products-catalog/" target="_blank">Docs</a></li>
 	          {% endblock %}
           </ul>

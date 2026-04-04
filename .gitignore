@@ -30,3 +30,6 @@ nginx/setup/ckan-local.key
 
 # backup db
 *.dump
+
+# for dev setup
+docker-compose.override.yml
