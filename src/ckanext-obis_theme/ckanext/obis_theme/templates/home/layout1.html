@@ -1,7 +1,16 @@
+{# Homepage layout template.
+   The filename "layout1" is hardcoded by CKAN and cannot be changed —
+   it corresponds to the default homepage layout selected in ckan.ini.
+   This file controls the overall structure of the front page.
+   For content changes, edit the snippets in home/snippets/. #}
+ 
 <div role="main">
   <div class="main hero">
     <div class="container">
       <div class="row">
+        <div class="col-xs-12" style="padding: 20px 0 10px;">
+          <p style="font-size: 16px; color: #444;">A discovery catalog for researchers, analysts, and data practitioners — browse datasets, models, software, publications, and more, all derived from OBIS-mediated marine biodiversity data.</p>
+        </div>
         {% snippet 'home/snippets/highlights.html' %}
       </div>
     </div>
