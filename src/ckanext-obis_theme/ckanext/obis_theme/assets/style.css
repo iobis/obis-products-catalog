@@ -35,3 +35,35 @@ body {
 .masthead .main-navbar ul li:focus a {
     background-color: transparent !important;
 }
+
+/* Rounded search input to match obis.org aesthetic */
+.search-input-group input[type="text"],
+.search-giant input[type="text"],
+input.search-input,
+.masthead-container-2 input[type="text"] {
+    border-radius: 10px;
+    padding-left: 16px;
+}
+
+/* Button color */
+.btn-primary,
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: #2F6FEF !important;
+    border-color: #2F6FEF !important;
+}
+
+/* Follow button - match primary button color */
+.btn-success,
+.btn-success:hover,
+.btn-success:focus,
+.btn-success:active {
+    background-color: #2F6FEF !important;
+    border-color: #2F6FEF !important;
+}
+
+/* Dataset format badges */
+.badge-default {
+    background-color: #2F6FEF !important;
+}

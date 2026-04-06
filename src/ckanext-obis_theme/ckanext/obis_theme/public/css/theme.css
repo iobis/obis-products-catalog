@@ -1,8 +1,8 @@
 /* Define --main-bg-color here */
 :root {
-    --main-color: #b1b695;
-    --main-a-color: #b1b695;
-    --main-a-hover-color: #cfd2bb;
+    --main-color: #2F6FEF;
+    --main-a-color: #2c3e50;
+    --main-a-hover-color: #2F6FEF;
     --bs-primary-rgb: 177, 182, 149 !important;
     --bs-font-sans-serif: "Noto Sans", sans-serif !important;
     --bs-body-font-family: var(--bs-font-sans-serif) !important;
@@ -13,7 +13,7 @@
 }
 .masthead {
     /* background: #005d7a url(../../../base/images/bg.png); */
-    background: white !important;
+    background: #CDDEE7 !important;
     padding: 0rem !important;
 }
 .masthead .main-navbar ul li > a {
@@ -44,14 +44,14 @@
 
 .masthead-container-1 {
     padding: 0.5em;
-    border-bottom: 1px solid #D3D3D3;
+    border-bottom: 1px solid #CDDEE7;
 }
 
 .masthead-container-2 {
     padding-top: 20px;
     padding-bottom: 20px;
-    background-color: #f2f3f4 !important;
-    border-bottom: 1px solid #D3D3D3;
+    background-color: #CDDEE7 !important;
+    border-bottom: 1px solid #CDDEE7;
     padding-right: 20%;
     padding-left: 20%;
 }
@@ -102,7 +102,7 @@
 
 
 .site-footer {
-    background: #222222 !important;
+    background: #2F6FEF !important;
 }
 .site-footer p {
     color: #ffffff;
@@ -154,7 +154,7 @@
 
 .section-title {
     font-weight: 900;
-    color: var(--main-color);
+    color: #333333;
     font-size: 26px;
 }
 .highlights-container {
@@ -213,7 +213,7 @@
 
 .highlight-title {
     font-weight: 900;
-    color: var(--main-color);
+    color: #333333;
     font-size: 20px;
     margin-bottom: 10px;
 }
@@ -235,7 +235,7 @@
     height: 100%;
     padding: 20px;
     transition: opacity 0.3s ease;
-    background-color: var(--main-color);
+    background-color: #CDDEE7;
     color: white;
     display: flex;
     flex-wrap: wrap;
@@ -653,5 +653,5 @@ h2.organization-side {
 }
 
 .highlights-container a.text-center:hover .number {
-    color: var(--main-color);  /* Changed from #5dade2 */
+    color: #CDDEE7;  /* Changed from #5dade2 */
 }
