@@ -50,8 +50,8 @@ input.search-input,
 .btn-primary:hover,
 .btn-primary:focus,
 .btn-primary:active {
-    background-color: #2F6FEF !important;
-    border-color: #2F6FEF !important;
+    background-color: var(--color-brand) !important;
+    border-color: var(--color-brand) !important;
 }
 
 /* Follow button - match primary button color */
@@ -59,11 +59,11 @@ input.search-input,
 .btn-success:hover,
 .btn-success:focus,
 .btn-success:active {
-    background-color: #2F6FEF !important;
-    border-color: #2F6FEF !important;
+    background-color: var(--color-brand) !important;
+    border-color: var(--color-brand) !important;
 }
 
 /* Dataset format badges */
 .badge-default {
-    background-color: #2F6FEF !important;
+    background-color: var(--color-brand) !important;
 }

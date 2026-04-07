@@ -15,10 +15,10 @@
   
   {# JSON-LD Export Link #}
   <div class="jsonld-export" style="margin-bottom: 15px; position: relative; z-index: 100;">
-    <span style="color: #666; font-size: 14px;">View as:</span>
+    <span style="color: var(--color-mid); font-size: 14px;">View as:</span>
     <a href="/dataset/{{ c.pkg_dict.name }}/odis.jsonld" 
        target="_blank"
-       style="margin-left: 8px; color: #0066cc; font-weight: 500; text-decoration: underline; position: relative; z-index: 101;">
+       style="margin-left: 8px; color: var(--color-brand); font-weight: 500; text-decoration: underline; position: relative; z-index: 101;">
       <i class="fa fa-code"></i> JSON-LD
     </a>
   </div>
@@ -44,7 +44,7 @@
     {% block package_tags %}
       <div class="tags-section" style="margin-bottom: 15px;">
         {% for tag in c.pkg_dict.tags %}
-          <a href="{{ h.url_for('dataset.search', tags=tag.name) }}" class="tag-pill" style="display: inline-block; background-color: #e6f3ff; color: #0366d6; padding: 4px 12px; margin: 2px 4px 2px 0; border-radius: 16px; font-size: 14px; text-decoration: none;">
+          <a href="{{ h.url_for('dataset.search', tags=tag.name) }}" class="tag-pill" style="display: inline-block; background-color: var(--color-brand-light); color: var(--color-brand); padding: 4px 12px; margin: 2px 4px 2px 0; border-radius: 16px; font-size: 14px; text-decoration: none;">
             {{ tag.display_name }}
           </a>
         {% endfor %}

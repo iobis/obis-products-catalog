@@ -45,7 +45,7 @@
               <div style="margin-bottom: 6px;">
                 <strong>{{ author.author_name or author.name or 'Unknown' }}</strong>
                 {% if author.author_affiliation_name or author.affiliation %}
-                  <span style="color: #666;"> — {{ author.author_affiliation_name or author.affiliation }}</span>
+                  <span style="color: var(--color-mid);"> — {{ author.author_affiliation_name or author.affiliation }}</span>
                 {% endif %}
                 {% if author.author_orcid or author.orcid %}
                   <a href="{{ author.author_orcid or author.orcid }}" target="_blank" style="margin-left: 6px;">
@@ -68,7 +68,7 @@
               <div style="margin-bottom: 6px;">
                 <strong>{{ contrib.contributor_name or contrib.name or 'Unknown' }}</strong>
                 {% if contrib.contributor_affiliation_name or contrib.affiliation %}
-                  <span style="color: #666;"> — {{ contrib.contributor_affiliation_name or contrib.affiliation }}</span>
+                  <span style="color: var(--color-mid);"> — {{ contrib.contributor_affiliation_name or contrib.affiliation }}</span>
                 {% endif %}
               </div>
             {% endfor %}
