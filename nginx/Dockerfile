@@ -4,13 +4,20 @@ ENV NGINX_DIR=/etc/nginx
 
 RUN apk update --no-cache && \
     apk upgrade --no-cache && \
-    apk add --no-cache openssl
+    apk add --no-cache openssl python3 py3-pip && \
+    pip3 install mkdocs-material --break-system-packages
 
-COPY setup/nginx.conf ${NGINX_DIR}/nginx.conf
-COPY setup/index.html /usr/share/nginx/html/index.html
-COPY setup/error.html /usr/share/nginx/html/error.html
-COPY setup/robots.txt /usr/share/nginx/html/robots.txt
-COPY setup/default.conf ${NGINX_DIR}/conf.d/
+COPY nginx/setup/nginx.conf ${NGINX_DIR}/nginx.conf
+COPY nginx/setup/index.html /usr/share/nginx/html/index.html
+COPY nginx/setup/error.html /usr/share/nginx/html/error.html
+COPY nginx/setup/robots.txt /usr/share/nginx/html/robots.txt
+COPY nginx/setup/default.conf ${NGINX_DIR}/conf.d/
+
+# Build MkDocs site
+COPY docs/ /tmp/docs/
+COPY mkdocs.yml /tmp/mkdocs.yml
+RUN cd /tmp && mkdocs build --config-file mkdocs.yml && \
+    mv /tmp/site /usr/share/nginx/html/docs
 
 RUN mkdir -p ${NGINX_DIR}/certs
 
