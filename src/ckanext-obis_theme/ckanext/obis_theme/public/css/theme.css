@@ -655,20 +655,3 @@ h2.organization-side {
 .highlights-container a.text-center:hover .number {
     color: #CDDEE7;  /* Changed from #5dade2 */
 }
-
-
-.btn-primary,
-.btn-primary:hover,
-.btn-primary:focus,
-.btn-primary:active {
-    background-color: #2F6FEF !important;
-    border-color: #2F6FEF !important;
-}
-
-.btn-success,
-.btn-success:hover,
-.btn-success:focus,
-.btn-success:active {
-    background-color: #2F6FEF !important;
-    border-color: #2F6FEF !important;
-}
