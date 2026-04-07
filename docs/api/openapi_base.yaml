@@ -113,7 +113,7 @@ paths:
                       results:
                         type: array
                         items:
-                          type: object
+                          $ref: '#/components/schemas/Dataset'
 
   /api/3/action/package_show:
     get:
@@ -136,6 +136,11 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  success:
+                    type: boolean
+                  result:
+                    $ref: '#/components/schemas/Dataset'
         '404':
           description: Product not found
 
@@ -226,20 +231,7 @@ paths:
                     enum: [created, updated]
                     example: created
                   dataset:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                        example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
-                      name:
-                        type: string
-                        example: 10-5281-zenodo-1234567
-                      title:
-                        type: string
-                        example: Species distribution model for Atlantic cod
-                      url:
-                        type: string
-                        example: https://products.obis.org/dataset/10-5281-zenodo-1234567
+                    $ref: '#/components/schemas/Dataset'
         '400':
           description: Missing or invalid doi_url, or unsupported source
           content:
@@ -352,12 +344,4 @@ components:
         1. Log in to products.obis.org
         2. Go to your profile → API Tokens
         3. Create a new token
-        4. Use it as: `Authorization: Bearer <your-token>`
-
-  schemas:
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-          example: doi_url required in JSON body
+        4. Use it as: Authorization: Bearer <your-token>
