@@ -1,6 +1,12 @@
 :root {
-  --md-primary-fg-color: #b1b695;
-  --md-primary-fg-color--light: #cfd2bb;
-  --md-primary-fg-color--dark: #8a8e6f;
-  --md-accent-fg-color: #b1b695;
+  --md-primary-fg-color: #2F6FEF;
+  --md-primary-fg-color--light: #e8f0fd;
+  --md-primary-fg-color--dark: #1a4db3;
+  --md-accent-fg-color: #CDDEE7;
+  --md-text-font: "Noto Sans";
 }
+
+[data-md-color-scheme="default"] .md-header {
+    background-color: #2F6FEF;
+}
+
