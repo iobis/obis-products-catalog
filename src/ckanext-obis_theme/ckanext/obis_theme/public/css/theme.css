@@ -72,7 +72,7 @@
     background-clip: padding-box;
     border: 1px solid #ced4da;
     appearance: none;
-    border-radius: 0px;
+    border-radius: 10px;
     box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.075);
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
@@ -654,4 +654,21 @@ h2.organization-side {
 
 .highlights-container a.text-center:hover .number {
     color: #CDDEE7;  /* Changed from #5dade2 */
+}
+
+
+.btn-primary,
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: #2F6FEF !important;
+    border-color: #2F6FEF !important;
+}
+
+.btn-success,
+.btn-success:hover,
+.btn-success:focus,
+.btn-success:active {
+    background-color: #2F6FEF !important;
+    border-color: #2F6FEF !important;
 }
