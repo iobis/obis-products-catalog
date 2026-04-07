@@ -35,9 +35,9 @@ Schema definition and Zenodo-specific facets/indexing. Defines the dataset schem
 
 **CLI Commands**:
 
-- `ckan zenodo harvest` — Bulk import/update from a DOI registry file. Checks blacklist, uses smart update to preserve curated fields.
+- `ckan zenodo harvest` — Bulk import/update from a DOI list. Checks blacklist, uses smart update to preserve curated fields.
 - `ckan zenodo export-whitelist` — Export all catalog products as CSV (`doi`, `title`, `source_url`, `catalog_url`). Used by the nightly cron job.
-- `ckan zenodo init-vocabularies` — Initialize controlled vocabularies (product types, thematic areas).
+- `ckan zenodo init-vocabularies` — Creates controlled vocabularies for product types and thematic areas if they don't already exist. Does not remove or update existing terms — to modify vocabulary terms, use the CKAN shell directly.
 
 ## ckanext-doi-import
 
@@ -60,8 +60,6 @@ Import datasets from DOIs (currently Zenodo). Provides a web UI for DOI import a
 Authorization policy extension that enables cross-node curation. Any logged-in user can edit public datasets and create new datasets, but only organization admins can delete datasets or reassign a dataset to a different organization.
 
 **Plugin name**: `public_edit`
-
-**Note**: Must be loaded BEFORE `scheming_datasets` in the plugin load order for template overrides to work.
 
 **What it overrides**:
 
@@ -90,7 +88,11 @@ ORCID OAuth2 login for researchers. Allows users to sign in with their ORCID iD 
 
 **Access control**: Login is restricted to ORCID iDs listed in `orcid_whitelist.txt` in the extension root. Unapproved users are shown a message to contact helpdesk@obis.org. See [Operations > User Management](operations.md#orcid-whitelist) for how to manage the whitelist.
 
-**Whitelist**: `src/ckanext-oauth2-login/orcid_whitelist.txt` — one ORCID per line. Rebuild required after changes.
+**Whitelist**: `src/ckanext-oauth2-login/orcid_whitelist.txt` — one ORCID per line. A full rebuild is required after changes:
+
+```bash
+docker compose build ckan && docker compose up -d
+```
 
 **Key behaviors**:
 
@@ -105,13 +107,6 @@ ORCID OAuth2 login for researchers. Allows users to sign in with their ORCID iD 
 |---|---|
 | `/oauth2/login/orcid` | Starts the ORCID login flow |
 | `/oauth2/callback` | Handles the redirect back from ORCID |
-
-**Template helpers**:
-
-| Helper | Returns |
-|---|---|
-| `h.oauth2_login_orcid_enabled()` | `True` if ORCID client ID is configured |
-| `h.oauth2_login_orcid_url()` | URL to start ORCID login |
 
 **Required `.env` variables**:
 

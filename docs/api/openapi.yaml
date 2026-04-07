@@ -1,0 +1,363 @@
+openapi: 3.0.3
+info:
+  title: OBIS Products Catalog API
+  description: |
+    API documentation for the OBIS Products Catalog. This covers both custom
+    endpoints and the most useful standard CKAN endpoints for browsing and
+    querying the catalog.
+
+    For the full CKAN API reference, see the
+    [CKAN API documentation](https://docs.ckan.org/en/latest/api/index.html).
+
+    ## Authentication
+
+    Some endpoints require a CKAN API token. To generate one:
+
+    1. Log in to [products.obis.org](https://products.obis.org)
+    2. Go to your profile → **API Tokens**
+    3. Create a new token and copy it
+    4. Pass it in the `Authorization` header: `Authorization: Bearer <your-token>`
+
+    Browse endpoints are public and do not require authentication.
+
+    ## Terminology
+
+    The catalog uses CKAN's default terminology internally, which differs from
+    the language used in the UI:
+
+    | CKAN term | Catalog term |
+    |-----------|--------------|
+    | Dataset | Product |
+    | Organization | OBIS Node |
+    | Group | Institution |
+
+    API responses will use the CKAN terms (e.g. `package`, `organization`, `group`).
+  version: 1.0.0
+  contact:
+    email: helpdesk@obis.org
+
+servers:
+  - url: https://products.obis.org
+    description: Production
+
+tags:
+  - name: Browse
+    description: Search and retrieve products, organizations, and institutions (no authentication required)
+  - name: Import
+    description: Import products from DOIs (authentication required)
+  - name: Export
+    description: Export metadata in standard formats
+
+paths:
+
+  /api/3/action/package_search:
+    get:
+      tags:
+        - Browse
+      summary: Search products
+      description: |
+        Search and filter the product catalog. Returns paginated results.
+        Supports full-text search and Solr filter queries.
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Full-text search query
+          example: biodiversity Atlantic
+        - name: fq
+          in: query
+          schema:
+            type: string
+          description: |
+            Solr filter query. Useful filters:
+            - `vocab_product_type_tags:software`
+            - `vocab_thematic_tags:Biodiversity`
+            - `organization:node-obis-secretariat`
+          example: vocab_product_type_tags:software
+        - name: rows
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: Number of results to return
+          example: 20
+        - name: start
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Offset for pagination
+          example: 0
+        - name: sort
+          in: query
+          schema:
+            type: string
+          description: Sort order
+          example: metadata_modified desc
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  result:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                      results:
+                        type: array
+                        items:
+                          type: object
+
+  /api/3/action/package_show:
+    get:
+      tags:
+        - Browse
+      summary: Get a product
+      description: Returns full metadata for a single product.
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Dataset ID or name slug
+          example: 10-5281-zenodo-1234567
+      responses:
+        '200':
+          description: Product metadata
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: Product not found
+
+  /api/3/action/organization_list:
+    get:
+      tags:
+        - Browse
+      summary: List OBIS nodes
+      description: Returns all organizations (OBIS nodes) in the catalog.
+      parameters:
+        - name: all_fields
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Return full organization objects instead of just names
+          example: true
+      responses:
+        '200':
+          description: List of organizations
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/3/action/group_list:
+    get:
+      tags:
+        - Browse
+      summary: List institutions
+      description: Returns all groups (research institutions) in the catalog.
+      parameters:
+        - name: all_fields
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Return full group objects instead of just names
+          example: true
+      responses:
+        '200':
+          description: List of institutions
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /api/harvest-doi:
+    post:
+      tags:
+        - Import
+      summary: Import or update a product from a DOI
+      description: |
+        Imports a product from a DOI URL (currently Zenodo only). If the product
+        already exists in the catalog, it is updated from the source. Curated fields
+        (`thematic_tags`, `product_type`, `groups`, `owner_org`, `tag_string`) are
+        always preserved on update.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - doi_url
+              properties:
+                doi_url:
+                  type: string
+                  description: Full DOI URL (e.g. https://doi.org/10.5281/zenodo.1234567)
+                  example: https://doi.org/10.5281/zenodo.1234567
+            example:
+              doi_url: https://doi.org/10.5281/zenodo.1234567
+      responses:
+        '200':
+          description: Product imported or updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  action:
+                    type: string
+                    enum: [created, updated]
+                    example: created
+                  dataset:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+                      name:
+                        type: string
+                        example: 10-5281-zenodo-1234567
+                      title:
+                        type: string
+                        example: Species distribution model for Atlantic cod
+                      url:
+                        type: string
+                        example: https://products.obis.org/dataset/10-5281-zenodo-1234567
+        '400':
+          description: Missing or invalid doi_url, or unsupported source
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Missing or invalid Authorization header
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: DOI is blacklisted or user not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /dataset/{id}/sync:
+    post:
+      tags:
+        - Import
+      summary: Sync a product with its source
+      description: |
+        Re-fetches metadata from the product's source URL and updates the catalog
+        record. Curated fields are preserved. Requires edit access to the dataset.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Dataset ID or name slug
+          example: 10-5281-zenodo-1234567
+      responses:
+        '302':
+          description: Redirects to the dataset page after sync
+        '403':
+          description: Not authorized to update this dataset
+        '404':
+          description: Dataset not found
+
+  /dataset/{id}/odis.jsonld:
+    get:
+      tags:
+        - Export
+      summary: Get ODIS-compliant Schema.org JSON-LD for a product
+      description: |
+        Returns Schema.org JSON-LD metadata for the specified product, formatted
+        for ODIS harvesting. This endpoint is listed in `/sitemap.xml` for
+        automated discovery.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Dataset ID or name slug
+          example: 10-5281-zenodo-1234567
+      responses:
+        '200':
+          description: Schema.org JSON-LD metadata
+          content:
+            application/ld+json:
+              schema:
+                type: object
+                description: Schema.org Dataset or other type depending on product_type
+              example:
+                "@context": "https://schema.org"
+                "@type": "Dataset"
+                "@id": "https://doi.org/10.5281/zenodo.1234567"
+                name: Species distribution model for Atlantic cod
+                description: A model describing the distribution...
+                author:
+                  - "@type": Person
+                    name: Jane Smith
+        '404':
+          description: Dataset not found
+
+  /sitemap.xml:
+    get:
+      tags:
+        - Export
+      summary: Sitemap of all JSON-LD endpoints
+      description: |
+        Returns an XML sitemap listing the `/odis.jsonld` endpoint for every
+        public product in the catalog. Used by ODIS for automated harvesting.
+      responses:
+        '200':
+          description: XML sitemap
+          content:
+            application/xml:
+              schema:
+                type: string
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: |
+        CKAN API token. To generate one:
+        1. Log in to products.obis.org
+        2. Go to your profile → API Tokens
+        3. Create a new token
+        4. Use it as: `Authorization: Bearer <your-token>`
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: doi_url required in JSON body

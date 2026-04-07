@@ -16,7 +16,9 @@ COPY nginx/setup/default.conf ${NGINX_DIR}/conf.d/
 # Build MkDocs site
 COPY docs/ /tmp/docs/
 COPY mkdocs.yml /tmp/mkdocs.yml
-RUN cd /tmp && mkdocs build --config-file mkdocs.yml && \
+RUN cd /tmp && \
+    sed -i "s/{{BUILD_DATE}}/$(date +%Y-%m-%d)/" docs/index.md && \
+    mkdocs build --config-file mkdocs.yml && \
     mv /tmp/site /usr/share/nginx/html/docs
 
 RUN mkdir -p ${NGINX_DIR}/certs

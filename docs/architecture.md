@@ -1,8 +1,5 @@
 # Architecture
 
-!!! note "Stub"
-    This page is a skeleton. Content will be filled in during documentation sprints.
-
 ## Infrastructure
 
 The entire stack runs in Docker Compose with six services: CKAN, Nginx, PostgreSQL, Solr, Redis, and DataPusher.
@@ -16,7 +13,7 @@ Browser → nginx (port 80) → ckan (port 5000) → db/solr/redis
 | Service | Image | Purpose |
 |---|---|---|
 | **ckan** | Custom (ckan/ckan-base:2.11) | Main application |
-| **nginx** | Custom (nginx:stable-alpine) | Reverse proxy |
+| **nginx** | Custom (nginx:stable-alpine) | Reverse proxy, serves static docs at `/docs` |
 | **db** | Custom (PostgreSQL) | Database |
 | **solr** | ckan/ckan-solr:2.10-solr9 | Search index |
 | **redis** | redis:6 | Caching and job queue |
@@ -24,9 +21,13 @@ Browser → nginx (port 80) → ckan (port 5000) → db/solr/redis
 
 ## How Extensions Are Installed
 
-**Production** (`docker-compose.yml`): Extensions in `src/` are COPYed into the Docker image and pip-installed at build time.
+Extensions in `src/` are COPYed into the Docker image and pip-installed at build time. Changes to extension code require a rebuild:
 
-**Development** (`docker-compose.dev.yml`): Extensions in `src/` are mounted as a volume and auto-installed on startup.
+```bash
+docker compose build ckan && docker compose up -d
+```
+
+Development is done on a dedicated Digital Ocean droplet using the same `docker-compose.yml` as production. Local Docker setup on Mac is not currently viable due to known permission issues.
 
 ## Configuration
 
@@ -38,8 +39,8 @@ All configuration is in `.env` (not committed to git). CKAN reads environment va
 
 The catalog supports two login methods:
 
-- **CKAN accounts** — Standard username/password login, used by the `ckan_admin` account and for automated processes
-- **ORCID login** — OAuth2-based login for researchers (requires HTTPS and ORCID credentials; not yet active in production)
+- **ORCID login** — Primary method for researchers. OAuth2-based login, restricted to ORCID iDs on an approved whitelist.
+- **CKAN accounts** — Used for automated processes and emergency admin access only. No shared admin account exists — all admin access is via ORCID sysadmin accounts.
 
 New ORCID users are automatically assigned to the **OBIS Community** organization as editors on first login.
 
@@ -69,7 +70,7 @@ This model enables cross-node curation: a researcher from any OBIS node can anno
 Plugin load order in `CKAN__PLUGINS` matters. Current required order:
 
 ```
-public_edit scheming_datasets scheming_groups obis_theme ...
+envvars image_view text_view public_edit oauth2_login scheming_datasets scheming_groups obis_theme obis_sync odis_export zenodo doi_import
 ```
 
 `public_edit` must come **before** `scheming_datasets` so its template overrides take effect.

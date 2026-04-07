@@ -1,21 +1,11 @@
----
-layout: default
-title: OBIS Products Catalog
-nav_order: 1
-description: "A metadata catalog for products built on, or for, the OBIS network"
-permalink: /
----
-
-[User Guide](/user-guide){: .btn .fs-5 .mb-4 .mb-md-0 }
-[View on GitHub](https://github.com/iobis/obis-products-catalog){: .btn .fs-5 .mb-4 .mb-md-0 }
+*Documentation last built: {{BUILD_DATE}}*
 
 ## What is the OBIS Products Catalog?
 
-The OBIS Products Catalog is a cmetadata repository that helps users discover and access data products created from OBIS-mediated marine biodiversity data, or designed to support the OBIS network. As the OBIS network has grown, it became challenging to track the diverse products, like maps, models, training, visualizations, software, and presentations, that researchers have created. This catalog provides a searchable focal point for the products, and also ensures the metadata are exposed to catalogs like ODIS for increased findability.
+The OBIS Products Catalog is a metadata catalog that helps users discover and access data products created from OBIS-mediated data. As the OBIS network has grown, it became challenging to track the diverse products, like maps, models, tools, infographics, etc. that researchers have created. This catalog provides a searchable focal point for the products, and also ensures the metadata are exposed to catalogs like ODIS for increased findability.
 
 ## Key Features
 
-{: .highlight }
 > **Centralized Discovery** - Find data products from across the OBIS network
 >
 > **Lightweight** - Focuses metadata focused across multiple repositories without manipulation
@@ -32,9 +22,10 @@ The OBIS Products Catalog is a cmetadata repository that helps users discover an
 |:----------|:------------|
 | **Core Stack** | CKAN 2.11, PostgreSQL, Solr, Redis, NGINX |
 | **Data Sources** | OBIS API, Ocean Expert API, Zenodo |
-| **Organizations** | 38 OBIS regional/thematic nodes |
-| **Institutions** | 668 Ocean Expert Institutions |
+| **Organizations** | OBIS regional/thematic nodes |
+| **Institutions** | Ocean Expert Institutions |
 | **API** | Full CKAN API v3 + custom JSON-LD endpoints |
+| **Docs** | MkDocs Material, served via NGINX |
 
 ## Community
 
@@ -45,5 +36,3 @@ The OBIS Products Catalog is developed and maintained by the [OBIS Products Coor
 - **Issues:** [GitHub Issues](https://github.com/iobis/obis-products-catalog/issues)
 
 ---
-
-*Last updated: October 2025*

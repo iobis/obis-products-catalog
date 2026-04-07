@@ -1,8 +1,5 @@
 # Operations
 
-!!! note "Stub"
-    This page is a skeleton. Content will be filled in during documentation sprints.
-
 ## Routine Commands
 
 ```bash
@@ -33,8 +30,8 @@ docker compose exec ckan ckan -c /srv/app/ckan.ini zenodo export-whitelist
 # Export whitelist to file
 docker compose exec ckan ckan -c /srv/app/ckan.ini zenodo export-whitelist --output /srv/app/catalog_whitelist.csv
 
-# Bulk harvest from DOI registry
-docker compose exec ckan ckan -c /srv/app/ckan.ini zenodo harvest --registry /srv/app/doi_registry.txt
+# Bulk harvest from DOI list
+docker compose exec ckan ckan -c /srv/app/ckan.ini zenodo harvest
 ```
 
 ## User Management
@@ -101,9 +98,24 @@ For non-ORCID accounts (e.g. service accounts):
 docker compose exec ckan ckan -c /srv/app/ckan.ini user add USERNAME email=EMAIL password=PASSWORD
 ```
 
+### Promoting a user to sysadmin
+
+```bash
+docker compose exec -it ckan ckan -c /srv/app/ckan.ini shell
+```
+
+Then in the shell:
+
+```python
+from ckan import model
+user = model.User.by_name('orcid-XXXX-XXXX-XXXX-XXXX')
+user.sysadmin = True
+model.Session.commit()
+```
+
 ## Catalog Manifest
 
-The catalog maintains two CSV files at the repo root that serve as the archivable, citable record of the catalog's contents:
+The catalog maintains two CSV files at the repo root:
 
 **`catalog_whitelist.csv`** — Every product in the catalog, exported nightly from the database. Columns: `doi`, `title`, `source_url`, `catalog_url`. This file is version-controlled in git, providing an audit trail of catalog changes over time.
 
@@ -128,25 +140,6 @@ https://doi.org/10.5281/zenodo.99999,Some Product Title,https://zenodo.org/recor
 ```
 
 The blacklist is checked by the web form, API endpoint, and bulk harvest CLI. No rebuild is required — the file is volume-mounted into the container.
-```
-
-**Add to the Troubleshooting table:**
-```
-| DOI import says "excluded from catalog" | DOI is on the blacklist (`catalog_blacklist.csv`) — remove it if this was a mistake |
-| DOI import says "already in catalog" | Product exists — it will be updated, not duplicated. Curated fields are preserved. |
-
-## Troubleshooting
-
-| Symptom | Likely Cause |
-|---|---|
-| CKAN won't start | Check `docker compose logs ckan` for Python traceback |
-| Datasets missing in browser | Solr index needs rebuild |
-| Facet counts wrong | Check `before_dataset_index` field names, rebuild index |
-| Nginx "host not found" | CKAN service isn't running |
-| Extensions not found | Forgot to rebuild after code change |
-| Exit code 137 | Out of memory — check `docker stats` |
-| Org dropdown still editable for non-admins | `public_edit` must load before `scheming_datasets` in plugins |
-| `group_list` returns TypeError on `limit` | Set `CKAN___CKAN__GROUP_AND_ORGANIZATION_LIST_MAX=1000` in `.env` |
 
 ## Gotchas
 
@@ -154,13 +147,11 @@ The blacklist is checked by the web form, API endpoint, and bulk harvest CLI. No
 
 The `CKAN__PLUGINS` order in `.env` affects template priority. Plugins loaded **earlier** in the list have **higher** template priority. Current required ordering:
 
-- `public_edit` must come **before** `scheming_datasets` (so its organization field override takes effect)
-- `public_edit` must come **before** `scheming_datasets` was also true for `obis_theme` template overrides
+```
+CKAN__PLUGINS="envvars image_view text_view public_edit oauth2_login scheming_datasets scheming_groups obis_theme obis_sync odis_export zenodo doi_import"
+```
 
-Example:
-```
-CKAN__PLUGINS="envvars image_view text_view public_edit scheming_datasets scheming_groups obis_theme obis_sync odis_export zenodo doi_import"
-```
+`public_edit` must come **before** `scheming_datasets` so its organization field override takes effect.
 
 ### `.env` is never committed
 
@@ -168,6 +159,6 @@ Each deployment maintains its own `.env` from `.env.example`. Database passwords
 
 ## Git Workflow
 
-All work happens on branches off `prod-setup`. Changes are committed on the droplet and pushed to GitHub. When stable, branches merge to `main`.
+All work happens on branches off `main`. Changes are committed on the droplet and pushed to GitHub. When stable, branches merge to `main`.
 
 `.env` is never committed. Each deployment maintains its own `.env` from `.env.example`.
