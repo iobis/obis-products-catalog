@@ -627,3 +627,17 @@ h2.organization-side {
 .highlights-container a.text-center:hover .number {
     color: var(--color-accent);
 }
+
+/* Mobile adjustments */
+
+@media (max-width: 767px) {
+    .highlights-container {
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    .products-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
