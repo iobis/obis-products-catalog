@@ -117,7 +117,6 @@
               {% set group_type = h.default_group_type('group') %}
 
 		          {{ h.build_nav_main(
-                  (dataset_type ~ '.search', h.humanize_entity_type('package', dataset_type, 'main nav') or _('Datasets'), ["dataset", "resource"]),
                   ('home.about', _('About')) ) }}
 
               <li class="dropdown">
@@ -125,6 +124,7 @@
                   Browse <span class="caret"></span>
                 </a>
                 <ul class="dropdown-menu">
+                  <li><a href="{{ h.url_for(dataset_type ~ '.search') }}">All Products</a></li>
                   <li><a href="{{ h.url_for('organization.read', id='node-obis-secretariat') }}">OBIS Secretariat</a></li>
                   <li><a href="{{ h.url_for('organization.read', id='obis-community') }}">OBIS Community</a></li>
                   <li><a href="{{ h.url_for('organization.index') }}">Nodes</a></li>
