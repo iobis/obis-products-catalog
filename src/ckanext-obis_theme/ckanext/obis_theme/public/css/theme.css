@@ -645,3 +645,15 @@ h2.organization-side {
         padding-left: 15px !important;
     }
 }
+
+/* Search type dropdown */
+.search-type-select {
+    border-color: var(--color-border);
+    color: var(--color-dark);
+    font-size: 0.875rem;
+    min-width: 110px;
+}
+.search-type-select:focus {
+    border-color: var(--color-brand);
+    box-shadow: 0 0 0 0.2rem rgba(47, 111, 239, 0.25);
+}

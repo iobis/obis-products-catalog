@@ -85,10 +85,6 @@
       {% block header_logo %}
       {% if g.site_logo %}
       <a class="logo" href="{{ h.url_for('home.index') }}">
-        <!--
-        <img src="{{ h.url_for_static_or_external(g.site_logo) }}" alt="{{ g.site_title }}"
-          title="{{ g.site_title }}" />
-        -->
         <img src="https://obis.org/images/ioc_logo_blue_2.svg" alt="{{ g.site_title }}"
           title="{{ g.site_title }}" />
         <img src="https://obis.org/images/logo_simple.png" style="height: 30px;">
@@ -150,38 +146,50 @@
     {% endif %}
     <div class="container">
         {% block header_site_search %}
-          <form class="d-flex site-search position-relative" action="{% url_for dataset_type ~ '.search' %}" method="get">
-              <label class="d-none" for="field-sitewide-search">{% block header_site_search_label %}{{ h.humanize_entity_type('package', dataset_type, 'search_placeholder') or _('Search Datasets...') }}{% endblock %}</label>
-              <input id="field-sitewide-search" class="form-control me-2"  type="text" name="q" placeholder="{{ _('Search') }}" aria-label="{{ h.humanize_entity_type('package', dataset_type, 'search_placeholder') or _('Search datasets...') }}"/>
-              <button class="btn" type="submit" aria-label="{{ _('Submit') }}"><i class="fa fa-search"></i></button>
+          <form id="site-search-form" class="d-flex site-search position-relative"
+                action="{% url_for dataset_type ~ '.search' %}" method="get">
+            <label class="d-none" for="field-sitewide-search">{{ _('Search') }}</label>
+
+            {# Search type dropdown #}
+            <select id="search-type" class="form-select search-type-select me-1"
+                    aria-label="{{ _('Search type') }}"
+                    style="width: auto; flex-shrink: 0;">
+              <option value="{{ h.url_for(dataset_type ~ '.search') }}">Products</option>
+              <option value="{{ h.url_for('organization.index') }}">Nodes</option>
+              <option value="{{ h.url_for('group.index') }}">Institutions</option>
+            </select>
+
+            <input id="field-sitewide-search" class="form-control me-2" type="text"
+                   name="q" placeholder="{{ _('Search') }}"
+                   aria-label="{{ _('Search') }}"/>
+            <button class="btn" type="submit" aria-label="{{ _('Submit') }}">
+              <i class="fa fa-search"></i>
+            </button>
           </form>
+
+          <script>
+            (function () {
+              var form = document.getElementById('site-search-form');
+              var select = document.getElementById('search-type');
+
+              // On page load, highlight the correct option based on current URL
+              var path = window.location.pathname;
+              for (var i = 0; i < select.options.length; i++) {
+                var optPath = select.options[i].value.split('?')[0];
+                if (path.startsWith(optPath) && optPath !== '/') {
+                  select.selectedIndex = i;
+                  form.action = select.options[i].value;
+                  break;
+                }
+              }
+
+              // Update form action when dropdown changes
+              select.addEventListener('change', function () {
+                form.action = this.value;
+              });
+            })();
+          </script>
         {% endblock %}
-    
-    <!--
-      </div>
-    {% if g.blueprint == 'home' and g.view == 'index' %}
-        <div class="container py-4" style="padding-bottom: 0px !important;">
-            <div class="row text-center text-primary fw-bold">
-                <div class="col-6 col-md-3 mb-3">
-                <div class="small text-uppercase">Variables</div>
-                <div class="display-6 fw-bold text-primary">26</div>
-                </div>
-                <div class="col-6 col-md-3 mb-3">
-                <div class="small text-uppercase">Organizations</div>
-                <div class="display-6 fw-bold text-primary">34</div>
-                </div>
-                <div class="col-6 col-md-3 mb-3">
-                <div class="small text-uppercase">Products</div>
-                <div class="display-6 fw-bold text-primary">150</div>
-                </div>
-                <div class="col-6 col-md-3 mb-3">
-                <div class="small text-uppercase">Maps</div>
-                <div class="display-6 fw-bold text-primary">250</div>
-                </div>
-            </div>
-        </div>
-    {% endif %}
-  </div>
-   -->
+    </div>
 </header>
 {% endblock %}
