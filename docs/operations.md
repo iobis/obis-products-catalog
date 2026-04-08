@@ -34,6 +34,118 @@ docker compose exec ckan ckan -c /srv/app/ckan.ini zenodo export-whitelist --out
 docker compose exec ckan ckan -c /srv/app/ckan.ini zenodo harvest
 ```
 
+## Dev Instance
+
+The dev instance runs on the same droplet as production at `https://dev.products.obis.org:8443`. It shares the host but uses separate Docker containers, databases, and SSL certificates.
+
+### Directory Layout
+
+| Path | Purpose |
+|---|---|
+| `/opt/obis-products-catalog` | Production stack |
+| `/opt/dev-obis-products-catalog` | Dev stack |
+
+The `dev-` prefix on the folder name is intentional — it prevents accidentally running commands against the wrong stack.
+
+### Dev-Specific Files
+
+These files exist only in the dev directory and are excluded from git via `.gitignore`:
+
+| File | Purpose |
+|---|---|
+| `.env` | Dev environment config (different ports, DB names, URLs) |
+| `docker-compose.dev.yml` | Dev compose file (different ports, cert paths) |
+| `nginx/Dockerfile.dev` | Nginx Dockerfile pointing to dev nginx config |
+| `nginx/setup/default.dev.conf` | Nginx config for `dev.products.obis.org` |
+
+### Key Differences from Prod
+
+| Setting | Production | Dev |
+|---|---|---|
+| URL | `https://products.obis.org` | `https://dev.products.obis.org:8443` |
+| HTTPS port | 443 | 8443 |
+| HTTP port | 80 | 8080 |
+| Databases | `ckandb`, `datastore` | `ckandb_dev`, `datastore_dev` |
+| Compose project name | `obis-products-catalog` (directory default) | `ckan-dev` (set via `COMPOSE_PROJECT_NAME`) |
+| SSL cert | `/etc/letsencrypt/live/products.obis.org/` | `/etc/letsencrypt/live/dev.products.obis.org/` |
+
+### Running Dev Commands
+
+Always pass `-f docker-compose.dev.yml` when working with the dev stack:
+
+```bash
+cd /opt/dev-obis-products-catalog
+
+# Start dev
+docker compose -f docker-compose.dev.yml up -d
+
+# Rebuild and restart dev
+docker compose -f docker-compose.dev.yml up -d --build
+
+# View dev logs
+docker compose -f docker-compose.dev.yml logs -f ckan
+
+# Run a CKAN command on dev
+docker compose -f docker-compose.dev.yml exec ckan ckan -c /srv/app/ckan.ini obis sync-nodes
+```
+
+### Setting Up a Fresh Dev Instance
+
+If you need to rebuild dev from scratch:
+
+1. Clone the repo:
+   ```bash
+   git clone https://github.com/iobis/obis-products-catalog.git /opt/dev-obis-products-catalog
+   ```
+
+2. Copy and edit the env file:
+   ```bash
+   cp /opt/obis-products-catalog/.env /opt/dev-obis-products-catalog/.env
+   ```
+   Update these values in `.env`:
+   - `CKAN_SITE_URL=https://dev.products.obis.org:8443`
+   - `CKANEXT__OAUTH2_LOGIN__REDIRECT_URI=https://dev.products.obis.org:8443/oauth2/callback`
+   - `POSTGRES_DB=postgres_dev`, `CKAN_DB=ckandb_dev`, `DATASTORE_DB=datastore_dev`
+   - Update all three DB connection URL strings to use the `_dev` database names
+   - `NGINX_PORT_HOST=8080`, `NGINX_SSLPORT_HOST=8443`
+   - `COMPOSE_PROJECT_NAME=ckan-dev`
+   - Regenerate all secrets (session secret, API token secrets) — do not reuse prod values
+
+3. Recreate the dev-specific files (not in git — see above table). Use the versions in the existing dev directory as reference, or recreate them:
+   ```bash
+   # nginx config
+   cp nginx/setup/default.conf nginx/setup/default.dev.conf
+   sed -i 's/products\.obis\.org/dev.products.obis.org/g' nginx/setup/default.dev.conf
+
+   # nginx Dockerfile
+   cp nginx/Dockerfile nginx/Dockerfile.dev
+   sed -i 's/default\.conf/default.dev.conf/g' nginx/Dockerfile.dev
+
+   # compose file
+   cp docker-compose.yml docker-compose.dev.yml
+   sed -i 's/0\.0\.0\.0:80:80/0.0.0.0:8080:80/' docker-compose.dev.yml
+   sed -i 's/0\.0\.0\.0:${NGINX_SSLPORT_HOST}:${NGINX_SSLPORT}/0.0.0.0:8443:443/' docker-compose.dev.yml
+   sed -i 's/dockerfile: Dockerfile/dockerfile: Dockerfile.dev/' docker-compose.dev.yml
+   sed -i 's|/etc/letsencrypt/live/products.obis.org|/etc/letsencrypt/live/dev.products.obis.org|g' docker-compose.dev.yml
+   sed -i 's|/etc/letsencrypt/archive/products.obis.org|/etc/letsencrypt/archive/dev.products.obis.org|g' docker-compose.dev.yml
+   ```
+
+4. Obtain the SSL cert (briefly stop prod nginx to free port 80):
+   ```bash
+   docker compose -f /opt/obis-products-catalog/docker-compose.yml stop nginx
+   certbot certonly --standalone -d dev.products.obis.org
+   docker compose -f /opt/obis-products-catalog/docker-compose.yml start nginx
+   ```
+
+5. Register the dev redirect URI with ORCID: add `https://dev.products.obis.org:8443/oauth2/callback` to the allowed redirect URIs in your ORCID developer app settings.
+
+6. Build and start:
+   ```bash
+   docker compose -f docker-compose.dev.yml up -d --build
+   docker compose -f docker-compose.dev.yml exec ckan ckan -c /srv/app/ckan.ini obis sync-nodes
+   docker compose -f docker-compose.dev.yml exec ckan ckan -c /srv/app/ckan.ini obis sync-institutions
+   ```
+
 ## User Management
 
 ### ORCID Whitelist
@@ -156,6 +268,10 @@ CKAN__PLUGINS="envvars image_view text_view public_edit oauth2_login scheming_da
 ### `.env` is never committed
 
 Each deployment maintains its own `.env` from `.env.example`. Database passwords appear in multiple env vars (standalone vars AND connection URL strings) — they must match.
+
+### Dev-specific files are not in git
+
+The dev stack depends on four files that are gitignored and must be recreated if the dev directory is cloned fresh. See the "Setting Up a Fresh Dev Instance" section above for the commands to regenerate them.
 
 ## Git Workflow
 

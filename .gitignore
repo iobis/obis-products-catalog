@@ -33,3 +33,6 @@ nginx/setup/ckan-local.key
 
 # for dev setup
 docker-compose.override.yml
+docker-compose.dev.yml
+nginx/Dockerfile.dev
+nginx/setup/default.dev.conf
