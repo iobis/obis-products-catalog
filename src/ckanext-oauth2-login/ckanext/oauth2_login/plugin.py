@@ -290,6 +290,7 @@ def _handle_profile_update(orcid_id):
                 'fullname': form_data.get('fullname', ''),
                 'email': form_data.get('email', ''),
                 'about': form_data.get('about', ''),
+                'image_url': form_data.get('image_url', ''),
             }
         )
         log.info(f'Profile updated for {pending_id}')
