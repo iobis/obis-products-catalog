@@ -22,7 +22,11 @@ extra_css:
 
 nav:
   - Home: index.md
-  - User Guide: user-guide.md
+  - User Guide:
+      - Searching Products: searching.md
+      - Contributing Products: contributing-products.md
+      - How the Catalog is Organized: catalog-organization.md
+      - Your Account: your-account.md
   - API Reference: /api-docs/
   - Developer Guide:
       - Architecture: architecture.md
