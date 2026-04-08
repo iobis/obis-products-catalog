@@ -97,14 +97,18 @@ def harvest(registry, org):
 
 
 def load_doi_registry(registry_file):
-    """Load DOIs from registry file"""
+    """Load DOIs from registry file (plain text or CSV)"""
     dois = []
     try:
         with open(registry_file, 'r') as f:
             for line in f:
-                doi = line.strip()
-                if doi and not doi.startswith('#'):
-                    dois.append(doi)
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+                doi = line.split(',')[0].strip()
+                if doi == 'doi':
+                    continue
+                dois.append(doi)
     except FileNotFoundError:
         click.echo(f"Error: Registry file not found: {registry_file}", err=True)
         raise click.Abort()
