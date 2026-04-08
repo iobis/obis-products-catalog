@@ -11,6 +11,14 @@ Flow:
 4. Extension checks ORCID iD against whitelist
 5. Extension creates or finds a matching CKAN user, logs them in
 
+Profile edit flow for ORCID users:
+1. User submits profile edit form → intercepted by /user/edit-orcid/<id>
+2. Form data saved to session
+3. User redirected through ORCID OAuth to confirm identity
+4. Callback verifies ORCID iD matches logged-in user
+5. Profile update applied via user_update with ignore_auth
+6. User redirected to their profile page
+
 Requires these .env variables:
     CKANEXT__OAUTH2_LOGIN__ORCID_CLIENT_ID
     CKANEXT__OAUTH2_LOGIN__ORCID_CLIENT_SECRET
@@ -249,6 +257,51 @@ def _login_user(username):
 
 
 # ---------------------------------------------------------------------------
+# Profile update handler
+# ---------------------------------------------------------------------------
+
+def _handle_profile_update(orcid_id):
+    """Apply pending profile update after ORCID identity verification."""
+    from ckan.common import current_user
+
+    pending_id = session.pop('pending_profile_update_id', None)
+    form_data = session.pop('pending_profile_update', None)
+
+    if not pending_id or not form_data:
+        toolkit.h.flash_error('Profile update failed: no pending update found.')
+        return redirect('/')
+
+    # Verify the ORCID iD matches the expected user
+    expected_username = _sanitize_username(orcid_id)
+    if expected_username != pending_id:
+        log.warning(
+            f'Profile update ORCID mismatch: expected {pending_id}, '
+            f'got {expected_username}'
+        )
+        toolkit.h.flash_error('Profile update failed: ORCID identity mismatch.')
+        return redirect('/')
+
+    try:
+        context = {'ignore_auth': True}
+        toolkit.get_action('user_update')(
+            context,
+            {
+                'id': pending_id,
+                'fullname': form_data.get('fullname', ''),
+                'email': form_data.get('email', ''),
+                'about': form_data.get('about', ''),
+            }
+        )
+        log.info(f'Profile updated for {pending_id}')
+        toolkit.h.flash_success('Profile updated successfully.')
+    except Exception as e:
+        log.error(f'Profile update failed for {pending_id}: {e}')
+        toolkit.h.flash_error(f'Profile update failed: {str(e)}')
+
+    return redirect(toolkit.url_for('user.read', id=pending_id))
+
+
+# ---------------------------------------------------------------------------
 # Flask Blueprint (routes)
 # ---------------------------------------------------------------------------
 
@@ -276,6 +329,41 @@ def orcid_login():
     # Store the page the user came from so we can redirect back after login
     came_from = request.args.get('came_from', '/')
     session['oauth2_came_from'] = came_from
+
+    authorize_url = (
+        f'{_authorize_url()}'
+        f'?client_id={client_id}'
+        f'&response_type=code'
+        f'&scope=openid'
+        f'&redirect_uri={redirect_uri}'
+        f'&state={state}'
+    )
+
+    return redirect(authorize_url)
+
+
+@oauth2_login_blueprint.route('/user/edit-orcid/<id>', methods=['POST'])
+def orcid_profile_edit(id):
+    """Handle profile edit for ORCID users — verify via ORCID before saving."""
+    from ckan.common import current_user
+
+    # Only allow users to edit their own profile (or sysadmins)
+    if not current_user.is_authenticated:
+        toolkit.abort(403, 'Not authorized')
+    if current_user.name != id and not current_user.sysadmin:
+        toolkit.abort(403, 'Not authorized')
+
+    # Save pending form data to session
+    form_data = {k: v for k, v in request.form.items()}
+    session['pending_profile_update'] = form_data
+    session['pending_profile_update_id'] = id
+
+    # Start ORCID auth flow with a profile_update state marker
+    client_id = _config('orcid_client_id')
+    redirect_uri = _config('redirect_uri')
+
+    state = 'profile_update:' + secrets.token_urlsafe(32)
+    session['oauth2_state'] = state
 
     authorize_url = (
         f'{_authorize_url()}'
@@ -351,7 +439,13 @@ def orcid_callback():
         toolkit.h.flash_error('Login failed: ORCID did not return your iD.')
         return redirect('/')
 
-    log.info(f'ORCID login successful for: {orcid_id} ({name})')
+    log.info(f'ORCID callback for: {orcid_id} ({name}), state: {state[:20]}...')
+
+    # Check if this is a profile update flow
+    if state.startswith('profile_update:'):
+        return _handle_profile_update(orcid_id)
+
+    # --- Standard login flow ---
 
     # Check whitelist
     if not _is_orcid_approved(orcid_id):
@@ -405,16 +499,19 @@ class OAuth2LoginPlugin(plugins.SingletonPlugin):
     """ORCID OAuth2 login for CKAN.
 
     Implements:
-    - IBlueprint: registers /oauth2/login/orcid and /oauth2/callback routes
+    - IBlueprint: registers /oauth2/login/orcid, /oauth2/callback, and
+                  /user/edit-orcid/<id> routes
     - IAuthenticator: hooks into CKAN's login flow to show ORCID button
     - IConfigurer: adds template directory for login page override
     - ITemplateHelpers: provides helper for templates
+    - IMiddleware: disables Flask-WTF SSL strict referrer check
     """
 
     plugins.implements(plugins.IBlueprint)
     plugins.implements(plugins.IAuthenticator, inherit=True)
     plugins.implements(plugins.IConfigurer)
     plugins.implements(plugins.ITemplateHelpers)
+    plugins.implements(plugins.IMiddleware, inherit=True)
 
     # -- IBlueprint --
 
@@ -446,6 +543,21 @@ class OAuth2LoginPlugin(plugins.SingletonPlugin):
 
     def update_config(self, config):
         toolkit.add_template_directory(config, 'templates')
+
+    # -- IMiddleware --
+
+    def make_middleware(self, app, config):
+        """Disable Flask-WTF SSL strict referrer check.
+
+        This check blocks form submissions from non-standard ports (e.g. dev
+        on :8443). ORCID users have no password so we verify identity via
+        ORCID OAuth instead.
+        """
+        app.config['WTF_CSRF_SSL_STRICT'] = False
+        return app
+
+    def make_error_log_middleware(self, app, config):
+        return app
 
     # -- ITemplateHelpers --
 

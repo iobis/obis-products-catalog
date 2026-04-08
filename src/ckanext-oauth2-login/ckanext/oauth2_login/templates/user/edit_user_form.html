@@ -1,0 +1,33 @@
+{% ckan_extends %}
+
+{% set is_orcid_user = data.name and data.name.startswith('orcid-') %}
+
+{% block form %}
+  {% if is_orcid_user %}
+    {% import 'macros/form.html' as form %}
+    <form id="user-edit-form" method="post" action="{{ h.url_for('oauth2_login.orcid_profile_edit', id=data.name) }}" enctype="multipart/form-data">
+      {{ h.csrf_input() }}
+      {% block form_errors %}{{ form.errors(error_summary) }}{% endblock %}
+      {% block core_fields %}{{ super() }}{% endblock %}
+      {% block extra_fields %}{{ super() }}{% endblock %}
+      {{ form.required_message() }}
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit" name="save">{{ _('Update Profile') }}</button>
+      </div>
+    </form>
+  {% else %}
+    {{ super() }}
+  {% endif %}
+{% endblock %}
+
+{% block change_password %}
+  {% if not is_orcid_user %}
+    {{ super() }}
+  {% endif %}
+{% endblock %}
+
+{% block sysadmin_old_password %}
+  {% if not is_orcid_user %}
+    {{ super() }}
+  {% endif %}
+{% endblock %}
