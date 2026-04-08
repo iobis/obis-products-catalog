@@ -14,7 +14,7 @@ def zenodo():
 
 
 @zenodo.command()
-@click.option('--registry', default='/srv/app/doi_registry.txt',
+@click.option('--registry', default='/srv/app/catalog_whitelist.csv',
               help='Path to DOI registry file')
 @click.option('--org', default='obis-community',
               help='Organization to import datasets into')
