@@ -28,3 +28,42 @@ $(document).ready(function() {
         $('[href="#' + id + '"] .facet-caret').css('transform', 'rotate(0deg)');
     });
 });
+
+// Custom user autocomplete for member_new pages.
+// Shows "Full Name (username)" in the dropdown instead of just the username.
+// Removes ignore_self so users can add themselves to orgs/groups.
+ckan.module('obis-user-autocomplete', function ($) {
+  return {
+    initialize: function () {
+      var el = this.el;
+
+      el.select2({
+        minimumInputLength: 2,
+        ajax: {
+          url: '/api/2/util/user/autocomplete',
+          dataType: 'json',
+          quietMillis: 200,
+          data: function (term) {
+            return { q: term };
+          },
+          results: function (data) {
+            var items = $.map(data, function (user) {
+              var label = user.fullname
+                ? user.fullname + ' (' + user.name + ')'
+                : user.name;
+              return { id: user.name, text: label };
+            });
+            return { results: items };
+          }
+        },
+        initSelection: function (element, callback) {
+          var val = element.val();
+          if (val) {
+            callback({ id: val, text: val });
+          }
+        },
+        placeholder: 'Search for a user...',
+      });
+    }
+  };
+});

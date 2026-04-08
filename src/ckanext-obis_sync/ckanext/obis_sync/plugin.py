@@ -22,6 +22,150 @@ def obis():
     pass
 
 
+@obis.command("sync-whitelist")
+@click.option(
+    "--whitelist",
+    default="/srv/app/src/ckanext-oauth2-login/orcid_whitelist.txt",
+    help="Path to the ORCID whitelist file",
+)
+def sync_whitelist(whitelist):
+    """Pre-create CKAN accounts for all approved ORCID iDs in the whitelist.
+
+    Fetches real names from the ORCID public API. Safe to re-run:
+    - Creates accounts that don't exist yet
+    - Applies roles from the whitelist to ALL users (existing and new)
+    - Does not remove org memberships not listed in the whitelist
+    """
+    import secrets
+    from ckan import model
+    import ckan.plugins.toolkit as toolkit
+
+    # Import role application logic from oauth2_login
+    try:
+        from ckanext.oauth2_login.plugin import _apply_roles
+    except ImportError:
+        click.echo("Error: could not import _apply_roles from ckanext.oauth2_login.plugin", err=True)
+        return
+
+    def fetch_orcid_name(orcid_id):
+        """Fetch name from ORCID public API (no auth required)."""
+        try:
+            url = f"https://pub.orcid.org/v3.0/{orcid_id}/person"
+            r = requests.get(
+                url,
+                headers={"Accept": "application/json"},
+                timeout=10,
+            )
+            if r.ok:
+                data = r.json()
+                name = data.get("name", {})
+                given = (name.get("given-names") or {}).get("value", "")
+                family = (name.get("family-name") or {}).get("value", "")
+                full = f"{given} {family}".strip()
+                return full if full else orcid_id
+        except Exception as e:
+            click.echo(f"  Warning: could not fetch name for {orcid_id}: {e}")
+        return orcid_id
+
+    click.echo(f"Reading whitelist from: {whitelist}")
+    try:
+        with open(whitelist) as f:
+            lines = f.readlines()
+    except FileNotFoundError:
+        click.echo(f"Error: whitelist file not found: {whitelist}", err=True)
+        return
+
+    entries = []
+    for line in lines:
+        line = line.split("#")[0].strip()
+        if not line:
+            continue
+        parts = line.split()
+        orcid_id = parts[0]
+        roles = parts[1].split("|") if len(parts) >= 2 else []
+        entries.append((orcid_id, roles))
+
+    click.echo(f"Found {len(entries)} entries in whitelist")
+    click.echo("=" * 50)
+
+    ctx = {"ignore_auth": True}
+    created = updated = failed = 0
+
+    for orcid_id, roles in entries:
+        username = "orcid-" + orcid_id.lower()
+        user_exists = False
+
+        try:
+            toolkit.get_action("user_show")(ctx, {"id": username})
+            user_exists = True
+        except Exception:
+            pass
+
+        if not user_exists:
+            click.echo(f"CREATING: {username}")
+            click.echo(f"  Fetching name from ORCID...")
+            fullname = fetch_orcid_name(orcid_id)
+            click.echo(f"  Name: {fullname}")
+
+            try:
+                toolkit.get_action("user_create")(
+                    ctx,
+                    {
+                        "name": username,
+                        "fullname": fullname,
+                        "email": f"{username}@orcid.placeholder",
+                        "password": secrets.token_urlsafe(32),
+                        "plugin_extras": {
+                            "oauth2_login": {
+                                "orcid_id": orcid_id,
+                                "provider": "orcid",
+                            }
+                        },
+                    },
+                )
+
+                # Add to obis-community unless sysadmin
+                if "sysadmin" not in roles:
+                    try:
+                        toolkit.get_action("organization_member_create")(
+                            ctx,
+                            {
+                                "id": "obis-community",
+                                "username": username,
+                                "role": "editor",
+                            },
+                        )
+                        click.echo(f"  Added to obis-community as editor")
+                    except Exception as e:
+                        click.echo(f"  Warning: could not add to obis-community: {e}")
+
+                created += 1
+
+            except Exception as e:
+                click.echo(f"  Error creating user: {e}", err=True)
+                failed += 1
+                continue
+
+            # Polite delay to avoid hammering ORCID API
+            time.sleep(0.5)
+        else:
+            click.echo(f"EXISTS:   {username}")
+            updated += 1
+
+        # Apply roles for all users (new and existing)
+        click.echo(f"  Applying roles: {roles if roles else '(editor)'}")
+        try:
+            _apply_roles(orcid_id, username)
+        except Exception as e:
+            click.echo(f"  Warning: could not apply roles: {e}")
+
+    click.echo("\n" + "=" * 50)
+    click.echo(f"Created: {created}")
+    click.echo(f"Updated (roles applied): {updated}")
+    click.echo(f"Failed: {failed}")
+    click.echo(f"Total: {len(entries)}")
+
+
 @obis.command("sync-nodes")
 def sync_nodes():
     """Sync OBIS nodes as CKAN organizations"""
@@ -101,7 +245,7 @@ def sync_nodes():
         click.echo("Created: OBIS Community (obis-community)")
     else:
         click.echo("OBIS Community already exists")
-        
+
     model.Session.expire_all()
     final_count = (
         model.Session.query(Group).filter_by(type="organization").count()

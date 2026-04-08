@@ -10,6 +10,14 @@ Flow:
 3. Extension exchanges code for access token + ORCID iD
 4. Extension checks ORCID iD against whitelist
 5. Extension creates or finds a matching CKAN user, logs them in
+6. Extension applies roles from whitelist (sysadmin, org admin) — on every login
+
+Whitelist format: <orcid> [role1|role2|...] # comment
+  sysadmin              → full system access (org role logic skipped)
+  <org-name>            → admin capacity in that org (e.g. node-obis-uk)
+  (no role)             → regular editor, added to obis-community on first login
+
+Roles are re-applied on every login, including demotions.
 
 Profile edit flow for ORCID users:
 1. User submits profile edit form → intercepted by /user/edit-orcid/<id>
@@ -88,20 +96,25 @@ _whitelist_cache = None
 
 
 def _load_whitelist():
-    """Load approved ORCID iDs from the whitelist file.
+    """Load approved ORCID iDs and their roles from the whitelist file.
 
-    The file is searched in this order:
-    1. Path set in CKANEXT__OAUTH2_LOGIN__WHITELIST_PATH
-    2. orcid_whitelist.txt in the extension directory
-    3. /srv/app/orcid_whitelist.txt (Docker default)
+    Format per line: <orcid> [role1|role2|...] # comment
+      - sysadmin: full system access
+      - <org-name>: admin capacity in that org
+      - (no role): regular editor
 
-    Returns a set of ORCID iD strings (e.g. {'0000-0001-7418-1244', ...}).
+    Returns a dict mapping ORCID iD strings to a list of role strings.
+    e.g. {
+        '0000-0001-7418-1244': ['sysadmin'],
+        '0000-0002-5806-0837': ['node-obis-uk'],
+        '0000-0003-2807-5867': ['node-ocean-tracking-network', 'node-eurobis'],
+        '0000-0002-1234-5678': [],
+    }
     """
     global _whitelist_cache
     if _whitelist_cache is not None:
         return _whitelist_cache
 
-    # Search paths
     custom_path = _config('whitelist_path')
     ext_dir = os.path.dirname(os.path.abspath(__file__))
     candidates = [
@@ -110,15 +123,24 @@ def _load_whitelist():
         '/srv/app/orcid_whitelist.txt',
     ]
 
-    whitelist = set()
+    whitelist = {}
     for path in candidates:
         if path and os.path.isfile(path):
             log.info(f'Loading ORCID whitelist from: {path}')
             with open(path, 'r') as f:
                 for line in f:
+                    # Strip comments
                     line = line.split('#')[0].strip()
-                    if line:
-                        whitelist.add(line)
+                    if not line:
+                        continue
+                    parts = line.split()
+                    orcid_id = parts[0]
+                    # Second token (if present) is pipe-delimited roles
+                    if len(parts) >= 2:
+                        roles = parts[1].split('|')
+                    else:
+                        roles = []
+                    whitelist[orcid_id] = roles
             log.info(f'Loaded {len(whitelist)} approved ORCID iDs')
             _whitelist_cache = whitelist
             return whitelist
@@ -130,8 +152,12 @@ def _load_whitelist():
 
 def _is_orcid_approved(orcid_id):
     """Check if an ORCID iD is on the approved whitelist."""
-    whitelist = _load_whitelist()
-    return orcid_id in whitelist
+    return orcid_id in _load_whitelist()
+
+
+def _get_roles(orcid_id):
+    """Return the list of roles for an ORCID iD. Empty list = regular editor."""
+    return _load_whitelist().get(orcid_id, [])
 
 
 def reload_whitelist():
@@ -142,14 +168,88 @@ def reload_whitelist():
 
 
 # ---------------------------------------------------------------------------
+# Role application
+# ---------------------------------------------------------------------------
+
+def _apply_roles(orcid_id, username):
+    """Apply (or revoke) roles for a user based on the whitelist.
+
+    Called on every login so whitelist changes propagate without manual
+    shell intervention. Handles:
+    - sysadmin promotion and demotion
+    - org admin promotion and demotion (per org, for non-sysadmins only)
+
+    Sysadmins are skipped for org-level role logic entirely — they have
+    implicit access everywhere and querying their org memberships causes
+    spurious editor assignments.
+    """
+    roles = _get_roles(orcid_id)
+    userobj = model.User.by_name(username)
+    if not userobj:
+        log.error(f'Cannot apply roles: user {username} not found')
+        return
+
+    # --- Sysadmin ---
+    should_be_sysadmin = 'sysadmin' in roles
+    if userobj.sysadmin != should_be_sysadmin:
+        log.info(f'Setting {username} sysadmin={should_be_sysadmin}')
+        userobj.sysadmin = should_be_sysadmin
+        model.Session.commit()
+
+    # Sysadmins don't need explicit org roles — skip the rest
+    if should_be_sysadmin:
+        return
+
+    # --- Org admin roles (non-sysadmins only) ---
+    # Collect orgs this user should be admin of
+    desired_admin_orgs = set(r for r in roles if r != 'sysadmin')
+
+    # Get all orgs the user currently belongs to
+    context = {'ignore_auth': True}
+    try:
+        current_orgs = toolkit.get_action('organization_list_for_user')(
+            context, {'id': username, 'permission': 'read'}
+        )
+    except Exception as e:
+        log.warning(f'Could not fetch org list for {username}: {e}')
+        current_orgs = []
+
+    current_org_capacities = {org['name']: org.get('capacity', 'editor')
+                               for org in current_orgs}
+
+    # Promote to admin where needed
+    for org_name in desired_admin_orgs:
+        current_capacity = current_org_capacities.get(org_name)
+        if current_capacity != 'admin':
+            log.info(f'Promoting {username} to admin in {org_name}')
+            try:
+                toolkit.get_action('organization_member_create')(
+                    context,
+                    {'id': org_name, 'username': username, 'role': 'admin'}
+                )
+            except Exception as e:
+                log.warning(f'Could not promote {username} to admin in {org_name}: {e}')
+
+    # Demote from admin in node orgs where no longer listed
+    for org_name, capacity in current_org_capacities.items():
+        if capacity == 'admin' and org_name not in desired_admin_orgs:
+            if org_name.startswith('node-'):
+                log.info(f'Demoting {username} from admin to editor in {org_name}')
+                try:
+                    toolkit.get_action('organization_member_create')(
+                        context,
+                        {'id': org_name, 'username': username, 'role': 'editor'}
+                    )
+                except Exception as e:
+                    log.warning(f'Could not demote {username} in {org_name}: {e}')
+
+
+# ---------------------------------------------------------------------------
 # User management helpers
 # ---------------------------------------------------------------------------
 
 def _sanitize_username(orcid_id):
-    """Convert an ORCID iD like 0000-0002-1825-0097 to a CKAN username.
-
-    CKAN usernames must be lowercase, 2-100 chars, using only a-z, 0-9, - and _.
-    """
+    """Convert an ORCID iD like 0000-0002-1825-0097 to a CKAN username."""
     return 'orcid-' + orcid_id.lower()
 
 
@@ -181,11 +281,7 @@ def _find_or_create_user(orcid_id, name, email=None):
         pass
 
     # Create new user
-    # CKAN requires a password even for OAuth users. Generate a random one
-    # that can never be used (OAuth is the only login path for these users).
     password = secrets.token_urlsafe(32)
-
-    # Use provided name, or fall back to ORCID iD
     fullname = name if name else orcid_id
     user_email = email if email else f'{username}@orcid.placeholder'
 
@@ -207,19 +303,18 @@ def _find_or_create_user(orcid_id, name, email=None):
         )
         log.info(f'Created new user: {username} (ORCID: {orcid_id})')
 
-        # Auto-assign to OBIS Community organization as editor
-        try:
-            toolkit.get_action('organization_member_create')(
-                {'ignore_auth': True},
-                {
-                    'id': 'obis-community',
-                    'username': username,
-                    'role': 'editor',
-                }
-            )
-            log.info(f'Added {username} to obis-community as editor')
-        except Exception as e:
-            log.warning(f'Could not add {username} to obis-community: {e}')
+        # Auto-assign to OBIS Community as editor on first login only.
+        # Sysadmins are skipped — they don't need an explicit org assignment.
+        roles = _get_roles(orcid_id)
+        if 'sysadmin' not in roles:
+            try:
+                toolkit.get_action('organization_member_create')(
+                    {'ignore_auth': True},
+                    {'id': 'obis-community', 'username': username, 'role': 'editor'}
+                )
+                log.info(f'Added {username} to obis-community as editor')
+            except Exception as e:
+                log.warning(f'Could not add {username} to obis-community: {e}')
 
         return user
     except logic.ValidationError as e:
@@ -228,23 +323,18 @@ def _find_or_create_user(orcid_id, name, email=None):
 
 
 def _login_user(username):
-    """Set the CKAN session to log in the given user.
-
-    Mirrors CKAN 2.11 login flow: regenerate session, login, rotate token.
-    """
+    """Set the CKAN session to log in the given user."""
     userobj = model.User.by_name(username)
     if userobj:
         from flask import current_app, session as flask_session
         from ckan.common import login_user as ckan_login_user
 
-        # Regenerate session (same as CKAN native login)
         regenerate = getattr(current_app.session_interface, "regenerate", None)
         if regenerate is not None:
             regenerate(flask_session)
 
         ckan_login_user(userobj)
 
-        # Rotate CSRF token (same as CKAN native login)
         try:
             from ckan.views.user import rotate_token
             rotate_token()
@@ -262,8 +352,6 @@ def _login_user(username):
 
 def _handle_profile_update(orcid_id):
     """Apply pending profile update after ORCID identity verification."""
-    from ckan.common import current_user
-
     pending_id = session.pop('pending_profile_update_id', None)
     form_data = session.pop('pending_profile_update', None)
 
@@ -271,7 +359,6 @@ def _handle_profile_update(orcid_id):
         toolkit.h.flash_error('Profile update failed: no pending update found.')
         return redirect('/')
 
-    # Verify the ORCID iD matches the expected user
     expected_username = _sanitize_username(orcid_id)
     if expected_username != pending_id:
         log.warning(
@@ -282,9 +369,8 @@ def _handle_profile_update(orcid_id):
         return redirect('/')
 
     try:
-        context = {'ignore_auth': True}
         toolkit.get_action('user_update')(
-            context,
+            {'ignore_auth': True},
             {
                 'id': pending_id,
                 'fullname': form_data.get('fullname', ''),
@@ -306,10 +392,7 @@ def _handle_profile_update(orcid_id):
 # Flask Blueprint (routes)
 # ---------------------------------------------------------------------------
 
-oauth2_login_blueprint = Blueprint(
-    'oauth2_login',
-    __name__,
-)
+oauth2_login_blueprint = Blueprint('oauth2_login', __name__)
 
 
 @oauth2_login_blueprint.route('/oauth2/login/orcid')
@@ -323,11 +406,9 @@ def orcid_login():
                       'Set CKANEXT__OAUTH2_LOGIN__ORCID_CLIENT_ID and '
                       'CKANEXT__OAUTH2_LOGIN__REDIRECT_URI in .env')
 
-    # Generate state parameter for CSRF protection
     state = secrets.token_urlsafe(32)
     session['oauth2_state'] = state
 
-    # Store the page the user came from so we can redirect back after login
     came_from = request.args.get('came_from', '/')
     session['oauth2_came_from'] = came_from
 
@@ -348,18 +429,15 @@ def orcid_profile_edit(id):
     """Handle profile edit for ORCID users — verify via ORCID before saving."""
     from ckan.common import current_user
 
-    # Only allow users to edit their own profile (or sysadmins)
     if not current_user.is_authenticated:
         toolkit.abort(403, 'Not authorized')
     if current_user.name != id and not current_user.sysadmin:
         toolkit.abort(403, 'Not authorized')
 
-    # Save pending form data to session
     form_data = {k: v for k, v in request.form.items()}
     session['pending_profile_update'] = form_data
     session['pending_profile_update_id'] = id
 
-    # Start ORCID auth flow with a profile_update state marker
     client_id = _config('orcid_client_id')
     redirect_uri = _config('redirect_uri')
 
@@ -377,17 +455,18 @@ def orcid_profile_edit(id):
 
     return redirect(authorize_url)
 
+
 @oauth2_login_blueprint.route('/user/reset', methods=['GET', 'POST'])
 @oauth2_login_blueprint.route('/user/reset/<id>', methods=['GET', 'POST'])
 def block_reset(id=None):
     """Block password reset — all auth is via ORCID."""
     toolkit.abort(404)
-    
+
+
 @oauth2_login_blueprint.route('/oauth2/callback')
 def orcid_callback():
     """Handle the redirect back from ORCID after user authorizes."""
 
-    # Check for errors from ORCID
     error = request.args.get('error')
     if error:
         error_desc = request.args.get('error_description', 'Unknown error')
@@ -395,7 +474,6 @@ def orcid_callback():
         toolkit.h.flash_error(f'ORCID login failed: {error_desc}')
         return redirect('/')
 
-    # Verify state parameter (CSRF protection)
     state = request.args.get('state')
     expected_state = session.pop('oauth2_state', None)
     if not state or state != expected_state:
@@ -403,7 +481,6 @@ def orcid_callback():
         toolkit.h.flash_error('Login failed: security check failed. Please try again.')
         return redirect('/')
 
-    # Exchange authorization code for token
     code = request.args.get('code')
     if not code:
         toolkit.h.flash_error('Login failed: no authorization code received.')
@@ -423,9 +500,7 @@ def orcid_callback():
                 'code': code,
                 'redirect_uri': redirect_uri,
             },
-            headers={
-                'Accept': 'application/json',
-            },
+            headers={'Accept': 'application/json'},
             timeout=30,
         )
         token_response.raise_for_status()
@@ -435,7 +510,6 @@ def orcid_callback():
         toolkit.h.flash_error('Login failed: could not connect to ORCID.')
         return redirect('/')
 
-    # ORCID returns the ORCID iD directly in the token response
     orcid_id = token_data.get('orcid')
     name = token_data.get('name', '')
     access_token = token_data.get('access_token')
@@ -447,11 +521,8 @@ def orcid_callback():
 
     log.info(f'ORCID callback for: {orcid_id} ({name}), state: {state[:20]}...')
 
-    # Check if this is a profile update flow
     if state.startswith('profile_update:'):
         return _handle_profile_update(orcid_id)
-
-    # --- Standard login flow ---
 
     # Check whitelist
     if not _is_orcid_approved(orcid_id):
@@ -462,7 +533,7 @@ def orcid_callback():
         )
         return redirect('/')
 
-    # Optionally fetch more user info from the userinfo endpoint
+    # Fetch email from userinfo if available
     email = None
     if access_token:
         try:
@@ -476,7 +547,6 @@ def orcid_callback():
             )
             if userinfo_response.ok:
                 userinfo = userinfo_response.json()
-                # Use given_name + family_name if name wasn't in token response
                 if not name:
                     given = userinfo.get('given_name', '')
                     family = userinfo.get('family_name', '')
@@ -485,13 +555,15 @@ def orcid_callback():
         except http_requests.RequestException as e:
             log.warning(f'Could not fetch userinfo (non-fatal): {e}')
 
-    # Find or create the CKAN user
+    # Find or create user
     user = _find_or_create_user(orcid_id, name, email)
 
-    # Log them in
+    # Apply roles from whitelist (every login)
+    _apply_roles(orcid_id, user['name'])
+
+    # Log in
     _login_user(user['name'])
 
-    # Redirect to where they came from
     came_from = session.pop('oauth2_came_from', '/')
     toolkit.h.flash_success(f'Welcome, {user.get("fullname", user["name"])}!')
     return redirect(came_from)
@@ -502,70 +574,33 @@ def orcid_callback():
 # ---------------------------------------------------------------------------
 
 class OAuth2LoginPlugin(plugins.SingletonPlugin):
-    """ORCID OAuth2 login for CKAN.
-
-    Implements:
-    - IBlueprint: registers /oauth2/login/orcid, /oauth2/callback, and
-                  /user/edit-orcid/<id> routes
-    - IAuthenticator: hooks into CKAN's login flow to show ORCID button
-    - IConfigurer: adds template directory for login page override
-    - ITemplateHelpers: provides helper for templates
-    - IMiddleware: disables Flask-WTF SSL strict referrer check
-    """
-
     plugins.implements(plugins.IBlueprint)
     plugins.implements(plugins.IAuthenticator, inherit=True)
     plugins.implements(plugins.IConfigurer)
     plugins.implements(plugins.ITemplateHelpers)
     plugins.implements(plugins.IMiddleware, inherit=True)
 
-    # -- IBlueprint --
-
     def get_blueprint(self):
         return [oauth2_login_blueprint]
 
-    # -- IAuthenticator --
-
     def login(self):
-        """Called before the default login form is shown.
-
-        We don't prevent the default login — we just add the ORCID option
-        via template override. Return None to allow normal flow.
-        """
         return None
 
     def identify(self):
-        """Called on every request to identify the user.
-
-        Flask-Login handles this for us, so we don't need to do anything.
-        """
         pass
 
     def logout(self):
-        """Called before logout. Nothing extra needed."""
         return None
-
-    # -- IConfigurer --
 
     def update_config(self, config):
         toolkit.add_template_directory(config, 'templates')
 
-    # -- IMiddleware --
-
     def make_middleware(self, app, config):
-        """Disable Flask-WTF SSL strict referrer check.
-
-        This check blocks form submissions from non-standard ports (e.g. dev
-        on :8443). ORCID users have no password so we verify identity via
-        ORCID OAuth instead.
-        """
         app.config['WTF_CSRF_SSL_STRICT'] = False
         return app
 
     def make_error_log_middleware(self, app, config):
         return app
-
-    # -- ITemplateHelpers --
 
     def get_helpers(self):
         return {
@@ -575,10 +610,8 @@ class OAuth2LoginPlugin(plugins.SingletonPlugin):
 
 
 def _orcid_enabled():
-    """Template helper: is ORCID login configured?"""
     return bool(_config('orcid_client_id'))
 
 
 def _orcid_login_url():
-    """Template helper: URL to start ORCID login flow."""
     return '/oauth2/login/orcid'

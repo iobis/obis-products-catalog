@@ -1,17 +1,35 @@
 # OBIS Products Catalog — Approved ORCID iDs
-# One ORCID iD per line. Lines starting with # are comments.
-# To add a new user: add their ORCID iD here, rebuild and restart.
+# Format: <orcid> [role1|role2|...] # comment
+#
+# Roles are optional and pipe-delimited. Options:
+#   sysadmin              full system access
+#   <org-name>            org admin for that org (e.g. node-obis-uk)
+#
+# Roles are re-applied on every login, including demotions.
+# To add a user: add their ORCID iD here, rebuild and restart.
 
-0000-0001-7418-1244  # Stephen Formel
-0000-0002-4236-0384  # Pieter Provoost
-0000-0002-8059-6304  # Silas Candido Principe de Souza
-0000-0002-3237-4547  # Ward Appeltans
-0000-0003-2807-5867  # Jonathan Pye
-0000-0002-6446-7342  # Emilie Boulanger
-0000-0002-5304-941X  # Elizabeth Lawrence
-0000-0002-5806-0837  # Dan Lear
-0000-0001-7843-3074  # Katherine Lesley Tattersall
-0000-0002-6446-7342  # Emilie Boulanger
-0000-0001-9401-8460  # Saara Suominen
-0009-0002-4462-423X  # Laurent Chmiel
-0009-0001-3827-7318  # Lisa Benedetti
+# --- OBIS Secretariat (sysadmins) ---
+0000-0001-7418-1244 sysadmin # Stephen Formel
+0000-0002-4236-0384 sysadmin # Pieter Provoost
+0000-0002-8059-6304 sysadmin # Silas Principe
+0000-0002-3237-4547 sysadmin # Ward Appeltans
+0000-0002-6446-7342 sysadmin # Emilie Boulanger
+0000-0002-5304-941X sysadmin # Elizabeth Lawrence
+0000-0001-9401-8460 sysadmin # Saara Suominen
+0009-0002-4462-423X sysadmin # Laurent Chmiel
+0009-0001-3827-7318 sysadmin # Lisa Benedetti
+
+# --- Node admins ---
+0000-0003-2807-5867 node-otn-obis # Jonathan Pye
+0000-0002-5806-0837 node-obis-uk # Dan Lear
+0000-0001-7843-3074 node-obis-australia # Katherine Tattersall
+0000-0003-1336-5554 node-antarctic-obis # Anton Van de Putte
+0000-0002-8160-7941 node-eurobis # Leen Vandepitte
+0000-0002-4845-0241 node-obis-deep-sea # Hanieh Saeedi
+0000-0002-8871-2816 node-obis-usa # Mark Wiltermuth
+0000-0003-4897-1669 node-obis-usa # Mathew Biddle
+0000-0002-2352-5497 node-obis-gbif-norway # Dag Endresen
+
+# --- Node contacts (editors, role unconfirmed) ---
+0000-0001-6775-530X # Dimitra Mavraki (MedOBIS)
+0000-0002-5872-7574 # Pamela Hidalgo (ESP OBIS)
