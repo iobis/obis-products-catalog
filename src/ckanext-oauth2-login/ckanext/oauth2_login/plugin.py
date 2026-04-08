@@ -377,7 +377,12 @@ def orcid_profile_edit(id):
 
     return redirect(authorize_url)
 
-
+@oauth2_login_blueprint.route('/user/reset', methods=['GET', 'POST'])
+@oauth2_login_blueprint.route('/user/reset/<id>', methods=['GET', 'POST'])
+def block_reset(id=None):
+    """Block password reset — all auth is via ORCID."""
+    toolkit.abort(404)
+    
 @oauth2_login_blueprint.route('/oauth2/callback')
 def orcid_callback():
     """Handle the redirect back from ORCID after user authorizes."""

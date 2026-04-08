@@ -1,7 +1,6 @@
 {% ckan_extends %}
 
 {% block form %}
-
 {% if h.oauth2_login_orcid_enabled() %}
 <div class="oauth2-login-options" style="margin-bottom: 24px; text-align: center;">
   <a href="{{ h.oauth2_login_orcid_url() }}?came_from={{ request.args.get('came_from', '/') | urlencode }}"
@@ -12,15 +11,17 @@
          style="width: 24px; height: 24px;">
     Sign in with ORCID
   </a>
-
-  <div style="margin: 20px 0; display: flex; align-items: center; gap: 12px;">
-    <hr style="flex: 1; border: none; border-top: 1px solid #ddd;">
-    <span style="color: #999; font-size: 13px;">or sign in with your CKAN account</span>
-    <hr style="flex: 1; border: none; border-top: 1px solid #ddd;">
-  </div>
 </div>
 {% endif %}
+{% endblock %}
 
-{{ super() }}
+{% block help_register %}{% endblock %}
 
+{% block help_forgotten %}
+<section class="module module-narrow module-shallow">
+  <h2 class="module-heading">{{ _('Signing In') }}</h2>
+  <div class="module-content">
+    <p>The catalog uses <a href="https://orcid.org/">ORCID</a> for authentication.<br><br>Access is controlled by an approved whitelist. If your ORCID iD is not on the list, you'll see a message directing you to contact <a href="mailto:helpdesk@obis.org">helpdesk@obis.org</a> to request access.</p>
+  </div>
+</section>
 {% endblock %}
