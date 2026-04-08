@@ -23,6 +23,7 @@ extra_css:
 nav:
   - Home: index.md
   - User Guide: user-guide.md
+  - API Reference: /api-docs/
   - Developer Guide:
       - Architecture: architecture.md
       - Extensions: extensions.md

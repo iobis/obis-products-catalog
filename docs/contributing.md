@@ -1,24 +1,26 @@
 # Contributing
 
-!!! note "Stub"
-    This page is a skeleton. Content will be filled in during documentation sprints.
-
 ## Development Setup
 
-Development is done on a dedicated Digital Ocean droplet (not locally — local Docker setup on Mac has known issues with permissions).
+Development is done on a dedicated Digital Ocean droplet. Local Docker setup on Mac is not currently viable due to known permission issues with the container entrypoint scripts.
 
 ## Git Workflow
 
-1. Create a branch off `prod-setup`
-2. Make changes, test on the dev droplet
+1. Create a branch off `main`
+2. Make changes and test on the dev droplet
 3. Commit and push
-4. Merge to `prod-setup` when stable
-5. `prod-setup` merges to `main` after thorough testing
+4. Open a pull request or merge directly to `main` when stable
 
 ## Rebuilding After Code Changes
 
 ```bash
 docker compose build ckan && docker compose up -d
+```
+
+For nginx/docs changes only:
+
+```bash
+docker compose build nginx && docker compose up -d nginx
 ```
 
 ## Adding a New Data Source
