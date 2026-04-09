@@ -29,6 +29,29 @@
 0000-0002-8871-2816 node-obis-usa # Mark Wiltermuth
 0000-0003-4897-1669 node-obis-usa # Mathew Biddle
 0000-0002-2352-5497 node-obis-gbif-norway # Dag Endresen
+0000-0002-4895-4327 node-afrobis # Tshikana Rasehlomi
+0000-0001-9842-5100 node-arctic-obis # Kári Fannar Lárusson
+0000-0003-0830-9814 node-caribbean-obis # Ana Carolina Peralta Brichtova
+0000-0001-8851-8602 node-obis-argentina # Marcos Zarate
+0000-0002-7878-1607 node-obis-brazil # Keila Macfadem Juarez
+0000-0002-1528-3272 node-obis-canada # Maria Cornthwaite
+0009-0003-6935-8203 node-obis-colombia # Martha Patricia Vides Casado
+0000-0002-9709-6787 node-obis-colombia # Erika Montoya-Cadavid
+0000-0002-6430-1422 node-obis-ecuador # Victor Chocho Sánchez
+0000-0003-3098-1818 node-indobis # Udhi Eko Hernawan
+0000-0003-3120-7875 node-obis-isa # Luciana Gènio
+0000-0001-8459-1511 node-obis-japan # Takashi Hosono
+0000-0001-7877-4055 node-obis-japan # Katsunori Fujikura
+0009-0005-0042-0763 node-obis-kenya # Fatuma Mzingirwa
+0000-0002-1452-5719 node-obis-malaysia # Muhammad Hafiz Borkhanuddin
+0009-0007-2447-3071 node-obis-malaysia # Ahmad Fakhrurrazi Mokhtar
+0000-0003-3897-1681 node-obis-panama # Hermelinda Peralta-Araúz
+0009-0003-8199-7542 node-obis-seamap # Ei Fujioka
+0000-0002-6677-2316 node-oceans-past-initiative # John Nicholls
+0000-0002-2629-4954 node-oceans-past-initiative # Carolina Chong Montenegro
+0000-0002-5167-1328 node-pego-obis # Abdolvahab Maghsoudlou
+0000-0002-6911-9099 node-sea-obis # Christian Elloran
+0000-0002-1380-7263 node-swp-obis # Kevin Mackay
 
 # --- Node contacts (editors, role unconfirmed) ---
 0000-0001-6775-530X # Dimitra Mavraki (MedOBIS)
