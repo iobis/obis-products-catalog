@@ -17,19 +17,40 @@ On your first approved login, the catalog will:
 | Action | Available to |
 |---|---|
 | **Browse and search** all products | Everyone (no login required) |
-| **Edit any public product** | Any logged-in user |
+| **Edit products in your org** | Org members (editors and admins) |
+| **Edit products in OBIS Community** | Any logged-in user |
 | **Create new products** | Any logged-in user |
 | **Import products from DOIs** | Any logged-in user |
 | **Delete products** | Organization admins only |
-| **Change a product's organization** | Organization admins only |
-
-Any logged-in researcher can improve metadata across the entire catalog — adding thematic tags, linking institutions, correcting descriptions — without needing to be a member of the owning OBIS node.
+| **Reassign a product to another org** | Sysadmins only |
+| **Add institutions to any product** | Any logged-in user |
+| **Remove institutions from a product** | Org admins and sysadmins only |
+| **Manage org members** | Org admins and sysadmins |
+| **Manage institution members** | Any logged-in user |
 
 ## Organization Membership
 
 When you create a new product, it will be assigned to one of your organizations. By default, all new users belong to **OBIS Community**. If you need to create products under a specific OBIS node, contact [helpdesk@obis.org](mailto:helpdesk@obis.org) to request membership.
 
-When editing an existing product, you cannot change its owning organization — it stays with the node that originally created it. Only organization admins can reassign products.
+When editing an existing product, you cannot change its owning organization — it stays with the node that originally created it. Only sysadmins can reassign products between organizations.
+
+### Joining an Organization
+
+Organization membership is managed by org admins and sysadmins. To join a specific OBIS node, contact [helpdesk@obis.org](mailto:helpdesk@obis.org).
+
+### Joining an Institution (Group)
+
+Any logged-in user can add themselves or others to an institution. Navigate to the institution's page via **Browse → Institutions**, then use the **Manage Members** link to add members.
+
+## Editing Your Profile
+
+To update your display name, email, or profile photo:
+
+1. Click your username in the top navigation
+2. Select **Profile settings**
+3. Make your changes and submit
+
+Because the catalog uses ORCID for authentication, your identity is re-verified via ORCID when you save profile changes. You will be briefly redirected to ORCID and back.
 
 ## Getting Help
 

@@ -24,6 +24,9 @@ docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-nodes
 # Sync institutions
 docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-institutions
 
+# Pre-create accounts and apply roles from whitelist
+docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-whitelist
+
 # Export catalog whitelist
 docker compose exec ckan ckan -c /srv/app/ckan.ini zenodo export-whitelist
 
@@ -144,6 +147,7 @@ If you need to rebuild dev from scratch:
    docker compose -f docker-compose.dev.yml up -d --build
    docker compose -f docker-compose.dev.yml exec ckan ckan -c /srv/app/ckan.ini obis sync-nodes
    docker compose -f docker-compose.dev.yml exec ckan ckan -c /srv/app/ckan.ini obis sync-institutions
+   docker compose -f docker-compose.dev.yml exec ckan ckan -c /srv/app/ckan.ini obis sync-whitelist
    ```
 
 ## User Management
@@ -154,18 +158,49 @@ Access to the catalog is controlled by an ORCID whitelist. Only researchers whos
 
 **Whitelist file location:** `src/ckanext-oauth2-login/orcid_whitelist.txt`
 
+**Whitelist format:**
+
+```
+# Format: <orcid> [role1|role2|...] # comment
+#
+# Roles are optional and pipe-delimited:
+#   sysadmin        full system access
+#   <org-name>      org admin for that org (e.g. node-obis-uk)
+#
+# No role = regular editor, added to obis-community on first login.
+# Roles are re-applied on every login, including demotions.
+
+0000-0001-7418-1244 sysadmin # Stephen Formel
+0000-0002-5806-0837 node-obis-uk # Dan Lear
+0000-0001-6775-530X # Dimitra Mavraki (editor, no special role)
+```
+
+A user can hold multiple org admin roles by pipe-separating them:
+```
+0000-0003-2807-5867 node-otn-obis|node-eurobis # Someone who admins two nodes
+```
+
 **Adding a new user:**
 
-1. Edit the whitelist file and add their ORCID iD (one per line, comments after `#`):
-   ```
-   0000-0002-1234-5678  # Researcher Name
-   ```
+1. Edit the whitelist file and add their ORCID iD with optional role
 2. Rebuild and restart:
    ```bash
    docker compose build ckan && docker compose up -d
    ```
+3. Run sync-whitelist to pre-create their account immediately (optional — account is also created on first login):
+   ```bash
+   docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-whitelist
+   ```
 
-The next time the researcher clicks "Sign in with ORCID", their account will be created automatically and they'll be added to the OBIS Community organization as an editor.
+**Syncing the whitelist:**
+
+The `sync-whitelist` command pre-creates accounts for all whitelisted users and applies roles. It is safe to re-run at any time — it skips existing accounts and only applies role changes.
+
+```bash
+docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-whitelist
+```
+
+It fetches real names from the ORCID public API, so newly created accounts have correct names rather than placeholder values.
 
 **Removing a user:**
 
@@ -189,9 +224,20 @@ model.Session.commit()
 !!! warning
     If you only set a user to `deleted` state (via the CKAN UI or `user remove` CLI) without removing them from the whitelist, they will be **automatically reactivated** the next time they log in via ORCID.
 
-### Adding a user to an organization
+### Managing Organization Members
 
-Use the web UI at `/organization/<org-name>/members` or the API:
+Organization member management is available to org admins and sysadmins at `/organization/manage_members/<org-name>`.
+
+!!! note "CKAN 2.11 route change"
+    In CKAN 2.11, the members management page moved from `/organization/members/<name>` to `/organization/manage_members/<name>`. The old URL is now a public read-only view.
+
+The Add Member search box finds users by name or username. Users must have an existing account (created via `sync-whitelist` or first ORCID login) to appear in search results.
+
+### Managing Institution Members
+
+Institution (group) member management is open to any logged-in user at `/group/manage_members/<group-name>`. This allows researchers to associate themselves with their institutions without needing admin access.
+
+### Adding a user to an organization via API
 
 ```bash
 curl -X POST https://YOUR_HOST/api/3/action/organization_member_create \
@@ -212,6 +258,8 @@ docker compose exec ckan ckan -c /srv/app/ckan.ini user add USERNAME email=EMAIL
 
 ### Promoting a user to sysadmin
 
+The preferred way is to add `sysadmin` as a role in the whitelist and run `sync-whitelist`. For emergency or one-off use, the shell approach still works:
+
 ```bash
 docker compose exec -it ckan ckan -c /srv/app/ckan.ini shell
 ```
@@ -224,6 +272,17 @@ user = model.User.by_name('orcid-XXXX-XXXX-XXXX-XXXX')
 user.sysadmin = True
 model.Session.commit()
 ```
+
+## Featured Products
+
+The homepage "Featured Products" section shows a curated selection of products. Sysadmins can manage this via the admin dashboard at `/ckan-admin/featured-products`.
+
+Up to 8 products can be added to the pool. The homepage randomly displays 4 of them on each page load, providing variety without manual rotation. If no products are configured, the most recently updated products are shown as a fallback.
+
+To add products, paste their URL slugs (one per line) into the admin form. Slugs are the last part of a product's URL, e.g. `10-5281-zenodo-11464531` from `/dataset/10-5281-zenodo-11464531`.
+
+!!! note
+    Featured products are stored in the database, not in the codebase. After deploying to a new environment (e.g. prod after testing on dev), you will need to configure the featured pool again at `/ckan-admin/featured-products`.
 
 ## Catalog Manifest
 
