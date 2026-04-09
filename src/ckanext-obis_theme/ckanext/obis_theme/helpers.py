@@ -74,13 +74,14 @@ def obis_get_featured_datasets(display=FEATURED_DISPLAY):
     """
     class DatasetObject:
         def __init__(self, name, title, metadata_modified, owner_org,
-                     product_type_tags, thematic_tags):
+                     product_type_tags, thematic_tags, hero_image):
             self.name = name
             self.title = title
             self.metadata_modified = metadata_modified
             self.owner_org = owner_org
             self.product_type_tags = product_type_tags
             self.thematic_tags = thematic_tags
+            self.hero_image = hero_image
 
     def pkg_to_obj(pkg):
         extras_dict = {item['key']: item['value']
@@ -100,6 +101,7 @@ def obis_get_featured_datasets(display=FEATURED_DISPLAY):
             owner_org=pkg.get('owner_org'),
             product_type_tags=product_types,
             thematic_tags=thematic_tags,
+            hero_image=pkg.get('hero_image', ''),
         )
 
     try:

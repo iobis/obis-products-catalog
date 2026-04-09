@@ -295,6 +295,13 @@ dataset_fields:
     help_text: Human-readable location description
     validators: ignore_missing
 
+  - field_name: hero_image
+    label: Hero Image URL
+    form_placeholder: https://example.org/images/my-product.jpg
+    help_text: Optional image URL displayed on the product page. Not synced from Zenodo — curated manually.
+    validators: ignore_missing
+    display_snippet: null
+    
   # Provenance fields
   - field_name: source_metadata
     label: Source Metadata
