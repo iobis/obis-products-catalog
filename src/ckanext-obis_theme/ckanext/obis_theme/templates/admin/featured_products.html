@@ -1,0 +1,79 @@
+{% extends 'admin/base.html' %}
+
+{% block subtitle %}Featured Products{% endblock %}
+
+{% block primary_content_inner %}
+<h1 class="page-heading">Featured Products</h1>
+
+<p style="color: var(--color-mid); margin-bottom: 20px;">
+  Add up to {{ featured_max }} product names or DOI-based slugs to the pool.
+  The homepage will randomly display {{ featured_display }} of them on each page load.
+  If the pool is empty, the most recently updated products are shown instead.
+</p>
+
+{% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+{% if success %}
+<div class="alert alert-success">{{ success }}</div>
+{% endif %}
+
+{% if pool_datasets %}
+<h3>Current pool ({{ pool_datasets|length }}/{{ featured_max }})</h3>
+<table class="table table-bordered table-hover" style="margin-bottom: 20px;">
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Slug / ID</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for pkg in pool_datasets %}
+    <tr>
+      <td>
+        {% if pkg.get('title') and not pkg['title'].startswith('[Not found') %}
+          <a href="{{ h.url_for('dataset.read', id=pkg['name']) }}" target="_blank">
+            {{ pkg['title']|truncate(80) }}
+          </a>
+        {% else %}
+          <span style="color: var(--color-mid);">{{ pkg['title'] }}</span>
+        {% endif %}
+      </td>
+      <td><code>{{ pkg['name'] }}</code></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p style="color: var(--color-mid); font-style: italic;">No featured products configured. The homepage shows recently updated products.</p>
+{% endif %}
+
+<h3>Update pool</h3>
+<p style="color: var(--color-mid);">
+  Enter product slugs or DOI-based names, one per line (e.g. <code>10-5281-zenodo-11464531</code>).
+  Up to {{ featured_max }} entries. Replaces the current pool entirely.
+</p>
+
+<form method="post">
+  {{ h.csrf_input() }}
+  <div class="form-group">
+    <textarea name="featured_ids" class="form-control" rows="10"
+              placeholder="one-product-slug-per-line"
+              style="font-family: monospace; font-size: 13px;">{{ pool_ids_text }}</textarea>
+  </div>
+  <button type="submit" class="btn btn-primary">Save Featured Products</button>
+  {% if pool_datasets %}
+  <button type="submit" name="featured_ids" value="" class="btn btn-default" style="margin-left: 10px;">
+    Clear All (use recent products)
+  </button>
+  {% endif %}
+</form>
+
+<hr style="margin-top: 30px;">
+<h3>Find product slugs</h3>
+<p style="color: var(--color-mid);">
+  Browse <a href="{{ h.url_for('dataset.search') }}">all products</a> and copy the slug from the URL
+  (e.g. <code>/dataset/<strong>10-5281-zenodo-11464531</strong></code>).
+</p>
+
+{% endblock %}
