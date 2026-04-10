@@ -104,8 +104,6 @@ def get_last_modified(doi):
        return mysource_mapper.fetch_metadata(doi)
    ```
 
-5. Add any new license strings from the source to the `LICENSE_FAMILY_MAP` in `ckanext-obis_schema` (see issue #13).
-
 ### Testing the mapper
 
 Because the mapper is plain Python, you can test it directly without running CKAN:
