@@ -27,21 +27,19 @@ ODIS Schema.org JSON-LD export. Adds a `/dataset/<id>/odis.jsonld` endpoint to e
 
 This is the primary output of the catalog — making curated metadata discoverable by ODIS.
 
-## ckanext-zenodo
+## ckanext-obis_schema
 
-Schema definition and Zenodo-specific facets/indexing. Defines the dataset schema via `zenodo_schema.yaml`, provides custom validators and Solr indexing, and adds Product Type and Thematic Area facets.
+Source-agnostic catalog schema, facets, validators, and Solr indexing. Defines the dataset schema via `obis_schema.yaml`, provides custom validators, indexes multi-valued fields for Solr, and adds Product Type and Thematic Area facets.
 
-**Plugin name**: `zenodo`
+**Plugin name**: `obis_schema`
 
 **CLI Commands**:
 
-- `ckan zenodo harvest` — Bulk import/update from a DOI list. Checks blacklist, uses smart update to preserve curated fields.
-- `ckan zenodo export-whitelist` — Export all catalog products as CSV (`doi`, `title`, `source_url`, `catalog_url`). Used by the nightly cron job.
-- `ckan zenodo init-vocabularies` — Creates controlled vocabularies for product types and thematic areas if they don't already exist. Does not remove or update existing terms — to modify vocabulary terms, use the CKAN shell directly.
+- `ckan obis-schema init-vocabularies` — Creates controlled vocabularies for product types and thematic areas if they don't already exist. Does not remove or update existing terms — to modify vocabulary terms, use the CKAN shell directly.
 
 ## ckanext-doi-import
 
-Import datasets from DOIs (currently Zenodo). Provides a web UI for DOI import and an API endpoint for automated harvesting. Uses a mapper pattern — adding new sources requires writing one mapper file.
+Import datasets from DOIs (currently Zenodo). Provides a web UI for DOI import and an API endpoint for automated harvesting. Uses a mapper pattern — each source repository has its own mapper package under `mappers/`.
 
 **Plugin name**: `doi_import`
 
@@ -53,7 +51,12 @@ Import datasets from DOIs (currently Zenodo). Provides a web UI for DOI import a
 - **Blacklist check**: Checks `catalog_blacklist.csv` before importing. Blacklisted DOIs are rejected with an explanation.
 - **Web form**: `/dataset/import-doi` — paste a DOI, select an organization, import.
 - **API endpoint**: `POST /api/harvest-doi` — for automated imports.
-- **Mapper pattern**: `mappers/base.py` (DOI detection), `mappers/zenodo.py` (Zenodo-specific). Adding a new source requires one new mapper file.
+- **Mapper pattern**: `mappers/base.py` (DOI detection and shared utilities), `mappers/zenodo/` (Zenodo-specific). See [Contributing > Adding a New Data Source](contributing.md#adding-a-new-data-source) for how to add a new source.
+
+**CLI Commands**:
+
+- `ckan doi-import harvest` — Bulk import/update from the DOI registry CSV. Checks blacklist, uses smart update to preserve curated fields.
+- `ckan doi-import export-whitelist` — Export all catalog products as CSV (`doi`, `title`, `source_url`, `catalog_url`). Used by the nightly cron job.
 
 ## ckanext-public-edit
 
