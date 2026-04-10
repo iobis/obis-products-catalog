@@ -16,7 +16,7 @@ COPY nginx/setup/default.conf ${NGINX_DIR}/conf.d/
 # Build MkDocs site
 COPY docs/ /tmp/docs/
 COPY mkdocs.yml /tmp/mkdocs.yml
-COPY src/ckanext-zenodo/ckanext/zenodo/zenodo_schema.yaml /tmp/zenodo_schema.yaml
+COPY src/ckanext-obis_schema/ckanext/obis_schema/obis_schema.yaml /tmp/obis_schema.yaml
 RUN cd /tmp && \
     sed -i "s/{{BUILD_DATE}}/$(date +%Y-%m-%d)/" docs/index.md && \
     python3 docs/generate_schema_docs.py && \

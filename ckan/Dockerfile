@@ -8,7 +8,7 @@ RUN pip3 install -e 'git+https://github.com/ckan/ckanext-scheming.git@master#egg
 # Copy and install custom extensions
 COPY --chown=ckan-sys:ckan-sys src/ckanext-obis_theme /srv/app/src/ckanext-obis_theme
 COPY --chown=ckan-sys:ckan-sys src/ckanext-odis_export /srv/app/src/ckanext-odis_export
-COPY --chown=ckan-sys:ckan-sys src/ckanext-zenodo /srv/app/src/ckanext-zenodo
+COPY --chown=ckan-sys:ckan-sys src/ckanext-obis_schema /srv/app/src/ckanext-obis_schema
 COPY --chown=ckan-sys:ckan-sys src/ckanext-doi-import /srv/app/src/ckanext-doi-import
 COPY --chown=ckan-sys:ckan-sys src/ckanext-obis_sync /srv/app/src/ckanext-obis_sync
 COPY --chown=ckan-sys:ckan-sys src/ckanext-public-edit /srv/app/src/ckanext-public-edit
@@ -16,7 +16,7 @@ COPY --chown=ckan-sys:ckan-sys src/ckanext-oauth2-login /srv/app/src/ckanext-oau
 
 RUN pip3 install -e /srv/app/src/ckanext-obis_theme && \
     pip3 install -e /srv/app/src/ckanext-odis_export && \
-    pip3 install -e /srv/app/src/ckanext-zenodo && \
+    pip3 install -e /srv/app/src/ckanext-obis_schema && \
     pip3 install -e /srv/app/src/ckanext-doi-import && \
     pip3 install -e /srv/app/src/ckanext-obis_sync && \
     pip3 install -e /srv/app/src/ckanext-public-edit && \

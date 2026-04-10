@@ -43,6 +43,7 @@ class DoiImportPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IBlueprint)
     plugins.implements(plugins.IActions)
     plugins.implements(plugins.ITemplateHelpers)
+    plugins.implements(plugins.IClick)
 
     # IConfigurer
 
@@ -55,6 +56,12 @@ class DoiImportPlugin(plugins.SingletonPlugin):
 
     def get_helpers(self):
         return {"doi_import_enabled": lambda: True}
+
+    # IClick
+
+    def get_commands(self):
+        from ckanext.doi_import import cli
+        return [cli.doi_import]
 
     # IBlueprint
 
@@ -265,7 +272,7 @@ class DoiImportPlugin(plugins.SingletonPlugin):
                 context, {"doi_url": doi_url}
             )
 
-            # Check for existing dataset by matching Zenodo URL
+            # Check for existing dataset by matching source URL
             metadata_url = metadata.get("source_url", metadata.get("url", ""))
             existing_dataset = _find_existing_dataset(context, metadata_url)
 
@@ -314,6 +321,7 @@ class DoiImportPlugin(plugins.SingletonPlugin):
             return jsonify({"error": str(e)}), 400
         except Exception as e:
             return jsonify({"error": f"Server error: {e}"}), 500
+
     def _sync_dataset(self, dataset_id):
         """Sync a dataset with its source DOI."""
         from flask import redirect, url_for, flash
@@ -363,6 +371,7 @@ class DoiImportPlugin(plugins.SingletonPlugin):
             flash(f"Sync failed: {e}", "error")
 
         return redirect(url_for("dataset.read", id=existing["name"]))
+
 
 # --- Action functions ---
 

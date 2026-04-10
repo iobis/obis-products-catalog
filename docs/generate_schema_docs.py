@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Generate docs from zenodo_schema.yaml:
+Generate docs from obis_schema.yaml:
 1. Writes docs/data-model.md
 2. Merges generated schemas into docs/api/openapi_base.yaml -> docs/api/openapi.yaml
 
@@ -10,7 +10,7 @@ import yaml
 import sys
 import copy
 
-SCHEMA_PATH = '/tmp/zenodo_schema.yaml'
+SCHEMA_PATH = '/tmp/obis_schema.yaml'
 OPENAPI_BASE_PATH = '/tmp/docs/api/openapi_base.yaml'
 OPENAPI_OUTPUT_PATH = '/tmp/docs/api/openapi.yaml'
 DATA_MODEL_OUTPUT_PATH = '/tmp/docs/data-model.md'
@@ -65,7 +65,7 @@ def build_data_model_md(fields):
     lines = []
     lines.append('# Data Model')
     lines.append('')
-    lines.append('This page is auto-generated from `zenodo_schema.yaml` at build time.')
+    lines.append('This page is auto-generated from `obis_schema.yaml` at build time.')
     lines.append('')
 
     lines.append('## Dataset Fields')
@@ -164,7 +164,7 @@ def build_data_model_md(fields):
 
 
 def build_openapi_schemas(fields):
-    """Build OpenAPI schema components from zenodo_schema.yaml fields."""
+    """Build OpenAPI schema components from obis_schema.yaml fields."""
 
     # Extract controlled vocabularies
     product_type_enum = []

@@ -71,6 +71,23 @@ def search_by_doi(doi):
     return None
 
 
+def get_last_modified(doi):
+    """Get the last modified timestamp from Zenodo for a given DOI.
+
+    Returns:
+        ISO 8601 timestamp string, or None if unavailable.
+    """
+    try:
+        record_id = _extract_record_id(doi)
+        url = f"https://zenodo.org/api/records/{record_id}"
+        response = requests.get(url, timeout=30)
+        response.raise_for_status()
+        data = response.json()
+        return data.get('updated')
+    except Exception:
+        return None
+
+
 def _extract_record_id(doi):
     """Extract the numeric Zenodo record ID from a DOI."""
     match = re.search(r"zenodo\.(\d+)", doi)
@@ -111,6 +128,7 @@ def _map_authors(creators):
             "author_affiliation_name": str(affiliation) if affiliation else "",
         })
     return authors
+
 
 def _map_resources(files, record_id):
     """Map Zenodo files to CKAN resource list."""
