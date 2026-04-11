@@ -51,6 +51,7 @@ services:
       - site_packages:/usr/lib/python3.10/site-packages
       - ./catalog_blacklist.csv:/srv/app/catalog_blacklist.csv
       - ./catalog_whitelist.csv:/srv/app/catalog_whitelist.csv
+      - ./ckan/licenses.json:/srv/app/licenses.json
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-qO", "/dev/null", "http://localhost:5000/api/action/status_show"]
