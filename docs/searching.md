@@ -15,6 +15,8 @@ Narrow your results using filters on the left sidebar:
 - **Tags** - Filter by keywords
 - **License** - Filter by usage rights
 
+**Note:** The License filter groups products by what you can do with them, rather than by the specific license name. Unclassified means a license is recorded but hasn't been mapped to a category yet. Contact helpdesk@obis.org if you encounter this.
+
 ## Browse by Node or Institution
 
 - Visit `/organization` to see all OBIS nodes and the products they steward

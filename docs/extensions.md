@@ -29,13 +29,29 @@ This is the primary output of the catalog — making curated metadata discoverab
 
 ## ckanext-obis_schema
 
-Source-agnostic catalog schema, facets, validators, and Solr indexing. Defines the dataset schema via `obis_schema.yaml`, provides custom validators, indexes multi-valued fields for Solr, and adds Product Type and Thematic Area facets.
+Source-agnostic catalog schema, facets, validators, and Solr indexing. Defines the dataset schema via `obis_schema.yaml`, provides custom validators, indexes multi-valued fields for Solr, and adds Product Type, Thematic Area, and License facets.
 
 **Plugin name**: `obis_schema`
 
 **CLI Commands**:
 
 - `ckan obis-schema init-vocabularies` — Creates controlled vocabularies for product types and thematic areas if they don't already exist. Does not remove or update existing terms — to modify vocabulary terms, use the CKAN shell directly.
+
+**License registry**: The catalog uses a custom license registry at `ckan/licenses.json` (volume-mounted into the CKAN container) which extends CKAN's default license list with SPDX identifiers used by Zenodo (e.g. `cc-by-4.0`, `mit-license`). This gives raw SPDX strings proper display names and URLs in the UI. New license strings encountered from future sources should be added to `ckan/licenses.json`. The config variable `CKAN___LICENSES_GROUP_URL=file:///srv/app/licenses.json` points CKAN at this file.
+
+**License family facet**: The `LICENSE_FAMILY_MAP` in `plugin.py` maps stored `license_id` values to constraint-oriented display buckets, indexed as a `license_family` Solr field:
+
+| Bucket | Meaning |
+|---|---|
+| `Public Domain` | No rights reserved (CC0, other-pd) |
+| `Open (Attribution required)` | Use freely, credit the author (CC-BY, ODC-BY) |
+| `Open (Share-Alike)` | Use freely, same license on derivatives (CC-BY-SA) |
+| `Non-Commercial` | No commercial use (CC-BY-NC) |
+| `Other Open` | Open license not fitting above buckets (MIT, ODbL) |
+| `Not Specified` | No license information provided |
+| `Unclassified` | License recorded but not yet mapped — acts as a work queue |
+
+Any `license_id` not in `LICENSE_FAMILY_MAP` automatically falls into `Unclassified`. After adding new sources, check the Unclassified bucket and add new mappings to `LICENSE_FAMILY_MAP` as needed. After updating the map, rebuild the Solr index: `ckan search-index rebuild`.
 
 ## ckanext-doi-import
 

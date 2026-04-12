@@ -74,6 +74,8 @@ When editing, the product remains under its original owning organization — you
 - Link to source datasets when possible
 - Include funding information
 
+**A note on licenses:** The catalog displays licenses grouped by usage constraints (Public Domain, Open (Attribution required), etc.) rather than by license name. License strings are imported automatically from the source repository. If a product shows as "Unclassified" in the license filter, the license is recorded but hasn't been mapped yet — contact helpdesk@obis.org to report it.
+
 ## Catalog Manifest
 
 The catalog maintains a version-controlled record of all products:
