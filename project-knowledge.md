@@ -95,6 +95,7 @@ All configuration is in `.env` (not committed to git). The `.env.example` file i
 - `CKAN__PLUGINS` controls which plugins are loaded, in order
 - `CKAN___CKAN__GROUP_AND_ORGANIZATION_LIST_MAX=1000` and `CKAN___CKAN__GROUP_AND_ORGANIZATION_LIST_ALL_FIELDS_MAX=1000` must be set to support 663+ groups
 - `COMPOSE_PROJECT_NAME=ckan-dev` must be set in dev `.env` to avoid container name collisions with prod
+- `CKAN___LICENSES_GROUP_URL=file:///srv/app/licenses.json` points CKAN at the custom license registry
 
 ### Docker Build Context
 
@@ -135,19 +136,20 @@ The production `docker-compose.yml` sets the CKAN build context to the repo root
 
 **This is the primary output of the catalog** — making curated metadata available to ODIS.
 
-### ckanext-zenodo
-**Purpose**: Schema definition + Zenodo-specific facets and indexing
-**Plugin**: `zenodo`
+### ckanext-obis_schema
+**Purpose**: Source-agnostic catalog schema, facets, validators, and Solr indexing (replaces ckanext-zenodo, Issue #56)
+**Plugin**: `obis_schema`
 **What it does**:
-- Defines the dataset schema via `zenodo_schema.yaml` (loaded through ckanext-scheming)
+- Defines the dataset schema via `obis_schema.yaml` (loaded through ckanext-scheming)
 - Custom validators for spatial fields and JSON arrays
 - Solr indexing customization in `before_dataset_index` for multi-valued tag fields
-- Custom facets: Product Types and Thematic Areas
-- CLI: `ckan zenodo harvest` — bulk import/update from whitelist CSV. Default registry path is `/srv/app/catalog_whitelist.csv`. Checks blacklist, uses smart update. The `load_doi_registry` function parses the first column of CSV format (skipping the `doi` header row).
-- CLI: `ckan zenodo export-whitelist` — export all catalog products as CSV for nightly cron
-- CLI: `ckan zenodo init-vocabularies` — initialize controlled vocabularies
+- Custom facets: Product Types, Thematic Areas, and License (family)
+- CLI: `ckan obis-schema init-vocabularies` — initialize controlled vocabularies
+- **LICENSE_FAMILY_MAP**: Maps stored `license_id` values to constraint-oriented display buckets (`Public Domain`, `Open (Attribution required)`, `Open (Share-Alike)`, `Non-Commercial`, `Other Open`, `Not Specified`, `Unclassified`). Any unmapped license_id falls into `Unclassified` — a work queue for new license strings encountered from future sources.
 
-**Key file**: `zenodo_schema.yaml` defines all dataset fields, product types, and thematic areas.
+**Key file**: `obis_schema.yaml` defines all dataset fields, product types, and thematic areas.
+
+**License registry**: `ckan/licenses.json` extends CKAN's default license list with SPDX identifiers used by Zenodo (e.g. `cc-by-4.0`, `mit-license`). Volume-mounted into the CKAN container. When adding a new source, add any new license strings to both `licenses.json` and `LICENSE_FAMILY_MAP`. After updating `LICENSE_FAMILY_MAP`, rebuild the Solr index.
 
 ### ckanext-doi-import
 **Purpose**: Import datasets from DOIs with mapper pattern for multi-source support
@@ -156,7 +158,7 @@ The production `docker-compose.yml` sets the CKAN build context to the repo root
 - Web UI: "New Product" choice page (`/dataset/new-choice`) and DOI import form
 - Choice page and import form accept `?owner_org=` parameter to pre-select organization
 - API endpoint: `/api/harvest-doi` for automated imports
-- Mapper pattern: `mappers/base.py` (DOI detection), `mappers/zenodo.py` (Zenodo-specific)
+- Mapper pattern: `mappers/base.py` (DOI detection), `mappers/zenodo/` (Zenodo-specific package)
 - Contributing organizations saved as CKAN groups (appear in facets and dataset pages)
 - Handles resources (links to Zenodo files, not copies)
 - **Duplicate detection**: Checks for existing datasets by matching `source_url` before importing. Routes to update if found.
@@ -164,8 +166,17 @@ The production `docker-compose.yml` sets the CKAN build context to the repo root
 - **DOI-based URL slugs**: New imports use the DOI as the URL slug (e.g., `/dataset/10-5281-zenodo-17537386`) for stability and uniqueness. Fallback to title-based slug for manual products without DOIs.
 - **Blacklist check**: Checks `catalog_blacklist.csv` before importing. Blacklisted DOIs are rejected with an explanation in both web form and API.
 - **Flash messages**: Uses CKAN's `flash()` with `alert-warning` category for yellow warning boxes (CKAN 2.11 uses the category directly as a CSS class, not prefixed with `alert-`).
+- CLI: `ckan doi-import harvest` — bulk import/update from whitelist CSV. Default registry path is `/srv/app/catalog_whitelist.csv`. Checks blacklist, uses smart update.
+- CLI: `ckan doi-import export-whitelist` — export all catalog products as CSV for nightly cron.
 
-**Adding a new source**: Create `mappers/newsource.py` with `fetch_metadata(doi)`, update `detect_source()` in `base.py`.
+**Mapper structure**: Each source is a package under `mappers/`:
+```
+mappers/
+  base.py          ← DOI detection, shared utilities
+  zenodo/
+    __init__.py    ← fetch_metadata(), get_last_modified(), field mapping
+```
+Each mapper must implement `fetch_metadata(doi)` and `get_last_modified(doi)`. Adding a new source: create `mappers/newsource/`, implement the interface, add detection in `base.py`, wire into `plugin.py`'s `doi_fetch_metadata` action.
 
 ### ckanext-public-edit
 **Purpose**: Authorization policy for cross-node curation
@@ -233,13 +244,16 @@ CKANEXT__OAUTH2_LOGIN__REDIRECT_URI=https://your-domain/oauth2/callback
 ## Data Model
 
 ### Current State
-38 active products on production (products.obis.org). ORCID-based sysadmins only.
+42 active products on production (products.obis.org). ORCID-based sysadmins only.
 
 ### Product Types (controlled vocabulary, in schema YAML)
 dataset, publication, software, presentation, poster, image, video, lesson, physical_object, other
 
 ### Thematic Areas (controlled vocabulary, in schema YAML)
 Biodiversity, Climate Change, Ocean Acidification, Marine Protected Areas, eDNA, Invasives, Fisheries, Pollution, Coastal Management, Deep Sea, Coral Reefs, Species Distribution, Near-Realtime
+
+### License Family (derived Solr field, not stored in DB)
+Computed at index time from `license_id` via `LICENSE_FAMILY_MAP` in `ckanext-obis_schema`. Buckets: `Public Domain`, `Open (Attribution required)`, `Open (Share-Alike)`, `Non-Commercial`, `Other Open`, `Not Specified`, `Unclassified`. After adding new sources or updating the map, run `search-index rebuild`.
 
 ### Organizations (CKAN organizations)
 38 OBIS nodes + OBIS Secretariat + OBIS Community, synced from the OBIS API. Prefixed with `node-` to avoid namespace collisions. `obis-community` is the default org for new ORCID users.
@@ -270,13 +284,13 @@ CKAN (storage, curation UI, search, user management)
 ODIS (discovery, federated search)
 ```
 
-Adding a new source requires writing one mapper file in `ckanext-doi-import/ckanext/doi_import/mappers/`.
+Adding a new source requires creating a mapper package in `ckanext-doi-import/ckanext/doi_import/mappers/`. See `contributing.md` for the full interface and step-by-step guide.
 
 ## Catalog Manifest
 
 Two CSV files at the repo root serve as the archivable, citable record of the catalog:
 
-**`catalog_whitelist.csv`** — Every product in the catalog, exported nightly from the database. Columns: `doi`, `title`, `source_url`, `catalog_url`. Version-controlled in git, auto-committed by cron at 2am UTC if changes detected. Also used as the input file for `zenodo harvest`.
+**`catalog_whitelist.csv`** — Every product in the catalog, exported nightly from the database. Columns: `doi`, `title`, `source_url`, `catalog_url`. Version-controlled in git, auto-committed by cron at 2am UTC if changes detected. Also used as the input file for `doi-import harvest`.
 
 **`catalog_blacklist.csv`** — DOIs reviewed and determined out of scope. Manually curated. Columns: `doi`, `title`, `source_url`, `reason`, `reviewed_date`. Checked by web form, API, and bulk harvest CLI before importing.
 
@@ -307,7 +321,7 @@ MkDocs Material site deployed to GitHub Pages via GitHub Actions.
 ### Plugin Load Order (CRITICAL)
 
 ```
-CKAN__PLUGINS="envvars image_view text_view public_edit oauth2_login scheming_datasets scheming_groups obis_theme obis_sync odis_export zenodo doi_import"
+CKAN__PLUGINS="envvars image_view text_view public_edit oauth2_login scheming_datasets scheming_groups obis_theme obis_sync odis_export obis_schema doi_import"
 ```
 
 **`public_edit` must come BEFORE `scheming_datasets`** — so its template override for the organization field takes effect. Plugins loaded earlier in the list have higher template priority for overriding scheming templates.
@@ -324,7 +338,7 @@ docker compose build ckan && docker compose up -d
 # View logs
 docker compose logs -f ckan
 
-# Rebuild search index (after DB restore or missing datasets)
+# Rebuild search index (after DB restore, missing datasets, or LICENSE_FAMILY_MAP changes)
 docker compose exec ckan ckan -c /srv/app/ckan.ini search-index rebuild
 
 # Database backup
@@ -337,10 +351,13 @@ docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-nodes
 docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-institutions
 
 # Export catalog whitelist
-docker compose exec ckan ckan -c /srv/app/ckan.ini zenodo export-whitelist
+docker compose exec ckan ckan -c /srv/app/ckan.ini doi-import export-whitelist --output /srv/app/catalog_whitelist.csv
 
 # Bulk harvest from whitelist
-docker compose exec ckan ckan -c /srv/app/ckan.ini zenodo harvest
+docker compose exec ckan ckan -c /srv/app/ckan.ini doi-import harvest
+
+# Initialize vocabularies
+docker compose exec ckan ckan -c /srv/app/ckan.ini obis-schema init-vocabularies
 ```
 
 ### User Management
@@ -398,13 +415,15 @@ SSH key for push: `~/.ssh/github_deploy` (repo-scoped deploy key).
 | ORCID profile edit gives 400 Bad Request | Flask-WTF SSL strict referrer check. Fixed via `IMiddleware` setting `WTF_CSRF_SSL_STRICT=False` in `ckanext-oauth2-login`. |
 | ORCID profile edit gives 500 after removing password field | CKAN's user edit view crashes on missing `old_password`. Fixed by routing ORCID users through `/user/edit-orcid/<id>` which re-authenticates via ORCID. |
 | User About text not showing on profile page | `about_formatted` not passed to `user/snippets/info.html`. Fixed by overriding `user/read_base.html` in `ckanext-obis_theme`. |
-| `zenodo harvest` says registry file not found | Pass `--registry /srv/app/catalog_whitelist.csv` or ensure the default path is set correctly in `cli.py`. Also ensure `catalog_whitelist.csv` is volume-mounted in the compose file. |
-| `zenodo harvest` imports full CSV row as DOI | `load_doi_registry` must split on comma and skip the header row. Fixed in `cli.py`. |
+| `doi-import harvest` says registry file not found | Pass `--registry /srv/app/catalog_whitelist.csv` or ensure the default path is set correctly in `cli.py`. Also ensure `catalog_whitelist.csv` is volume-mounted in the compose file. |
+| License facet shows raw strings instead of display names | `licenses.json` not loading — check `CKAN___LICENSES_GROUP_URL` in `.env` and that `ckan/licenses.json` is a file not a directory on the host. |
+| License facet shows `license_id` values instead of `license_family` buckets | Solr index needs rebuild after deploying `obis_schema` plugin changes. |
+| `licenses.json` volume mounts as directory | Docker created it as a directory before the file existed on the host. Run `rm -rf ckan/licenses.json`, recreate the file, then `docker compose down && up -d`. |
 
 ### Resolved Issues (Session Log)
 
 - **Split obis_theme**: Extracted sync commands into `ckanext-obis_sync`. Theme-only code stays in `ckanext-obis_theme`.
-- **Refactored doi_import**: Mapper pattern with `mappers/base.py` and `mappers/zenodo.py`. Removed dead code and debug print statements.
+- **Refactored doi_import**: Mapper pattern with `mappers/base.py` and `mappers/zenodo/`. Removed dead code and debug print statements.
 - **Renamed odis → odis_export**: Full rename of directory, Python package, entry points in `pyproject.toml`, `setup.cfg`, Dockerfile, `.env`. Key lesson: `pyproject.toml` entry points take precedence over `setup.cfg`.
 - **Fixed authors in ODIS JSON-LD**: Export now handles both `author_name` (schema) and `name` (legacy) formats. Zenodo mapper updated to output schema-correct field names.
 - **Fixed contributing orgs in DOI import**: Groups now saved via CKAN `groups` key (not custom field). Set `group_and_organization_list_max=1000` in `.env` to show all 663 institutions.
@@ -418,7 +437,7 @@ SSH key for push: `~/.ssh/github_deploy` (repo-scoped deploy key).
 - **Dataset→Product i18n**: English translation override in obis_theme replaces all "Dataset/Datasets" with "Product/Products".
 - **Org pre-selection**: "Add Product" from org pages passes `owner_org` through to create and import forms.
 - **Removed JS redirect script**: Was in `base.html`, overwriting org URLs. Replaced by proper snippet override.
-- **Added Near-Realtime thematic area**: In `zenodo_schema.yaml`.
+- **Added Near-Realtime thematic area**: In `obis_schema.yaml`.
 - **Production deployment**: Stood up prod at products.obis.org. SSL, ORCID login, nodes/institutions synced, 38 products imported via bulk harvest.
 - **Homepage shows all vocabulary items**: Product types and thematic areas display even with 0 count, helping users understand the full taxonomy. Sort: count descending, then alphabetical.
 - **DOI import duplicate detection**: Web form checks for existing datasets by `source_url` field. Routes to smart update if found, preserving curated fields.
@@ -440,10 +459,11 @@ SSH key for push: `~/.ssh/github_deploy` (repo-scoped deploy key).
 - **Nodes/Institutions renaming (Issue #18)**: i18n overrides added for Organization→Node and Group→Institution throughout UI.
 - **Dev environment banner**: Red banner in header on dev instance using `request.host` check.
 - **Dev instance migrated to prod droplet (Issue #49)**: Dev now runs at https://dev.products.obis.org:8443 on the same droplet as prod. Separate Docker Compose stack with dev-specific files gitignored. Full setup documented in operations.md.
-- **Fixed zenodo harvest to read CSV format (Issue #49)**: `load_doi_registry` now parses first column of CSV, skips header. Default registry path updated to `catalog_whitelist.csv`. Both CSV files now volume-mounted in compose files.
 - **ORCID user profile editing (Issue #53)**: ORCID users can now edit their profile without a password. Form submission intercepted, user re-authenticated via ORCID OAuth, then profile updated. Handles fullname, email, about, image_url.
 - **Fixed About text not displaying on profile page (Issue #53)**: `about_formatted` was not passed to `user/snippets/info.html`. Fixed by overriding `user/read_base.html` in `ckanext-obis_theme`.
 - **Disabled non-ORCID login UI (Issue #54)**: Login page shows only ORCID button. Password reset page returns 404. Sidebar updated with ORCID login info.
+- **Extension reorg (Issue #56)**: Retired `ckanext-zenodo`. Created source-agnostic `ckanext-obis_schema` (schema, facets, validators, `init-vocabularies`). Moved harvest/export-whitelist CLI to `ckanext-doi-import`. Restructured `mappers/zenodo.py` into `mappers/zenodo/` package with `get_last_modified()`. Updated all config, Dockerfiles, and docs.
+- **License family facet (Issue #13)**: Added `ckan/licenses.json` with SPDX IDs. Added `LICENSE_FAMILY_MAP` and `license_family` Solr field in `ckanext-obis_schema`. License sidebar facet now shows constraint-oriented buckets. `Unclassified` bucket acts as work queue for unmapped license strings.
 
 ## Gotchas
 
@@ -465,6 +485,8 @@ SSH key for push: `~/.ssh/github_deploy` (repo-scoped deploy key).
 16. **ORCID profile edit re-authenticates via ORCID**: The form action for ORCID users points to `/user/edit-orcid/<id>` not the standard CKAN edit route. State is `profile_update:...` in the OAuth flow to distinguish from login.
 17. **Flask-WTF SSL strict check blocks forms on non-standard ports**: Fixed via `IMiddleware` in `ckanext-oauth2-login` setting `WTF_CSRF_SSL_STRICT=False`. Do not use the `.env` variable approach — CKAN doesn't map it to Flask config.
 18. **Snippets don't inherit parent template context**: Variables must be explicitly passed in snippet calls. `about_formatted` was missing from the `user/snippets/info.html` call in `read_base.html`.
+19. **`licenses.json` must be a file not a directory on the host**: Docker creates volume mount targets as directories if the host path doesn't exist yet. Always create the file on the host before bringing up the stack. If it becomes a directory: `rm -rf ckan/licenses.json`, recreate the file, then `docker compose down && up -d`.
+20. **`pyproject.toml` entry points take precedence over `setup.cfg`**: When both files declare entry points, `pyproject.toml` wins. Keep entry points in `pyproject.toml` only — do not duplicate in `setup.cfg`.
 
 ## Open Questions / Future Work
 
@@ -476,3 +498,4 @@ SSH key for push: `~/.ssh/github_deploy` (repo-scoped deploy key).
 - **SMTP configuration**: For future email notifications (user approval, etc.).
 - **Organization→Node renaming**: i18n override to replace "Organization/Organizations" with "Node/Nodes" throughout UI.
 - **SSL cert renewal automation**: Let's Encrypt certs expire every 90 days. Currently manual (`certbot renew`). Consider a cron job, but nginx is containerized so the standard certbot renewal hook doesn't apply directly.
+- **Additional data sources**: GBIF, Dryad, etc. Each needs a mapper package in `ckanext-doi-import/mappers/` and any new license strings added to `licenses.json` and `LICENSE_FAMILY_MAP`.
