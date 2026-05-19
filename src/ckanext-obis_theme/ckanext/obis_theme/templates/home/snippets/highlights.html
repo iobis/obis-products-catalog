@@ -1,5 +1,5 @@
 {% macro highlights_grid(title, stats, url_param) %}
-<div class="highlights-container" style="margin-bottom: 40px;">
+<!-- <div class="highlights-container" style="margin-bottom: 40px;">
     <div>
         <span class="section-title">{{ title }}</span>
     </div>
@@ -12,10 +12,26 @@
         </a>
         {% endfor %}
     </div>
+</div> -->
+<div class="th-wrap highlights-container" style="margin-bottom: 40px;">
+    <div class="th-header">
+        <p class="th-title">Explore products across</p>
+        <p class="th-title-highlight">{{ stats|length }} {{ title|lower }}</p>
+    </div>
+    <div class="th-grid" role="list">
+        {% for stat in stats %}
+        <a class="th-chip" href="{{ h.url_for('dataset.search', **{url_param: stat.name}) }}" role="listitem">
+            <i class="fa {{ stat.icon }} th-chip-icon" aria-hidden="true"></i>
+            <div class="th-chip-body">
+                <span class="th-chip-label">{{ stat.display_name }}</span>
+                <span class="th-chip-count">{{ stat.count }} datasets</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
 </div>
 {% endmacro %}
 
-{{ highlights_grid('Product Types', h.obis_get_product_type_stats(), 'vocab_product_type_tags') }}
 {{ highlights_grid('Thematic Areas', h.obis_get_thematic_stats(), 'vocab_thematic_tags') }}
 
 <style>
@@ -25,31 +41,146 @@
             grid-template-columns: repeat(5, 1fr) !important;
         }
     }
-    
+
     /* Tablet: 3 columns */
     @media (min-width: 768px) and (max-width: 991px) {
         .highlights-grid {
             grid-template-columns: repeat(3, 1fr) !important;
         }
     }
-    
+
     /* Mobile: 2 columns */
     @media (max-width: 767px) {
         .highlights-grid {
             grid-template-columns: repeat(2, 1fr) !important;
             gap: 15px !important;
         }
-        
+
         .highlight-item .fa {
             font-size: 28px !important;
         }
-        
+
         .highlight-item .number {
             font-size: 24px !important;
         }
-        
+
         .highlight-item .numbertext {
             font-size: 11px !important;
+        }
+    }
+
+    /* New grid */
+    .th-wrap {
+        margin-bottom: 40px;
+        margin-top: 40px;
+        display: flex;
+    }
+
+    .th-header {
+        display: flex;
+        /* align-items: center;
+    justify-content: space-between; */
+        margin-bottom: 12px;
+        flex-direction: column;
+        line-height: normal;
+    }
+
+    .th-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+        gap: 8px;
+    }
+
+    .th-title {
+        font-family: "Roboto", sans-serif;
+        font-weight: 700;
+        font-size: 24px;
+        margin-bottom: 0px;
+    }
+
+    .th-title-highlight {
+        font-family: "Roboto", sans-serif;
+        font-weight: 900;
+        color: var(--color-brand);
+        background: linear-gradient(32deg, #2f6fef, #6194fc);
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: inline-block;
+        font-size: 28px;
+    }
+
+    .th-chip {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 12px;
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        background: white;
+        text-decoration: none;
+        color: inherit;
+        transition: border-color 0.15s, background 0.15s;
+    }
+
+    .th-chip:hover {
+        border-color: #185FA5;
+        background: #E6F1FB;
+    }
+
+    .th-chip:hover .th-chip-icon {
+        color: #185FA5;
+    }
+
+    .th-chip:hover .th-chip-label {
+        color: #0C447C;
+    }
+
+    .th-chip-icon {
+        font-size: 13px;
+        color: var(--color-mid);
+        flex-shrink: 0;
+        width: 14px;
+        text-align: center;
+    }
+
+    .th-chip-body {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        min-width: 0;
+    }
+
+    .th-chip-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--color-dark);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.3;
+    }
+
+    .th-chip-count {
+        font-size: 11px;
+        color: var(--color-mid);
+    }
+
+    /* Responsive column count */
+    @media (min-width: 992px) {
+        .th-grid {
+            grid-template-columns: repeat(5, 1fr);
+        }
+    }
+
+    @media (min-width: 768px) and (max-width: 991px) {
+        .th-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (max-width: 767px) {
+        .th-grid {
+            grid-template-columns: repeat(2, 1fr);
         }
     }
 </style>

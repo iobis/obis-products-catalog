@@ -1,0 +1,119 @@
+<!-- ================================================================
+     OBIS — "Ready to get started" CTA section
+     Drop anywhere in your CKAN template.
+     Depends on: Font Awesome (already loaded in your base template)
+     ================================================================ -->
+
+<div class="obis-cta">
+  <h2 class="obis-cta__title">Ready to get started?</h2>
+  <p class="obis-cta__sub">Join hundreds of researchers, policymakers, and developers building with open ocean biodiversity data.</p>
+  <div class="obis-cta__btns">
+    <a class="obis-cta__btn-primary" href="#">
+      <i class="fa fa-hand-paper-o" aria-hidden="true"></i>
+      Contribute a product
+    </a>
+    <a class="obis-cta__btn-secondary" href="#">
+      <i class="fa fa-info-circle" aria-hidden="true"></i>
+      Learn more about OBIS
+    </a>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     CSS — add to your stylesheet
+     ================================================================ -->
+<style>
+  .obis-cta {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 3rem 2rem;
+    border-top: 0px solid var(--color-border);
+    margin-bottom: 0px;
+  }
+
+  .obis-cta__title {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--color-brand);
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+    margin: 0 0 0.5rem;
+  }
+
+  .obis-cta__sub {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--color-mid);
+    line-height: 1.6;
+    margin: 0 0 1.75rem;
+    max-width: 420px;
+  }
+
+  .obis-cta__btns {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .obis-cta__btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--color-brand);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 11px 22px;
+    border-radius: 8px;
+    border: none;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .obis-cta__btn-primary:hover {
+    background: #185FA5;
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .obis-cta__btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    color: var(--color-brand);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 10px 22px;
+    border-radius: 8px;
+    border: 1.5px solid var(--color-brand);
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+  .obis-cta__btn-secondary:hover {
+    background: var(--color-brand-faded);
+    color: #fff;
+    text-decoration: none;
+  }
+
+  @media (max-width: 767px) {
+    .obis-cta__title {
+      font-size: 20px;
+    }
+    .obis-cta__btns {
+      flex-direction: column;
+      width: 100%;
+    }
+    .obis-cta__btn-primary,
+    .obis-cta__btn-secondary {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>

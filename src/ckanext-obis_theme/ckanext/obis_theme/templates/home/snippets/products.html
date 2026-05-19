@@ -1,4 +1,4 @@
-<div class="highlights-container" style="margin-bottom: 20px;">
+<!-- <div class="highlights-container" style="margin-bottom: 20px;">
     <div style="display: flex; align-items: center; justify-content: space-between;">
         <span class="section-title">Featured Products</span>
         {% if h.obis_is_sysadmin() %}
@@ -55,3 +55,257 @@
         {% endfor %}
     </div>
 </div>
+
+<div class="highlights-container" style="margin-bottom: 20px;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+        <span class="section-title">Featured Products</span>
+        {% if h.obis_is_sysadmin() %}
+        <a href="{{ h.url_for('obis_theme.featured_products') }}"
+           style="font-size: 12px; color: var(--color-mid);">
+            <i class="fa fa-pencil"></i> Edit
+        </a>
+        {% endif %}
+    </div>
+
+    {% set featured = h.obis_get_featured_datasets(4) %}
+
+    {% set gradients = [
+        "linear-gradient(135deg, #042C53 0%, #185FA5 50%, #1D9E75 100%)",
+        "linear-gradient(135deg, #04342C 0%, #0F6E56 50%, #085041 100%)",
+        "linear-gradient(135deg, #412402 0%, #854F0B 50%, #BA7517 100%)",
+        "linear-gradient(135deg, #4B1528 0%, #993556 50%, #D4537E 100%)",
+        "linear-gradient(135deg, #173404 0%, #3B6D11 50%, #639922 100%)",
+        "linear-gradient(135deg, #26215C 0%, #534AB7 50%, #7F77DD 100%)"
+    ] %}
+
+    {# ------------------------------------------------------------------ #}
+    {# Carousel — JS targets this element via class, no IDs needed         #}
+    {# ------------------------------------------------------------------ #}
+    <section class="obis-carousel" aria-roledescription="carousel" aria-label="Featured Products">
+
+        <div class="obis-carousel__viewport">
+            <div class="obis-carousel__track">
+
+                {% for dataset in featured %}
+
+                    {# Background: hero image if available, gradient otherwise #}
+                    {% if dataset.hero_image %}
+                        {% set bg_style = "background-image: url('" ~ dataset.hero_image ~ "'); background-size: cover; background-position: center;" %}
+                    {% else %}
+                        {% set bg_style = "background: " ~ gradients[loop.index0 % gradients|length] ~ ";" %}
+                    {% endif %}
+
+                    {# Badge: first product_type_tag or fallback #}
+                    {% if dataset.product_type_tags and dataset.product_type_tags|length > 0 %}
+                        {% set badge = dataset.product_type_tags[0] %}
+                    {% else %}
+                        {% set badge = "Dataset" %}
+                    {% endif %}
+
+                <a class="obis-carousel__slide"
+                   href="{{ h.url_for('dataset.read', id=dataset.name) }}"
+                   aria-roledescription="slide"
+                   aria-label="Slide {{ loop.index }} of {{ featured|length }}">
+
+                    <div class="obis-carousel__bg" style="{{ bg_style }}"></div>
+                    <div class="obis-carousel__overlay"></div>
+                    <div class="obis-carousel__content">
+                        <span class="obis-carousel__badge">{{ badge }}</span>
+                        <p class="obis-carousel__title">{{ dataset.title|truncate(80) }}</p>
+                        {% if dataset.owner_org %}
+                        <p class="obis-carousel__org">{{ h.get_organization(dataset.owner_org).title }}</p>
+                        {% endif %}
+                        <span class="obis-carousel__cta">
+                            View product <i class="fa fa-arrow-right" aria-hidden="true"></i>
+                        </span>
+                    </div>
+
+                </a>
+                {% endfor %}
+
+            </div>
+        </div>
+
+        {# Dots and controls — found by JS via closest('.obis-carousel') #}
+        <div class="obis-carousel__dots" aria-hidden="true"></div>
+
+        <div class="obis-carousel__controls">
+            <button class="obis-carousel__btn obis-carousel__btn--prev" aria-label="Previous slide">
+                <i class="fa fa-chevron-left" aria-hidden="true"></i>
+            </button>
+            <span class="obis-carousel__counter" aria-live="polite">
+                1 / {{ featured|length }}
+            </span>
+            <button class="obis-carousel__btn obis-carousel__btn--next" aria-label="Next slide">
+                <i class="fa fa-chevron-right" aria-hidden="true"></i>
+            </button>
+        </div>
+
+    </section>
+</div>
+
+<script>
+  (function () {
+    // Target the last inserted .obis-carousel on the page (this one).
+    // Avoids any ID dependency and works with multiple instances.
+    var carousels = document.querySelectorAll('.obis-carousel');
+    var root = carousels[carousels.length - 1];
+
+    var track   = root.querySelector('.obis-carousel__track');
+    var dotsEl  = root.querySelector('.obis-carousel__dots');
+    var btnPrev = root.querySelector('.obis-carousel__btn--prev');
+    var btnNext = root.querySelector('.obis-carousel__btn--next');
+    var counter = root.querySelector('.obis-carousel__counter');
+    var slides  = track.querySelectorAll('.obis-carousel__slide');
+    var total   = slides.length;
+    var current = 0;
+
+    // Build dots
+    for (var i = 0; i < total; i++) {
+      var dot = document.createElement('span');
+      dot.className = 'obis-carousel__dot' + (i === 0 ? ' is-active' : '');
+      dot.dataset.index = i;
+      dot.addEventListener('click', function () { goTo(parseInt(this.dataset.index)); });
+      dotsEl.appendChild(dot);
+    }
+
+    function goTo(index) {
+      current = Math.max(0, Math.min(index, total - 1));
+      track.style.transform = 'translateX(-' + (current * 100) + '%)';
+      counter.textContent = (current + 1) + ' / ' + total;
+      dotsEl.querySelectorAll('.obis-carousel__dot').forEach(function (d, i) {
+        d.classList.toggle('is-active', i === current);
+      });
+      btnPrev.disabled = current === 0;
+      btnNext.disabled = current === total - 1;
+    }
+
+    btnPrev.addEventListener('click', function () { goTo(current - 1); });
+    btnNext.addEventListener('click', function () { goTo(current + 1); });
+
+    goTo(0);
+  })();
+</script> -->
+<section
+    class="obis-carousel"
+    aria-roledescription="carousel"
+    aria-label="Featured products"
+  >
+    <div class="obis-carousel__viewport">
+      <div class="obis-carousel__track" id="obis-track">
+
+        <a class="obis-carousel__slide" href="#" aria-roledescription="slide" aria-label="Slide 1 of 6">
+          <div class="obis-carousel__bg" style="background: linear-gradient(135deg, #042C53 0%, #185FA5 50%, #1D9E75 100%);"></div>
+          <div class="obis-carousel__overlay"></div>
+          <div class="obis-carousel__content">
+            <span class="obis-carousel__badge">Mapping</span>
+            <p class="obis-carousel__title">OBIS Mapper — visualise global species distributions interactively</p>
+            <span class="obis-carousel__cta">Explore product <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+          </div>
+        </a>
+
+        <a class="obis-carousel__slide" href="#" aria-roledescription="slide" aria-label="Slide 2 of 6">
+          <div class="obis-carousel__bg" style="background: linear-gradient(135deg, #04342C 0%, #0F6E56 50%, #085041 100%);"></div>
+          <div class="obis-carousel__overlay"></div>
+          <div class="obis-carousel__content">
+            <span class="obis-carousel__badge">API</span>
+            <p class="obis-carousel__title">OBIS API — programmatic access to occurrence records at scale</p>
+            <span class="obis-carousel__cta">Explore product <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+          </div>
+        </a>
+
+        <a class="obis-carousel__slide" href="#" aria-roledescription="slide" aria-label="Slide 3 of 6">
+          <div class="obis-carousel__bg" style="background: linear-gradient(135deg, #412402 0%, #854F0B 50%, #BA7517 100%);"></div>
+          <div class="obis-carousel__overlay"></div>
+          <div class="obis-carousel__content">
+            <span class="obis-carousel__badge">R Package</span>
+            <p class="obis-carousel__title">robis — query and analyse OBIS data directly from R</p>
+            <span class="obis-carousel__cta">Explore product <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+          </div>
+        </a>
+
+        <a class="obis-carousel__slide" href="#" aria-roledescription="slide" aria-label="Slide 4 of 6">
+          <div class="obis-carousel__bg" style="background: linear-gradient(135deg, #4B1528 0%, #993556 50%, #D4537E 100%);"></div>
+          <div class="obis-carousel__overlay"></div>
+          <div class="obis-carousel__content">
+            <span class="obis-carousel__badge">Analytics</span>
+            <p class="obis-carousel__title">Quality Control Suite — flag and fix taxonomic and spatial data issues</p>
+            <span class="obis-carousel__cta">Explore product <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+          </div>
+        </a>
+
+        <a class="obis-carousel__slide" href="#" aria-roledescription="slide" aria-label="Slide 5 of 6">
+          <div class="obis-carousel__bg" style="background: linear-gradient(135deg, #173404 0%, #3B6D11 50%, #639922 100%);"></div>
+          <div class="obis-carousel__overlay"></div>
+          <div class="obis-carousel__content">
+            <span class="obis-carousel__badge">Data</span>
+            <p class="obis-carousel__title">Darwin Core Archive — download standardised DwC-A occurrence exports</p>
+            <span class="obis-carousel__cta">Explore product <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+          </div>
+        </a>
+
+        <a class="obis-carousel__slide" href="#" aria-roledescription="slide" aria-label="Slide 6 of 6">
+          <div class="obis-carousel__bg" style="background: linear-gradient(135deg, #26215C 0%, #534AB7 50%, #7F77DD 100%);"></div>
+          <div class="obis-carousel__overlay"></div>
+          <div class="obis-carousel__content">
+            <span class="obis-carousel__badge">Remote sensing</span>
+            <p class="obis-carousel__title">OBIS &amp; EMODnet — integrated biodiversity and environmental layers</p>
+            <span class="obis-carousel__cta">Explore product <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+          </div>
+        </a>
+
+      </div>
+    </div>
+
+    <!-- Dots: bottom-left -->
+    <div class="obis-carousel__dots" id="obis-dots" aria-hidden="true"></div>
+
+    <!-- Prev / counter / next: bottom-right -->
+    <div class="obis-carousel__controls">
+      <button class="obis-carousel__btn" id="obis-prev" aria-label="Previous slide">
+        <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+      </button>
+      <span class="obis-carousel__counter" id="obis-counter" aria-live="polite">1 / 6</span>
+      <button class="obis-carousel__btn" id="obis-next" aria-label="Next slide">
+        <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+      </button>
+    </div>
+  </section>
+
+  <script>
+    (function () {
+      var track   = document.getElementById('obis-track');
+      var dots    = document.getElementById('obis-dots');
+      var btnPrev = document.getElementById('obis-prev');
+      var btnNext = document.getElementById('obis-next');
+      var counter = document.getElementById('obis-counter');
+      var slides  = track.querySelectorAll('.obis-carousel__slide');
+      var total   = slides.length;
+      var current = 0;
+
+      /* Build dots */
+      for (var i = 0; i < total; i++) {
+        var dot = document.createElement('span');
+        dot.className = 'obis-carousel__dot' + (i === 0 ? ' is-active' : '');
+        dot.dataset.index = i;
+        dot.addEventListener('click', function () { goTo(parseInt(this.dataset.index)); });
+        dots.appendChild(dot);
+      }
+
+      function goTo(index) {
+        current = Math.max(0, Math.min(index, total - 1));
+        track.style.transform = 'translateX(-' + (current * 100) + '%)';
+        counter.textContent = (current + 1) + ' / ' + total;
+        dots.querySelectorAll('.obis-carousel__dot').forEach(function (d, i) {
+          d.classList.toggle('is-active', i === current);
+        });
+        btnPrev.disabled = current === 0;
+        btnNext.disabled = current === total - 1;
+      }
+
+      btnPrev.addEventListener('click', function () { goTo(current - 1); });
+      btnNext.addEventListener('click', function () { goTo(current + 1); });
+
+      goTo(0);
+    })();
+  </script>

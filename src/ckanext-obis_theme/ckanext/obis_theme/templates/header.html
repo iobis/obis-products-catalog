@@ -138,13 +138,18 @@
   </div>
   </div>
    </div>
-   <div class="masthead-container-2">
+   <div class="container masthead-container-2">
     {% if g.blueprint == 'home' and g.view == 'index' %}
-        <div style="margin-bottom: 20px; text-align: center;">
-            <span class="super-title">OBIS products catalogue</span>
+        <div class="super-title-container">
+          <!-- <div class="hero-kicker">Intergovernmental Oceanographic Commission</div> -->
+          <span class="super-title">The <span class="super-title-highlight">OBIS</span> products</span>  
+          <span class="super-title">catalogue</span>
+          <p class="sub-title">A discovery catalog for researchers, analysts, and data practitioners.
+Browse tools, models, software, notebooks, and more, all derived from OBIS-mediated data.</p>
         </div>
     {% endif %}
     <div class="container">
+      <div class="homepage-search-wrapper">
         {% block header_site_search %}
           <form id="site-search-form" class="d-flex site-search position-relative"
                 action="{% url_for dataset_type ~ '.search' %}" method="get">
@@ -153,7 +158,7 @@
             {# Search type dropdown #}
             <select id="search-type" class="form-select search-type-select me-1"
                     aria-label="{{ _('Search type') }}"
-                    style="width: auto; flex-shrink: 0;">
+                    style="width: auto; flex-shrink: 0; border-radius: 10px;">
               <option value="{{ h.url_for(dataset_type ~ '.search') }}">Products</option>
               <option value="{{ h.url_for('organization.index') }}">Nodes</option>
               <option value="{{ h.url_for('group.index') }}">Institutions</option>
@@ -166,6 +171,54 @@
               <i class="fa fa-search"></i>
             </button>
           </form>
+        </div>
+
+        <!-- Topics / Product types -->
+         <!-- {% macro highlights_grid(title, stats, url_param) %}
+        <div class="highlights-container" style="margin-bottom: 40px;">
+            <div>
+                <span class="section-title">{{ title }}</span>
+            </div>
+            <div class="highlights-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); max-width: 100%; gap: 30px; padding: 15px 0;">
+                {% for stat in stats %}
+                <a href="{{ h.url_for('dataset.search', **{url_param: stat.name}) }}" class="highlight-item text-center" style="text-decoration: none; color: inherit; min-width: 100px;">
+                    <span class="fa {{ stat.icon }}" style="font-size: 36px; color: var(--color-brand-faded); margin: 0 0 -2px;"></span>
+                    <span class="number" style="font-weight: 900; font-size: 28px; display: block; margin: 8px 0 0px;">{{ stat.count }}</span>
+                    <span class="numbertext" style="font-size: 12px; color: var(--color-mid);">{{ stat.display_name }}</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endmacro %} -->
+
+        {% macro product_types(stats, url_param) %}
+          <div class="topics-row" role="list" aria-label="Browse by topic">
+            {% for stat in stats %}
+              <span class="topic-chip" role="listitem" href="{{ h.url_for('dataset.search', **{url_param: stat.name}) }}">
+                <i class="fa-solid {{ stat.icon }}" aria-hidden="true"></i>{{ stat.display_name }} ({{ stat.count }})
+              </span>
+            {% endfor %}
+            <!-- <span class="topic-chip" role="listitem"><i class="fa-solid fa-fish" aria-hidden="true"></i>Fish</span>
+            <span class="topic-chip" role="listitem"><i class="fa-solid fa-bacterium" aria-hidden="true"></i>Phytoplankton</span>
+            <span class="topic-chip" role="listitem"><i class="fa-solid fa-earth-americas" aria-hidden="true"></i>Geospatial</span>
+            <span class="topic-chip" role="listitem"><i class="fa-solid fa-code" aria-hidden="true"></i>Real-time APIs</span>
+            <span class="topic-chip" role="listitem"><i class="fa-solid fa-temperature-half" aria-hidden="true"></i>Climate</span>
+            <span class="topic-chip" role="listitem"><i class="fa-solid fa-shrimp" aria-hidden="true"></i>Invertebrates</span>
+            <span class="topic-chip" role="listitem"><i class="fa-solid fa-database" aria-hidden="true"></i>Datasets</span> -->
+          </div>
+        {% endmacro %}
+
+        {{ product_types(h.obis_get_product_type_stats(), 'vocab_product_type_tags') }}
+          
+          <!-- <div class="topics-row" role="list" aria-label="Browse by topic">
+            <span class="topic-chip" role="listitem"><i class="fa-solid fa-fish" aria-hidden="true"></i>Fish</span>
+            <span class="topic-chip" role="listitem"><i class="fa-solid fa-bacterium" aria-hidden="true"></i>Phytoplankton</span>
+            <span class="topic-chip" role="listitem"><i class="fa-solid fa-earth-americas" aria-hidden="true"></i>Geospatial</span>
+            <span class="topic-chip" role="listitem"><i class="fa-solid fa-code" aria-hidden="true"></i>Real-time APIs</span>
+            <span class="topic-chip" role="listitem"><i class="fa-solid fa-temperature-half" aria-hidden="true"></i>Climate</span>
+            <span class="topic-chip" role="listitem"><i class="fa-solid fa-shrimp" aria-hidden="true"></i>Invertebrates</span>
+            <span class="topic-chip" role="listitem"><i class="fa-solid fa-database" aria-hidden="true"></i>Datasets</span>
+          </div> -->
 
           <script>
             (function () {
@@ -191,5 +244,7 @@
           </script>
         {% endblock %}
     </div>
+
+    
 </header>
 {% endblock %}
