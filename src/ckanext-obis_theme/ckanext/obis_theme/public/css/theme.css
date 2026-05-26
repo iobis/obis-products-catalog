@@ -1,31 +1,77 @@
-/* Import Google Fonts */
+/* ================================================================
+   OBIS Products Catalogue — theme.css
+   ================================================================
+
+   TABLE OF CONTENTS
+   -----------------
+   1.  Fonts & CSS Variables
+   2.  Global resets
+   3.  Layout — masthead & navigation
+   4.  Layout — search bar (global)
+   5.  Layout — footer
+   6.  Homepage — hero & titles
+   7.  Homepage — topic chips
+   8.  Homepage — highlights / featured cards
+   9.  Homepage — carousel (featured products)
+   10. Homepage — value cards (vc-*)
+   11. Dataset / search page — result cards (obis-result-card)
+   12. Dataset / search page — search form & sort
+   13. Dataset / search page — active filters
+   14. Dataset / search page — facet sidebar
+   15. Dataset / search page — pagination
+   16. Product page (package read) — hero (obis-pp-*)
+   17. Product page — body & additional info
+   18. About page (obis-about-*)
+   19. Organisation index page (obis-np-*)
+   20. Organisation read page — hero & tabs (obis-org-*)
+   21. CKAN overrides — general layout
+   22. CKAN overrides — dataset view
+   23. CKAN overrides — tags
+   24. Responsive / media queries
+
+   ================================================================ */
+
+
+/* ================================================================
+   1. FONTS & CSS VARIABLES
+   ================================================================ */
+
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
 
-/* Define --main-bg-color here */
 :root {
-    --color-brand: #2F6FEF;
-    --color-brand-light: #e8f0fd;
-    --color-accent: #CDDEE7;
-    --color-dark: #343A40;
-    --color-mid: #6c757d;
-    --color-light: #f2f3f4;
-    --color-border: #ced4da;
-    --color-brand-faded: rgba(47, 111, 239, 0.5);
-    --color-header: #FFFFFF;
-    --color-white: #FFFFFF;
+    --color-brand:        #2F6FEF;
+    --color-brand-light:  #e8f0fd;
+    --color-brand-faded:  rgba(47, 111, 239, 0.5);
+    --color-accent:       #CDDEE7;
+    --color-dark:         #343A40;
+    --color-mid:          #6c757d;
+    --color-light:        #f2f3f4;
+    --color-border:       #ced4da;
+    --color-header:       #FFFFFF;
+    --color-white:        #FFFFFF;
 
-    /* CKAN/Bootstrap compatibility aliases */
-    --main-color: var(--color-brand);
-    --main-a-color: var(--color-dark);
-    --main-a-hover-color: var(--color-brand);
-    --bs-primary-rgb: 47, 111, 239 !important;
-    --bs-font-sans-serif: "Noto Sans", sans-serif !important;
-    --bs-body-font-family: var(--bs-font-sans-serif) !important;
+    /* CKAN / Bootstrap compatibility aliases */
+    --main-color:             var(--color-brand);
+    --main-a-color:           var(--color-dark);
+    --main-a-hover-color:     var(--color-brand);
+    --bs-primary-rgb:         47, 111, 239 !important;
+    --bs-font-sans-serif:     "Noto Sans", sans-serif !important;
+    --bs-body-font-family:    var(--bs-font-sans-serif) !important;
 }
+
+
+/* ================================================================
+   2. GLOBAL RESETS
+   ================================================================ */
 
 a {
     text-decoration: none !important;
 }
+
+
+/* ================================================================
+   3. LAYOUT — MASTHEAD & NAVIGATION
+   ================================================================ */
 
 .account-masthead {
     background-color: var(--color-dark) !important;
@@ -33,10 +79,14 @@ a {
 
 .masthead {
     background: var(--color-header) !important;
-    padding: 0rem !important;
+    padding: 0 !important;
 }
 
-.masthead .main-navbar ul li>a {
+.masthead .navbar .logo img {
+    max-height: 30px !important;
+}
+
+.masthead .main-navbar ul li > a {
     padding: 0.6rem 0.9rem !important;
     color: var(--main-a-color) !important;
     text-decoration: none !important;
@@ -47,10 +97,10 @@ a {
     margin-right: 5px !important;
 }
 
-.masthead .main-navbar ul li:hover>a,
-.masthead .main-navbar ul li:focus>a,
-.masthead .main-navbar ul li.active>a {
-    border-radius: 0px !important;
+.masthead .main-navbar ul li:hover > a,
+.masthead .main-navbar ul li:focus > a,
+.masthead .main-navbar ul li.active > a {
+    border-radius: 0 !important;
     background-color: transparent !important;
     color: var(--main-a-hover-color) !important;
     border-color: var(--main-a-hover-color) !important;
@@ -60,23 +110,25 @@ a {
     margin-right: 5px !important;
 }
 
-.masthead .navbar .logo img {
-    max-height: 30px !important;
-}
-
 .masthead-container-1 {
     padding: 0.5em;
-    border-bottom: 0px solid var(--color-accent);
+    border-bottom: 0 solid var(--color-accent);
 }
 
 .masthead-container-2 {
-    padding-top: 20px;
-    padding-bottom: 20px;
+    padding: 20px 20%;
     background-color: var(--color-header) !important;
-    border-bottom: 0px solid var(--color-accent);
-    padding-right: 20%;
-    padding-left: 20%;
+    border-bottom: 0 solid var(--color-accent);
 }
+
+li.dropdown {
+    cursor: pointer;
+}
+
+
+/* ================================================================
+   4. LAYOUT — SEARCH BAR (GLOBAL)
+   ================================================================ */
 
 .site-search .form-control {
     display: block;
@@ -88,7 +140,6 @@ a {
     line-height: 1.5;
     color: var(--color-dark);
     background-color: #fff;
-    background-clip: padding-box;
     border: 1px solid var(--color-border);
     appearance: none;
     border-radius: 10px;
@@ -107,22 +158,20 @@ a {
     text-align: center;
     vertical-align: middle;
     cursor: pointer;
-    user-select: none;
     background-color: transparent;
     border: 1px solid transparent;
     font-size: 1.175rem;
     border-radius: 0.25rem;
-    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out,
+                border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 
-/* 1. Stretch the dropdown and input to equal heights */
 .homepage-search-wrapper #site-search-form {
     width: 100%;
     display: flex;
     align-items: stretch;
 }
 
-/* 2. Sync font sizes, line heights, and padding on both fields */
 .homepage-search-wrapper #search-type,
 .homepage-search-wrapper #field-sitewide-search {
     font-size: 1rem;
@@ -132,42 +181,53 @@ a {
     height: auto;
 }
 
-/* 3. Constrain input width and add right padding so text doesn't hide behind the icon */
 .homepage-search-wrapper #field-sitewide-search {
     flex-grow: 1;
     max-width: 70%;
     width: 100%;
     padding-right: 40px;
-    /* Crucial: leaves an empty slot for the button inside */
 }
 
-/* 4. Pull the button backward so it sits inside the input box */
 .homepage-search-wrapper .site-search button {
     position: static;
     background: transparent;
     border: none;
-    margin-left: -40px;
-    /* Pulls the icon backward over the input area */
+    margin-left: -50px;
     width: 40px;
-    /* Forces a standard width to match the negative margin */
     z-index: 2;
-    /* Keeps it on top of the input so it remains clickable */
     align-self: center;
-    /* Vertically centers the icon inside the input bar */
     color: var(--color-brand);
 }
+
+/* Search type dropdown */
+.search-type-select {
+    border-color: var(--color-border);
+    color: var(--color-dark);
+    font-size: 0.875rem;
+    min-width: 110px;
+}
+
+.search-type-select:focus {
+    border-color: var(--color-brand);
+    box-shadow: 0 0 0 0.2rem rgba(47, 111, 239, 0.25);
+}
+
+
+/* ================================================================
+   5. LAYOUT — FOOTER
+   ================================================================ */
 
 .site-footer {
     background: var(--color-dark) !important;
 }
 
 .site-footer p {
-    color: #ffffff;
+    color: #fff;
     font-size: 0.875rem;
 }
 
 .site-footer a {
-    color: #ffffff !important;
+    color: #fff !important;
     font-size: 0.875rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -175,14 +235,11 @@ a {
 
 .site-footer a:hover {
     color: var(--color-brand) !important;
-    font-size: 0.875rem;
-    font-weight: 800;
     text-decoration: none;
-    text-transform: uppercase;
 }
 
 .site-footer span {
-    color: #ffffff !important;
+    color: #fff !important;
     font-size: 0.875rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -200,7 +257,16 @@ a {
     margin-bottom: 15px;
 }
 
-/* Header */
+
+/* ================================================================
+   6. HOMEPAGE — HERO & TITLES
+   ================================================================ */
+
+.homepage .hero {
+    background: none !important;
+    padding: 20px 0;
+}
+
 .hero-kicker {
     display: inline-flex;
     align-items: center;
@@ -248,12 +314,22 @@ a {
     font-weight: 400;
 }
 
+.section-title {
+    font-weight: 900;
+    color: var(--color-dark);
+    font-size: 26px;
+}
+
+
+/* ================================================================
+   7. HOMEPAGE — TOPIC CHIPS
+   ================================================================ */
+
 .topics-row {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
     margin-top: 1.1rem;
-    /* max-width: 560px; */
     width: 70%;
 }
 
@@ -273,30 +349,44 @@ a {
     white-space: nowrap;
 }
 
-.homepage .hero {
-    background: none !important;
-    padding: 20px 0;
-}
 
-.section-title {
-    font-weight: 900;
-    color: var(--color-dark);
-    font-size: 26px;
-}
+/* ================================================================
+   8. HOMEPAGE — HIGHLIGHTS / FEATURED CARDS
+   ================================================================ */
 
 .highlights-container {
-    /* max-width: 80% !important;
-    margin-left: 10em;
-    margin-right: 10em; */
     display: flex;
     flex-direction: column;
+}
+
+.highlights-container .text-center:hover {
+    transform: translateY(-5px);
+    transition: transform 0.3s ease;
+}
+
+.highlights-container .number {
+    color: var(--color-dark);
+    font-weight: 900;
+}
+
+.highlights-container .numbertext {
+    color: var(--color-mid);
+    text-transform: lowercase;
+}
+
+.highlights-container a.text-center:hover .number {
+    color: var(--color-accent);
 }
 
 .highlight-link {
     flex: 1;
     text-decoration: none;
-    color: inherit;
     color: var(--bs-body-color);
+}
+
+.highlight-link:hover {
+    color: white;
+    text-decoration: none;
 }
 
 .highlights-columns {
@@ -324,17 +414,6 @@ a {
     box-sizing: border-box;
 }
 
-@media (max-width: 768px) {
-    .highlights-box {
-        flex: 1 1 100%;
-    }
-}
-
-.highlight-link:hover {
-    color: white;
-    text-decoration: none;
-}
-
 .highlight-title {
     font-weight: 900;
     color: var(--color-dark);
@@ -344,7 +423,7 @@ a {
 
 .highlight-title-b {
     font-weight: 900;
-    color: #ffffff;
+    color: #fff;
     font-size: 20px;
     margin-bottom: 10px;
 }
@@ -383,10 +462,8 @@ a {
     opacity: 1;
 }
 
-.main-secondary {
-    background: var(--color-white) !important;
-    padding-bottom: 20px;
-    padding-top: 0px;
+.featured-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .products-box {
@@ -415,397 +492,25 @@ a {
     gap: 10px;
 }
 
-.btn-secondary {
-    color: #fff;
-    background-color: var(--color-mid);
-    border-color: none !important;
-    box-shadow: none !important;
-}
-
-/* Dataset */
-.main {
-    padding: 20px 0;
-    background: white !important;
-}
-
-.container,
-.container-fluid,
-.container-xxl,
-.container-xl,
-.container-lg,
-.container-md,
-.container-sm {
-    width: 100%;
-    padding-right: var(--bs-gutter-x, 0.05rem) !important;
-    padding-left: var(--bs-gutter-x, 0.05rem) !important;
-    margin-right: auto;
-    margin-left: auto;
-}
-
-.box,
-.wrapper {
-    background-color: #fff;
-    border: 0px solid var(--color-border) !important;
-    border-radius: 0px !important;
-    box-shadow: none !important;
-}
-
-.module-heading {
-    margin: 0;
-    padding: 0.5rem 25px;
-    font-size: 0.875rem;
-    line-height: 1.3;
-    background-color: white !important;
-    border-top: 0px solid var(--color-border) !important;
-    border-bottom: 1px solid var(--color-border);
-}
-
-.wrapper:before {
-    content: "";
-    display: block;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    width: 25%;
-    border-right: 0px solid var(--color-border) !important;
-    z-index: 1;
-}
-
-.module-content {
-    padding-top: 0rem !important;
-    padding-right: 1.5rem;
-    padding-bottom: 1.5rem;
-    padding-left: 1.5rem;
-}
-
-.toolbar .breadcrumb {
-    box-shadow: none;
-    position: relative;
-    float: left;
-    margin: 0;
-    padding: 0;
-    border: none;
-    background: none;
-    font-size: 12px !important;
-}
-
-.account.avatar.authed a {
-    margin-right: 15px;
-    margin-bottom: 10px;
-}
-
-.account.avatar.authed {
-    display: flex;
-    flex-flow: wrap;
-}
-
-/* Dataset view */
-.page-header {
-    margin-top: 1.5rem;
-    border-bottom: none !important;
-    background-color: white !important;
-    border-radius: 0 3px 0 0;
-}
-
-/* Active */
-.page-header .nav-tabs li.active a,
-.page-header .nav-tabs a:hover {
-    border-top: 0px solid !important;
-    border-right: 0px solid !important;
-    border-left: 0px solid !important;
-    border-bottom: 2px solid var(--main-a-color) !important;
-    border-radius: 0px !important;
-    background-color: #ffffff !important;
-    color: var(--main-a-color) !important;
-    margin-right: 0.25rem !important;
-    margin-left: 0.25rem !important;
-}
-
-/* Others */
-.page-header .nav-tabs li a,
-.page-header .nav-tabs a {
-    border-top: 0px solid !important;
-    border-right: 0px solid !important;
-    border-left: 0px solid !important;
-    border-bottom: 2px solid #dee2e600 !important;
-    border-radius: 0px !important;
-    background-color: #ffffff !important;
-    color: var(--color-mid) !important;
-    margin-right: 0.25rem !important;
-    margin-left: 0.25rem !important;
-}
-
-.page-header .nav-tabs {
-    border-bottom: 0px solid var(--color-border) !important;
-}
-
-.page-header .nav-tabs li a {
-    padding: 5px !important;
-}
-
-.page-header.module-content {
-    padding-bottom: 1.5rem !important;
-}
-
-.resources-right {
-    margin-top: 10px;
-    background-color: var(--color-light);
-    border-radius: 0px;
-    padding: 10px;
-}
-
-#dataset-resources h2 {
-    font-weight: 600;
-    font-size: 22px;
-    margin-top: 40px;
-    margin-bottom: 20px;
-}
-
-.notes.embedded-content {
-    padding-top: 10px;
-    padding-right: 20px;
-}
-
-.tags {
-    margin-top: 10px;
-}
-
-.tag-list {
-    padding: 0px !important;
-    background-color: transparent !important;
-    border: 0px solid var(--color-border) !important;
-    border-radius: 0.25rem;
-}
-
-.tags .tag {
-    color: var(--color-mid);
-    text-decoration: underline;
-    display: inline-block;
-    background-color: transparent !important;
-    padding: 1px 5px;
-    border: 0px;
-    border-radius: 0px !important;
-    box-shadow: none !important;
-}
-
-.tags a.tag:hover {
-    color: white !important;
-    background-color: var(--main-a-hover-color) !important;
-    border: 0px solid var(--color-dark);
-}
-
-.tags-title {
-    color: var(--color-mid);
-    font-weight: 600;
-    font-size: 16px;
-}
-
-.additional-info h3 {
-    font-weight: 600;
-    font-size: 22px;
-    margin-top: 40px;
-    margin-bottom: 20px;
-}
-
-.how-to-cite h3 {
-    font-weight: 600;
-    font-size: 22px;
-    margin-bottom: 20px;
-}
-
-.related-datasets h3 {
-    font-weight: 600;
-    font-size: 42px;
-}
-
-.how-to-cite-wrapper {
-    position: relative;
-    z-index: 0;
-    margin: 2rem 0;
-}
-
-.how-to-cite-wrapper::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: var(--color-light);
-    z-index: -1;
-    width: 100vw;
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.how-to-cite {
-    padding-top: 30px;
+.main-secondary {
+    background: var(--color-white) !important;
     padding-bottom: 20px;
-}
-
-.btn-group a.btn.btn-outline-secondary {
-    margin-right: 10px;
-}
-
-.btn-group .btn-outline-secondary {
-    border-radius: 20px !important;
-}
-
-.add-info-block {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    max-width: 800px;
-    font-family: sans-serif;
-}
-
-.add-info-row {
-    display: flex;
-    align-items: flex-start;
-    flex-wrap: wrap;
-}
-
-.add-info-label {
-    width: 150px;
-    text-transform: uppercase;
-    color: var(--color-mid);
-    flex-shrink: 0;
-}
-
-.add-info-value {
-    flex: 1;
-    color: var(--color-dark);
-}
-
-.add-info-value-derived {
-    border-radius: 20px;
-    font-weight: 600;
-    background-color: rgb(179, 149, 232);
-    text-align: center;
-    padding: 2px 10px;
-    display: inline-block;
-    max-width: fit-content;
-}
-
-h2.organization-side {
-    font-weight: 200;
-    font-size: 0.8em;
-}
-
-.resources-info .updated {
-    background-color: #64c598;
-    max-width: max-content;
-    padding-right: 10px;
-    padding-left: 10px;
-    border-radius: 10px;
-}
-
-/* Additional Info Section Styling on Dataset page */
-.additional-info {
-    line-height: 1.6;
-}
-
-.additional-info>*:not(h3) {
-    display: block;
-    margin-bottom: 8px;
-}
-
-.additional-info>*:empty {
-    display: none;
-}
-
-@media (min-width: 768px) {
-    .add-info-row {
-        display: flex;
-        margin-bottom: 12px;
-    }
-
-    .add-info-label {
-        flex: 0 0 30%;
-        margin-right: 15px;
-        margin-bottom: 0;
-        padding-right: 10px;
-    }
-
-    .add-info-value {
-        flex: 1;
-        margin-bottom: 0;
-    }
-}
-
-.highlights-container .text-center:hover {
-    transform: translateY(-5px);
-    transition: transform 0.3s ease;
-}
-
-.highlights-container .number {
-    color: var(--color-dark);
-    font-weight: 900;
-}
-
-.highlights-container .numbertext {
-    color: var(--color-mid);
-    text-transform: lowercase;
-}
-
-.highlights-container a.text-center:hover .number {
-    color: var(--color-accent);
-}
-
-/* Mobile adjustments */
-@media (max-width: 767px) {
-    .highlights-container {
-        max-width: 100% !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-    }
-
-    .products-grid {
-        grid-template-columns: 1fr !important;
-    }
-
-    .container {
-        padding-right: 15px !important;
-        padding-left: 15px !important;
-    }
-}
-
-/* Search type dropdown */
-.search-type-select {
-    border-color: var(--color-border);
-    color: var(--color-dark);
-    font-size: 0.875rem;
-    min-width: 110px;
-}
-
-.search-type-select:focus {
-    border-color: var(--color-brand);
-    box-shadow: 0 0 0 0.2rem rgba(47, 111, 239, 0.25);
-}
-
-/* Slim featured product cards */
-.featured-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-@media (max-width: 767px) {
-    .featured-products-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-    }
+    padding-top: 0;
 }
 
 
-/* CAROUSSEL */
+/* ================================================================
+   9. HOMEPAGE — CAROUSEL (FEATURED PRODUCTS)
+   ================================================================ */
+
 .obis-carousel {
     position: relative;
     font-family: "Roboto", sans-serif;
     border-radius: 10px;
     overflow: hidden;
-    margin-top: 30px;
+    margin-top: 0;
 }
 
-/* -- Viewport & track -- */
 .obis-carousel__viewport {
     overflow: hidden;
     border-radius: 10px;
@@ -817,7 +522,6 @@ h2.organization-side {
     will-change: transform;
 }
 
-/* -- Individual slide -- */
 .obis-carousel__slide {
     flex: 0 0 100%;
     position: relative;
@@ -828,7 +532,6 @@ h2.organization-side {
     text-decoration: none;
 }
 
-/* Background — swap linear-gradient for background-image: url(...) for real photos */
 .obis-carousel__bg {
     position: absolute;
     inset: 0;
@@ -841,27 +544,23 @@ h2.organization-side {
     transform: scale(1.03);
 }
 
-/* Dark overlay: strong left, fades right */
 .obis-carousel__overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(to right,
-            rgba(2, 20, 40, 0.88) 40%,
-            rgba(2, 20, 40, 0.25) 100%);
+    background: linear-gradient(
+        to right,
+        rgba(2, 20, 40, 0.88) 40%,
+        rgba(2, 20, 40, 0.25) 100%
+    );
 }
 
-/* Text content */
 .obis-carousel__content {
     position: absolute;
     inset: 0;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    /* padding: 1.5rem 2rem; */
-    padding-top: 1.5rem;
-    padding-right: 2rem;
-    padding-bottom: 3.5rem;
-    padding-left: 2rem;
+    padding: 1.5rem 2rem 3.5rem;
 }
 
 .obis-carousel__badge {
@@ -888,6 +587,15 @@ h2.organization-side {
     max-width: 440px;
 }
 
+.obis-carousel__org {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0 0 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
 .obis-carousel__cta {
     display: inline-flex;
     align-items: center;
@@ -912,7 +620,7 @@ h2.organization-side {
     font-size: 11px;
 }
 
-/* -- Controls (bottom-right, overlaid on image) -- */
+/* Controls — bottom-right */
 .obis-carousel__controls {
     position: absolute;
     bottom: 1.25rem;
@@ -958,7 +666,7 @@ h2.organization-side {
     letter-spacing: 0.04em;
 }
 
-/* -- Dots (bottom-left, overlaid on image) -- */
+/* Dots — bottom-left */
 .obis-carousel__dots {
     position: absolute;
     bottom: 1.35rem;
@@ -983,7 +691,11 @@ h2.organization-side {
     transform: scale(1.4);
 }
 
-/* Value cards section */
+
+/* ================================================================
+   10. HOMEPAGE — VALUE CARDS (vc-*)
+   ================================================================ */
+
 .vc-section {
     background: #F4F6F8;
     border-radius: 12px;
@@ -997,7 +709,7 @@ h2.organization-side {
     color: var(--color-brand);
     letter-spacing: -0.025em;
     line-height: 1.15;
-    margin: 0 0 0rem;
+    margin: 0 0 0;
 }
 
 .vc-sub-heading {
@@ -1048,7 +760,7 @@ h2.organization-side {
 .vc-card-title {
     font-size: 14px;
     font-weight: 800;
-    color: var(--color-brand);
+    color: var(--color-dark);
     line-height: 1.25;
     letter-spacing: -0.01em;
     margin: 0;
@@ -1069,7 +781,7 @@ h2.organization-side {
     gap: 6px;
     font-size: 12px;
     font-weight: 700;
-    color: var(--color-brand);
+    color: var(--color-dark);
     letter-spacing: 0.01em;
     margin-top: 4px;
     transition: gap 0.15s;
@@ -1079,14 +791,1852 @@ h2.organization-side {
     font-size: 11px;
 }
 
-/* Tablet: 2 columns still fine, just tighter */
+
+/* ================================================================
+   11. SEARCH — RESULT CARDS (obis-result-card-*)
+   ================================================================ */
+
+/* Remove default list styling from result list */
+ul.list-unstyled.dataset-list,
+.module-content ul.dataset-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.obis-result-card {
+    display: flex;
+    padding: 14px 0;
+    border-bottom: 0.5px solid var(--color-border);
+}
+
+.obis-result-card:last-child {
+    border-bottom: none;
+}
+
+.obis-result-card__body {
+    flex: 1;
+    min-width: 0;
+}
+
+.obis-result-card__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 5px;
+}
+
+.obis-result-card__title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #042C53;
+    text-decoration: none;
+    line-height: 1.3;
+    transition: color 0.15s;
+}
+
+.obis-result-card__title:hover {
+    color: #185FA5;
+    text-decoration: none;
+}
+
+.obis-result-card__private {
+    font-size: 11px;
+    font-weight: 600;
+    background: #F4F6F8;
+    color: var(--color-mid);
+    border-radius: 4px;
+    padding: 2px 7px;
+    margin-right: 6px;
+}
+
+.obis-result-card__state {
+    font-size: 11px;
+    font-weight: 600;
+    background: #E6F1FB;
+    color: #0C447C;
+    border-radius: 4px;
+    padding: 2px 7px;
+    margin-left: 6px;
+}
+
+.obis-result-card__state--deleted {
+    background: #FBEAF0;
+    color: #993556;
+}
+
+.obis-result-card__badge {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 4px;
+    padding: 3px 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.obis-result-card__desc {
+    font-size: 13px;
+    color: var(--color-mid);
+    line-height: 1.6;
+    margin: 0 0 8px;
+}
+
+.obis-result-card__desc--empty {
+    font-style: italic;
+    opacity: 0.6;
+}
+
+.obis-result-card__meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.obis-result-card__pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--color-mid);
+    border-radius: 99px;
+    padding: 2px 8px;
+    background: #F5F6F8;
+}
+
+.obis-result-card__pill i {
+    font-size: 11px;
+}
+
+.obis-result-card__pill--link {
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+.obis-result-card__pill--link:hover {
+    color: #185FA5;
+    text-decoration: none;
+}
+
+.obis-result-card__thematic {
+    display: inline-flex;
+    align-items: center;
+    font-size: 10px;
+    font-weight: 600;
+    background: #E1F5EE;
+    color: #0F6E56;
+    border-radius: 99px;
+    padding: 2px 8px;
+    text-decoration: none;
+}
+
+.obis-result-card__thematic:hover {
+    background: #B5E8D5;
+    color: #0F6E56;
+    text-decoration: none;
+}
+
+.obis-result-card__format {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-radius: 4px;
+    padding: 2px 7px;
+    text-decoration: none;
+    background: #F4F6F8;
+    color: var(--color-mid);
+    transition: background 0.15s;
+}
+
+.obis-result-card__format:hover {
+    background: #E6F1FB;
+    color: #185FA5;
+    text-decoration: none;
+}
+
+
+/* ================================================================
+   12. SEARCH — FORM & SORT
+   ================================================================ */
+
+.search-form h1,
+#search-results h1 {
+    font-size: 20px;
+    font-weight: 800;
+    color: #042C53;
+    letter-spacing: -0.02em;
+    margin-bottom: 10px;
+}
+
+.control-order-by {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.control-order-by label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-mid);
+    margin: 0;
+    white-space: nowrap;
+}
+
+#field-order-by {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-dark);
+    background: white;
+    border: 0.5px solid var(--color-border);
+    border-radius: 6px;
+    padding: 5px 10px;
+    cursor: pointer;
+    outline: none;
+}
+
+#field-order-by:focus {
+    border-color: #185FA5;
+}
+
+
+/* ================================================================
+   13. SEARCH — ACTIVE FILTER PILLS
+   ================================================================ */
+
+.filter-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+
+.filter-list .facet {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-mid);
+}
+
+.filter-list .filtered.pill,
+p.filter-list .filtered {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #E6F1FB;
+    color: #0C447C;
+    border-radius: 99px;
+    padding: 3px 10px;
+    text-decoration: none;
+}
+
+.filter-list .filtered.pill .remove,
+.filter-list .filtered .remove {
+    color: #185FA5;
+    opacity: 0.7;
+    text-decoration: none;
+    font-size: 11px;
+}
+
+.filter-list .filtered.pill .remove:hover,
+.filter-list .filtered .remove:hover {
+    opacity: 1;
+}
+
+
+/* ================================================================
+   14. SEARCH — FACET SIDEBAR
+   ================================================================ */
+
+/* Section heading — shared between search, org, and facet pages */
+.module-heading {
+    font-size: 11px !important;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-mid);
+    background: transparent !important;
+    border: none;
+    border-radius: 0;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    margin-bottom: 0;
+    box-shadow: none;
+    border-top: 0px solid #ddd !important;
+    border-bottom: 0px solid #ddd !important;
+}
+
+/* Toggle chevron */
+.module-heading .fa-chevron-down,
+.module-heading .fa-chevron-up,
+.module-heading .caret {
+    color: var(--color-border);
+    font-size: 10px;
+    font-weight: 300;
+    float: right;
+    margin-top: 2px;
+}
+
+/* Remove filter icon */
+.filters .module-heading .fa-filter,
+#search-facets .module-heading .fa-filter {
+    display: none;
+}
+
+/* Facet item list */
+.nav-facet,
+.filters .nav-facet,
+#search-facets .nav-facet {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 12px;
+}
+
+.nav-facet li a,
+.filters .nav-facet .nav-item a,
+#search-facets .nav-facet .nav-item a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 12px;
+    color: var(--color-mid);
+    text-decoration: none;
+    border-bottom: 0.5px solid var(--color-border);
+    transition: color 0.15s;
+    gap: 6px;
+}
+
+.nav-facet li:last-child a,
+.filters .nav-facet .nav-item:last-child a,
+#search-facets .nav-facet .nav-item:last-child a {
+    border-bottom: none;
+}
+
+.nav-facet li a:hover,
+.filters .nav-facet .nav-item a:hover,
+#search-facets .nav-facet .nav-item a:hover {
+    color: #185FA5;
+    text-decoration: none;
+}
+
+.nav-facet li.active a,
+.filters .nav-facet .nav-item.active a,
+#search-facets .nav-facet .nav-item.active a {
+    color: #0C447C;
+    font-weight: 700;
+}
+
+/* Count badge */
+.nav-facet .item-count,
+.nav-facet .badge,
+.filters .nav-facet .item-count,
+.filters .nav-facet .badge,
+#search-facets .nav-facet .item-count,
+#search-facets .nav-facet .badge {
+    font-size: 10px;
+    font-weight: 600;
+    background: #F4F6F8;
+    color: var(--color-mid);
+    border-radius: 99px;
+    padding: 1px 7px;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+/* Override for CKAN module-narrow badge */
+.module-narrow .nav-item > a .badge,
+.module-narrow .nav-aside li a .badge {
+    background-color: #e4e4e4 !important;
+    border-radius: 10px;
+}
+
+/* Active close icon */
+.filters .nav-facet .facet-close,
+#search-facets .nav-facet .facet-close {
+    color: var(--color-mid);
+    font-size: 11px;
+    opacity: 0.6;
+}
+
+/* "Show more" link */
+.filters .module-footer,
+#search-facets .module-footer {
+    padding: 4px 0 8px;
+}
+
+.filters .module-footer .read-more,
+#search-facets .module-footer .read-more {
+    font-size: 11px;
+    font-weight: 600;
+    color: #185FA5;
+    text-decoration: none;
+}
+
+.filters .module-footer .read-more:hover,
+#search-facets .module-footer .read-more:hover {
+    text-decoration: underline;
+}
+
+/* Collapse/expand helpers */
+.facet-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+    padding: 10px 0;
+    border-bottom: 0.5px solid var(--color-border);
+}
+
+.facet-toggle:hover {
+    text-decoration: none;
+    color: inherit;
+}
+
+.facet-caret {
+    font-size: 10px;
+    color: var(--color-border);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.facet-toggle.collapsed .facet-caret {
+    transform: rotate(0deg);
+}
+
+.facet-toggle:not(.collapsed) .facet-caret {
+    transform: rotate(180deg);
+}
+
+.collapse.show,
+.collapsing {
+    margin-right: 15px;
+    margin-left: 15px;
+}
+
+
+/* ================================================================
+   15. SEARCH — PAGINATION
+   ================================================================ */
+
+.pagination {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+    list-style: none;
+    padding: 0;
+}
+
+.pagination li a,
+.pagination li span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 8px;
+    border-radius: 6px;
+    border: 0.5px solid var(--color-border);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-mid);
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.pagination li.active a,
+.pagination li.active span {
+    background: #042C53;
+    color: #fff;
+    border-color: #042C53;
+}
+
+.pagination li a:hover {
+    border-color: #185FA5;
+    color: #185FA5;
+    text-decoration: none;
+}
+
+
+/* ================================================================
+   16. PRODUCT PAGE — HERO (obis-pp-*)
+   ================================================================ */
+
+.obis-pp-hero {
+    position: relative;
+    min-height: 240px;
+    background: linear-gradient(135deg, #042C53 0%, #185FA5 55%, #1D9E75 100%);
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow: hidden;
+    margin: -20px -20px 0 -20px;
+    border-radius: 10px;
+}
+
+.obis-pp-hero__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(2, 20, 40, 0.35) 0%,
+        rgba(2, 20, 40, 0.75) 100%
+    );
+}
+
+.obis-pp-tabs {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    padding: 0.85rem 1.5rem 0;
+}
+
+.obis-pp-tab {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+.obis-pp-tab:hover { color: rgba(255, 255, 255, 0.85); text-decoration: none; }
+.obis-pp-tab.is-active { color: #fff; border-bottom-color: #fff; }
+
+.obis-pp-hero__body {
+    position: relative;
+    z-index: 1;
+    padding: 1rem 1.5rem 1.75rem;
+}
+
+.obis-pp-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.obis-pp-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    padding: 3px 9px;
+    text-decoration: none;
+}
+
+.obis-pp-badge:hover { background: rgba(255, 255, 255, 0.25); color: #fff; text-decoration: none; }
+
+.obis-pp-badge--tag {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.obis-pp-title {
+    font-size: 26px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+    margin: 0 0 1rem;
+}
+
+.obis-pp-state {
+    font-size: 14px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.obis-pp-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 1.25rem;
+}
+
+.obis-pp-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 99px;
+    padding: 4px 10px;
+    text-decoration: none;
+}
+
+.obis-pp-pill i { color: rgba(255, 255, 255, 0.55); }
+
+.obis-pp-pill--link:hover {
+    background: rgba(255, 255, 255, 0.22);
+    color: #fff;
+    text-decoration: none;
+}
+
+.obis-pp-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.obis-pp-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    color: #042C53;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 9px 18px;
+    border-radius: 8px;
+    border: none;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.obis-pp-btn-primary:hover {
+    background: #E6F1FB;
+    color: #185FA5;
+    text-decoration: none;
+}
+
+.obis-pp-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 9px 18px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.obis-pp-btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.22);
+    color: #fff;
+    text-decoration: none;
+}
+
+
+/* ================================================================
+   17. PRODUCT PAGE — BODY & ADDITIONAL INFO
+   ================================================================ */
+
+.obis-pp-body {
+    padding: 1.75rem 0 1rem;
+}
+
+.obis-pp-desc {
+    font-size: 14px;
+    color: var(--color-mid);
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+}
+
+.obis-pp-thematic-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 1.5rem;
+}
+
+.obis-pp-tag-pill {
+    display: inline-block;
+    background: #E1F5EE;
+    color: #0F6E56;
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.15s;
+}
+
+a.obis-pp-tag-pill:hover {
+    background: #B5E8D5;
+    color: #0F6E56;
+    text-decoration: none;
+}
+
+.obis-pp-section {
+    margin-bottom: 2rem;
+}
+
+.obis-pp-section-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-mid);
+    margin-bottom: 12px;
+}
+
+/* Additional info table (obis-ai-*) */
+.obis-ai {
+    border: 0.5px solid var(--color-border);
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 13px;
+}
+
+.obis-ai__row {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 10px 14px;
+    border-bottom: 0.5px solid var(--color-border);
+}
+
+.obis-ai__row:last-child,
+.obis-ai__row--last {
+    border-bottom: none;
+}
+
+.obis-ai__label {
+    flex: 0 0 180px;
+    font-weight: 600;
+    color: var(--color-mid);
+    white-space: nowrap;
+}
+
+.obis-ai__value {
+    flex: 1;
+    color: var(--color-dark);
+    line-height: 1.6;
+    min-width: 0;
+}
+
+.obis-ai__muted { color: var(--color-mid); }
+
+.obis-ai__link {
+    color: #185FA5;
+    text-decoration: none;
+    word-break: break-all;
+}
+
+.obis-ai__link:hover { text-decoration: underline; }
+
+.obis-ai__orcid {
+    font-size: 11px;
+    color: #185FA5;
+    text-decoration: none;
+    margin-left: 6px;
+}
+
+.obis-ai__orcid:hover { text-decoration: underline; }
+
+.obis-ai__person {
+    margin-bottom: 6px;
+    line-height: 1.5;
+}
+
+.obis-ai__person:last-child { margin-bottom: 0; }
+
+.obis-ai__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.obis-ai__tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 4px;
+    padding: 2px 8px;
+}
+
+.obis-ai__tag--blue { background: #E6F1FB; color: #0C447C; }
+.obis-ai__tag--green { background: #E1F5EE; color: #0F6E56; }
+
+/* Resources list (obis-rl-*) */
+.obis-rl {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.obis-rl__card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border: 0.5px solid var(--color-border);
+    border-radius: 10px;
+    background: white;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.obis-rl__card:hover {
+    border-color: #185FA5;
+    background: #E6F1FB;
+}
+
+.obis-rl__icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #F4F6F8;
+}
+
+.obis-rl__icon .format-label {
+    width: 36px;
+    height: 36px;
+    margin: 0;
+    border-radius: 8px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.obis-rl__body {
+    flex: 1;
+    min-width: 0;
+}
+
+.obis-rl__name {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: #042C53;
+    text-decoration: none;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.obis-rl__card:hover .obis-rl__name { color: #185FA5; }
+
+.obis-rl__desc {
+    font-size: 12px;
+    color: var(--color-mid);
+    margin: 0 0 2px;
+    line-height: 1.5;
+}
+
+.obis-rl__meta {
+    font-size: 11px;
+    color: var(--color-mid);
+}
+
+.obis-rl__actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.obis-rl__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 7px;
+    padding: 6px 12px;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.obis-rl__btn i { font-size: 11px; }
+
+.obis-rl__btn--primary {
+    background: #042C53;
+    color: #fff;
+    border: 1px solid #042C53;
+}
+
+.obis-rl__btn--primary:hover {
+    background: #185FA5;
+    border-color: #185FA5;
+    color: #fff;
+    text-decoration: none;
+}
+
+.obis-rl__btn--ghost {
+    background: transparent;
+    color: #042C53;
+    border: 1px solid var(--color-border);
+}
+
+.obis-rl__btn--ghost:hover {
+    border-color: #185FA5;
+    color: #185FA5;
+    text-decoration: none;
+}
+
+.obis-rl__empty {
+    font-size: 13px;
+    color: var(--color-mid);
+    padding: 1rem 0;
+}
+
+.obis-rl__empty a { color: #185FA5; }
+
+#dataset-resources h2 {
+    margin-top: 40px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-mid);
+    margin-bottom: 12px;
+}
+
+
+/* ================================================================
+   18. ABOUT PAGE (obis-about-*)
+   ================================================================ */
+
+.obis-about__anchor {
+    display: block;
+    position: relative;
+    top: -80px;
+    height: 0;
+    overflow: hidden;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.obis-about-wrap {
+    display: flex;
+    gap: 2.5rem;
+    align-items: flex-start;
+    padding: 0.5rem 0 2rem;
+    width: 100%;
+}
+
+.obis-about-toc {
+    flex: 0 0 160px;
+    position: sticky;
+    top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 10;
+    isolation: isolate;
+}
+
+.obis-about-toc__title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-mid);
+    margin-bottom: 8px;
+    display: block;
+}
+
+.obis-about-toc .obis-about-toc__item {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-mid);
+    padding: 5px 0 5px 10px;
+    border-left: 2px solid transparent;
+    text-decoration: none;
+    transition: color 0.15s, border-color 0.15s;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    position: relative;
+    z-index: 10;
+}
+
+.obis-about-toc .obis-about-toc__item:hover,
+.obis-about-toc .obis-about-toc__item.is-active {
+    color: #185FA5 !important;
+    border-left-color: #185FA5 !important;
+    text-decoration: none !important;
+}
+
+.obis-about {
+    flex: 1;
+    min-width: 0;
+    position: static;
+}
+
+.obis-about__title {
+    font-size: 26px;
+    font-weight: 800;
+    color: #042C53;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+    margin: 0 0 1.25rem;
+}
+
+.obis-about__callout {
+    background: #E6F1FB;
+    border-left: 3px solid #185FA5;
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    margin-bottom: 1.5rem;
+    font-size: 13px;
+    color: #0C447C;
+    line-height: 1.6;
+}
+
+.obis-about__callout a {
+    color: #185FA5;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.obis-about__callout a:hover { text-decoration: underline; }
+
+.obis-about__lead {
+    font-size: 14px;
+    color: var(--color-mid);
+    line-height: 1.7;
+    margin-bottom: 1.75rem;
+}
+
+.obis-about__h2 {
+    font-size: 17px;
+    font-weight: 800;
+    color: #042C53;
+    letter-spacing: -0.01em;
+    margin: 1rem 0 0.75rem;
+    padding-top: 1.25rem;
+    border-top: 0.5px solid var(--color-border);
+}
+
+.obis-about__p {
+    font-size: 13px;
+    color: var(--color-mid);
+    line-height: 1.7;
+    margin-bottom: 1rem;
+}
+
+.obis-about__p a { color: #185FA5; }
+
+.obis-about__type-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 1.25rem;
+}
+
+.obis-about__type-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    border: 0.5px solid var(--color-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.obis-about__type-card:hover {
+    border-color: #185FA5;
+    background: #E6F1FB;
+    text-decoration: none;
+}
+
+.obis-about__type-card:hover .obis-about__type-name { color: #185FA5; }
+
+.obis-about__type-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 13px;
+}
+
+.obis-about__type-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: #042C53;
+    margin-bottom: 2px;
+    transition: color 0.15s;
+}
+
+.obis-about__type-desc {
+    font-size: 11px;
+    color: var(--color-mid);
+    line-height: 1.4;
+}
+
+.obis-about__cta-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+}
+
+.obis-about__btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #042C53;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 9px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.15s;
+}
+
+.obis-about__btn-primary:hover {
+    background: #185FA5;
+    color: #fff;
+    text-decoration: none;
+}
+
+.obis-about__btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    color: #042C53;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 9px 18px;
+    border-radius: 8px;
+    border: 1.5px solid #042C53;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+}
+
+.obis-about__btn-secondary:hover {
+    background: #042C53;
+    color: #fff;
+    text-decoration: none;
+}
+
+
+/* ================================================================
+   19. ORGANISATION INDEX PAGE (obis-np-*)
+   ================================================================ */
+
+.obis-np-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 1.5rem;
+}
+
+.obis-np-eyebrow {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #185FA5;
+    margin-bottom: 6px;
+}
+
+.obis-np-title {
+    font-size: 26px;
+    font-weight: 800;
+    color: #042C53;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+    margin: 0 0 6px;
+}
+
+.obis-np-subtitle {
+    font-size: 13px;
+    color: var(--color-mid);
+    line-height: 1.6;
+    max-width: 520px;
+    margin: 0;
+}
+
+.obis-np-count {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-mid);
+    white-space: nowrap;
+}
+
+.obis-np-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-bottom: 1.25rem;
+}
+
+.obis-np-sort-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.obis-np-sort-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-mid);
+}
+
+.obis-np-sort-select {
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-dark);
+    background: white;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    cursor: pointer;
+    outline: none;
+}
+
+.obis-np-sort-select:focus { border-color: #185FA5; }
+
+.obis-np-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 2rem;
+}
+
+.obis-np-card {
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: white;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.obis-np-card:hover {
+    border-color: #185FA5;
+    box-shadow: 0 4px 16px rgba(4, 44, 83, 0.08);
+    text-decoration: none;
+}
+
+.obis-np-card__banner {
+    height: 88px;
+    position: relative;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+
+.obis-np-card__banner::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #185FA5, #1D9E75);
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.obis-np-card:hover .obis-np-card__banner::after { opacity: 1; }
+
+.obis-np-card__banner-icon {
+    position: absolute;
+    bottom: 10px;
+    right: 12px;
+    font-size: 24px;
+    color: rgba(255, 255, 255, 0.2);
+}
+
+.obis-np-card__body {
+    padding: 12px 14px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+
+.obis-np-card__name {
+    font-size: 14px;
+    font-weight: 800;
+    color: #042C53;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    transition: color 0.15s;
+}
+
+.obis-np-card:hover .obis-np-card__name { color: #185FA5; }
+
+.obis-np-card__desc {
+    font-size: 12px;
+    color: var(--color-mid);
+    line-height: 1.5;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0;
+}
+
+.obis-np-card__desc--empty { font-style: italic; opacity: 0.5; }
+
+.obis-np-card__footer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-top: 8px;
+    border-top: 1px solid var(--color-border);
+    margin-top: 4px;
+}
+
+.obis-np-card__stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-mid);
+}
+
+.obis-np-card__stat i { font-size: 11px; }
+.obis-np-card__stat strong { color: var(--color-dark); font-weight: 700; }
+
+.obis-np-pagination {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+}
+
+.obis-np-empty {
+    font-size: 13px;
+    color: var(--color-mid);
+    padding: 2rem 0;
+}
+
+
+/* ================================================================
+   20. ORGANISATION READ PAGE — HERO & TABS (obis-org-*)
+   ================================================================ */
+
+.obis-org-hero {
+    position: relative;
+    min-height: 180px;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow: hidden;
+    border-radius: 10px 10px 0 0;
+    margin: 0;
+}
+
+.obis-org-hero__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(2, 20, 40, 0.2) 0%, rgba(2, 20, 40, 0.75) 100%);
+}
+
+.obis-org-hero__body {
+    position: relative;
+    z-index: 1;
+    padding: 1.25rem 1.5rem 1.5rem;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.obis-org-hero__eyebrow {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.55);
+    margin-bottom: 5px;
+}
+
+.obis-org-hero__name {
+    font-size: 24px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    margin: 0 0 6px;
+}
+
+.obis-org-hero__sub {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.65);
+    margin: 0;
+    max-width: 420px;
+    line-height: 1.5;
+}
+
+.obis-org-hero__stats { display: flex; gap: 20px; flex-shrink: 0; }
+.obis-org-hero__stat { text-align: center; }
+
+.obis-org-hero__stat strong {
+    display: block;
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+}
+
+.obis-org-hero__stat span {
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.obis-org-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 1.25rem;
+}
+
+.obis-org-tab {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-mid);
+    padding: 10px 16px;
+    border-bottom: 2px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: color 0.15s;
+    position: relative;
+    top: 1px;
+}
+
+.obis-org-tab:hover { color: var(--color-dark); text-decoration: none; }
+.obis-org-tab.is-active { color: #185FA5; border-bottom-color: #185FA5; }
+.obis-org-tab--admin { margin-left: auto; }
+
+.obis-org-aside-box {
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+    margin-right: 15px;
+    margin-left: 15px;
+}
+
+.obis-org-aside-box__title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-mid);
+    margin-bottom: 10px;
+}
+
+.obis-org-aside-box__text {
+    font-size: 12px;
+    color: var(--color-mid);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.obis-org-aside-box__more {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #185FA5;
+    text-decoration: none;
+}
+
+.obis-org-aside-box__more:hover { text-decoration: underline; }
+
+.obis-org-aside-stats { display: flex; flex-direction: column; }
+
+.obis-org-aside-stat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 0;
+    border-bottom: 0.5px solid var(--color-border);
+}
+
+.obis-org-aside-stat:last-child { border-bottom: none; }
+
+.obis-org-aside-stat__label {
+    font-size: 12px;
+    color: var(--color-mid);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.obis-org-aside-stat__label i { font-size: 11px; }
+
+.obis-org-aside-stat__val {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-dark);
+}
+
+
+/* ================================================================
+   21. CKAN OVERRIDES — GENERAL LAYOUT
+   ================================================================ */
+
+.main {
+    padding: 20px 0;
+    background: white !important;
+}
+
+.container,
+.container-fluid,
+.container-xxl,
+.container-xl,
+.container-lg,
+.container-md,
+.container-sm {
+    width: 100%;
+    padding-right: var(--bs-gutter-x, 0.05rem) !important;
+    padding-left: var(--bs-gutter-x, 0.05rem) !important;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.box,
+.wrapper {
+    background-color: #fff;
+    border: 0 solid var(--color-border) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+.wrapper:before {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 25%;
+    border-right: 0 solid var(--color-border) !important;
+    z-index: 1;
+}
+
+.module-content {
+    padding-top: 0 !important;
+    padding-right: 1.5rem;
+    padding-bottom: 1.5rem;
+    padding-left: 1.5rem;
+}
+
+.toolbar .breadcrumb {
+    box-shadow: none;
+    position: relative;
+    float: left;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    font-size: 12px !important;
+}
+
+.account.avatar.authed a {
+    margin-right: 15px;
+    margin-bottom: 10px;
+}
+
+.account.avatar.authed {
+    display: flex;
+    flex-flow: wrap;
+}
+
+.btn-secondary {
+    color: #fff;
+    background-color: var(--color-mid);
+    border-color: none !important;
+    box-shadow: none !important;
+}
+
+h2.organization-side {
+    font-weight: 200;
+    font-size: 0.8em;
+}
+
+
+/* ================================================================
+   22. CKAN OVERRIDES — DATASET VIEW
+   ================================================================ */
+
+.page-header {
+    margin-top: 1.5rem;
+    border-bottom: none !important;
+    background-color: white !important;
+    border-radius: 0 3px 0 0;
+}
+
+/* Active tab */
+.page-header .nav-tabs li.active a,
+.page-header .nav-tabs a:hover {
+    border-top: 0 solid !important;
+    border-right: 0 solid !important;
+    border-left: 0 solid !important;
+    border-bottom: 2px solid var(--main-a-color) !important;
+    border-radius: 0 !important;
+    background-color: #fff !important;
+    color: var(--main-a-color) !important;
+    margin: 0 0.25rem !important;
+}
+
+/* Inactive tabs */
+.page-header .nav-tabs li a,
+.page-header .nav-tabs a {
+    border-top: 0 solid !important;
+    border-right: 0 solid !important;
+    border-left: 0 solid !important;
+    border-bottom: 2px solid #dee2e600 !important;
+    border-radius: 0 !important;
+    background-color: #fff !important;
+    color: var(--color-mid) !important;
+    margin: 0 0.25rem !important;
+}
+
+.page-header .nav-tabs {
+    border-bottom: 0 solid var(--color-border) !important;
+}
+
+.page-header .nav-tabs li a {
+    padding: 5px !important;
+}
+
+.page-header.module-content {
+    padding-bottom: 1.5rem !important;
+}
+
+.resources-right {
+    margin-top: 10px;
+    background-color: var(--color-light);
+    padding: 10px;
+}
+
+.notes.embedded-content {
+    padding-top: 10px;
+    padding-right: 20px;
+}
+
+.additional-info {
+    line-height: 1.6;
+}
+
+.additional-info > *:not(h3) {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.additional-info > *:empty {
+    display: none;
+}
+
+.additional-info h3,
+.how-to-cite h3 {
+    margin-top: 40px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-mid);
+    margin-bottom: 12px;
+}
+
+.related-datasets h3 {
+    font-weight: 600;
+    font-size: 42px;
+}
+
+.how-to-cite-wrapper {
+    position: relative;
+    z-index: 0;
+    margin: 2rem 0;
+}
+
+.how-to-cite-wrapper::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background-color: var(--color-light);
+    z-index: -1;
+    width: 100vw;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.how-to-cite {
+    padding-top: 30px;
+    padding-bottom: 20px;
+}
+
+.btn-group a.btn.btn-outline-secondary {
+    margin-right: 10px;
+}
+
+.btn-group .btn-outline-secondary {
+    border-radius: 20px !important;
+}
+
+.resources-info .updated {
+    background-color: #64c598;
+    max-width: max-content;
+    padding: 0 10px;
+    border-radius: 10px;
+}
+
+
+/* ================================================================
+   23. CKAN OVERRIDES — TAGS
+   ================================================================ */
+
+.tags {
+    margin-top: 10px;
+}
+
+.tag-list {
+    padding: 0 !important;
+    background-color: transparent !important;
+    border: 0 solid var(--color-border) !important;
+    border-radius: 0.25rem;
+}
+
+.tags .tag {
+    color: var(--color-mid);
+    text-decoration: underline;
+    display: inline-block;
+    background-color: transparent !important;
+    padding: 1px 5px;
+    border: 0;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+.tags a.tag:hover {
+    color: white !important;
+    background-color: var(--main-a-hover-color) !important;
+    border: 0 solid var(--color-dark);
+}
+
+.tags-title {
+    color: var(--color-mid);
+    font-weight: 600;
+    font-size: 16px;
+}
+
+
+/* ================================================================
+   24. RESPONSIVE / MEDIA QUERIES
+   ================================================================ */
+
+/* Highlights box — mobile */
+@media (max-width: 768px) {
+    .highlights-box {
+        flex: 1 1 100%;
+    }
+}
+
+/* Highlights container — mobile */
+@media (max-width: 767px) {
+    .highlights-container {
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    .products-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .container {
+        padding-right: 15px !important;
+        padding-left: 15px !important;
+    }
+
+    .featured-products-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+/* Additional info — tablet+ */
+@media (min-width: 768px) {
+    .add-info-row {
+        display: flex;
+        margin-bottom: 12px;
+    }
+
+    .add-info-label {
+        flex: 0 0 30%;
+        margin-right: 15px;
+        margin-bottom: 0;
+        padding-right: 10px;
+    }
+
+    .add-info-value {
+        flex: 1;
+        margin-bottom: 0;
+    }
+}
+
+/* Value cards — tablet */
 @media (min-width: 768px) and (max-width: 991px) {
     .vc-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
-/* Mobile: single column */
+/* Value cards — mobile */
 @media (max-width: 767px) {
     .vc-grid {
         grid-template-columns: 1fr;
@@ -1094,5 +2644,82 @@ h2.organization-side {
 
     .vc-heading {
         font-size: 22px;
+    }
+}
+
+/* Organisation index grid */
+@media (min-width: 992px)  { .obis-np-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 768px) and (max-width: 991px) { .obis-np-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 767px)  { .obis-np-grid { grid-template-columns: repeat(2, 1fr); } .obis-np-title { font-size: 22px; } }
+@media (max-width: 480px)  { .obis-np-grid { grid-template-columns: 1fr; } }
+
+/* Organisation read hero */
+@media (max-width: 767px) {
+    .obis-org-hero { margin: 0; }
+    .obis-org-hero__name { font-size: 18px; }
+    .obis-org-hero__sub { display: none; }
+    .obis-org-hero__stats { gap: 12px; }
+    .obis-org-hero__stat strong { font-size: 16px; }
+    .obis-org-tabs { overflow-x: auto; }
+}
+
+/* Product page hero */
+@media (max-width: 767px) {
+    .obis-pp-hero { margin: -15px -15px 0 -15px; }
+    .obis-pp-title { font-size: 20px; }
+    .obis-pp-hero__body { padding: 1rem 1rem 1.5rem; }
+    .obis-pp-tabs { padding: 0.75rem 1rem 0; }
+    .obis-pp-actions { flex-direction: column; }
+    .obis-pp-btn-primary,
+    .obis-pp-btn-ghost { width: 100%; justify-content: center; }
+}
+
+/* About page */
+@media (max-width: 767px) {
+    .obis-about-wrap { flex-direction: column; gap: 1.5rem; }
+
+    .obis-about-toc {
+        flex: none;
+        width: 100%;
+        position: static;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .obis-about-toc__title { width: 100%; }
+
+    .obis-about-toc .obis-about-toc__item {
+        border-left: none;
+        border-bottom: 2px solid transparent;
+        padding: 4px 8px;
+        font-size: 11px;
+    }
+
+    .obis-about-toc .obis-about-toc__item.is-active,
+    .obis-about-toc .obis-about-toc__item:hover {
+        border-bottom-color: #185FA5 !important;
+        border-left: none !important;
+    }
+
+    .obis-about__title { font-size: 22px; }
+    .obis-about__type-grid { grid-template-columns: 1fr; }
+    .obis-about__cta-row { flex-direction: column; }
+}
+
+/* Resources list — mobile */
+@media (max-width: 600px) {
+    .obis-rl__card { flex-wrap: wrap; }
+    .obis-rl__actions { width: 100%; justify-content: flex-end; }
+}
+
+/* Additional info table — mobile */
+@media (max-width: 600px) {
+    .obis-ai__row { flex-direction: column; gap: 4px; }
+    .obis-ai__label {
+        flex: none;
+        font-size: 10px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
     }
 }

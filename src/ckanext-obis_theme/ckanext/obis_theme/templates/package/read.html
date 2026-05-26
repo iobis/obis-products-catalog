@@ -4,98 +4,209 @@
 
 {% set hero_image = c.pkg_dict.get('hero_image', '') %}
 
-{# Hero section — wraps title, buttons, tags, and description #}
-{% if hero_image %}
-<div style="
-  position: relative;
-  margin: -20px -20px 20px -20px;
-  padding: 30px 20px 20px 20px;
-  background-image: url('{{ hero_image }}');
-  background-size: cover;
-  background-position: center;
-  border-radius: 8px;
-  overflow: hidden;
-">
-  {# Semi-transparent white overlay #}
-  <div style="
-    position: absolute;
-    inset: 0;
-    background: rgba(255, 255, 255, 0.82);
-    border-radius: 8px;
-  "></div>
-  {# Content sits above overlay #}
-  <div style="position: relative; z-index: 1;">
-{% endif %}
+{% set product_types = c.pkg_dict.get('product_type', []) %}
+{% set badge_label = product_types[0] if product_types else 'Dataset' %}
+{% set source_url = c.pkg_dict.get('source_url', '') %}
 
-  <h1>
-    {% block page_heading %}
-      {{ h.dataset_display_name(c.pkg_dict) }}
-      {% if c.pkg_dict.state.startswith('draft') %}
-        [{{ _('Draft') }}]
-      {% endif %}
-      {% if c.pkg_dict.state == 'deleted' %}
-        [{{ _('Deleted') }}]
-      {% endif %}
-    {% endblock %}
-  </h1>
+<div class="obis-pp-hero {% if hero_image %}has-image{% endif %}"
+     {% if hero_image %}style="background-image: url('{{ hero_image }}');"{% endif %}>
 
-  {# JSON-LD Export Link #}
-  <div class="jsonld-export" style="margin-bottom: 15px; position: relative; z-index: 100;">
-    <span style="color: var(--color-mid); font-size: 14px;">View as:</span>
-    <a href="/dataset/{{ c.pkg_dict.name }}/odis.jsonld"
-       target="_blank"
-       style="margin-left: 8px; color: var(--color-brand); font-weight: 500; text-decoration: underline;">
-      <i class="fa fa-code"></i> JSON-LD
+  <div class="obis-pp-hero__overlay"></div>
+
+  {# Tabs #}
+  <div class="obis-pp-tabs">
+    <div class="obis-pp-tab is-active">
+      <i class="fa fa-cube" aria-hidden="true"></i> {{ _('Product') }}
+    </div>
+    <a class="obis-pp-tab"
+       href="{{ h.url_for('dataset.groups', id=c.pkg_dict.name) }}">
+      <i class="fa fa-sitemap" aria-hidden="true"></i> {{ _('Institutions') }}
     </a>
   </div>
 
-  {% if h.check_access('package_update', {'id': c.pkg_dict.id}) %}
-    <div class="admin-actions" style="margin-bottom: 20px;">
-      <a href="{{ h.url_for('dataset.groups', id=c.pkg_dict.name) }}" class="btn btn-default">
-        <i class="fa fa-sitemap"></i> Manage Institutions
+  {# Hero body: badge, title, pills, actions #}
+  <div class="obis-pp-hero__body">
+
+    {# Product type badge + tags #}
+    <div class="obis-pp-tags">
+      {# Product type badge (from top-level product_type list) #}
+      <a class="obis-pp-badge"
+        href="{{ h.url_for('dataset.search', vocab_product_type_tags=badge_label | lower) }}">
+        <i class="fa fa-tag" aria-hidden="true"></i> {{ badge_label }}
       </a>
-      {% if c.pkg_dict.get('source_url') %}
-        <form method="post" action="{{ h.url_for('doi_import.sync_dataset', dataset_id=c.pkg_dict.id) }}" style="display: inline;">
-          {{ h.csrf_input() }}
-          <button type="submit" class="btn btn-default">
-            <i class="fa fa-refresh"></i> Sync with source
-          </button>
-        </form>
+
+      {# CKAN free tags #}
+      {% if c.pkg_dict.tags %}
+        {% block package_tags %}
+          {% for tag in c.pkg_dict.tags %}
+            <a class="obis-pp-badge obis-pp-badge--tag"
+               href="{{ h.url_for('dataset.search', tags=tag.name) }}">
+              {{ tag.display_name }}
+            </a>
+          {% endfor %}
+        {% endblock %}
       {% endif %}
     </div>
-  {% endif %}
 
-  {% if c.pkg_dict.tags %}
-    {% block package_tags %}
-      <div class="tags-section" style="margin-bottom: 15px;">
-        {% for tag in c.pkg_dict.tags %}
-          <a href="{{ h.url_for('dataset.search', tags=tag.name) }}" class="tag-pill" style="display: inline-block; background-color: var(--color-brand-light); color: var(--color-brand); padding: 4px 12px; margin: 2px 4px 2px 0; border-radius: 16px; font-size: 14px; text-decoration: none;">
-            {{ tag.display_name }}
-          </a>
-        {% endfor %}
-      </div>
-    {% endblock %}
-  {% endif %}
+    <h1 class="obis-pp-title">
+      {% block page_heading %}
+        {{ h.dataset_display_name(c.pkg_dict) }}
+        {% if c.pkg_dict.state.startswith('draft') %}
+          <span class="obis-pp-state">[{{ _('Draft') }}]</span>
+        {% endif %}
+        {% if c.pkg_dict.state == 'deleted' %}
+          <span class="obis-pp-state">[{{ _('Deleted') }}]</span>
+        {% endif %}
+      {% endblock %}
+    </h1>
 
+    <div class="obis-pp-pills">
+      {# Author — top-level author field #}
+      {% if c.pkg_dict.author %}
+        <span class="obis-pp-pill">
+          <i class="fa fa-user" aria-hidden="true"></i> {{ c.pkg_dict.author }}
+        </span>
+      {% endif %}
+
+      {# Organisation #}
+      {% if c.pkg_dict.organization %}
+        <a class="obis-pp-pill obis-pp-pill--link"
+          href="{{ h.url_for('organization.read', id=c.pkg_dict.organization.name) }}">
+          <i class="fa fa-university" aria-hidden="true"></i>
+          {{ c.pkg_dict.organization.title }}
+        </a>
+      {% endif %}
+
+      {# Date published — top-level field in this catalogue #}
+      {% if c.pkg_dict.get('date_published') %}
+        <span class="obis-pp-pill">
+          <i class="fa fa-calendar" aria-hidden="true"></i>
+          {{ _('Published') }} {{ c.pkg_dict.date_published }}
+        </span>
+      {% elif c.pkg_dict.metadata_modified %}
+        <span class="obis-pp-pill">
+          <i class="fa fa-calendar" aria-hidden="true"></i>
+          {{ _('Updated') }} {{ h.render_datetime(c.pkg_dict.metadata_modified, '%b %d, %Y') }}
+        </span>
+      {% endif %}
+
+      {# Licence #}
+      {% if c.pkg_dict.get('license_title') %}
+        <span class="obis-pp-pill">
+          <i class="fa fa-unlock-alt" aria-hidden="true"></i>
+          {{ c.pkg_dict.license_title }}
+        </span>
+      {% endif %}
+
+      {# JSON-LD link #}
+      <a class="obis-pp-pill obis-pp-pill--link"
+         href="/dataset/{{ c.pkg_dict.name }}/odis.jsonld" target="_blank">
+        <i class="fa fa-code" aria-hidden="true"></i> {{ _('View as JSON-LD') }}
+      </a>
+    </div>
+
+    <div class="obis-pp-actions">
+
+      {# Primary: first resource with a URL #}
+      {% set ns = namespace(first_resource=none) %}
+      {% for res in c.pkg_dict.resources %}
+        {% if ns.first_resource is none and res.url %}
+          {% set ns.first_resource = res %}
+        {% endif %}
+      {% endfor %}
+      {% if ns.first_resource %}
+        <a class="obis-pp-btn-primary"
+           href="{{ ns.first_resource.url }}" target="_blank" rel="noopener">
+          <i class="fa fa-download" aria-hidden="true"></i> {{ _('Download') }}
+        </a>
+      {% endif %}
+
+      {# Source URL — top-level field, e.g. Zenodo DOI #}
+      {% if source_url %}
+        <a class="obis-pp-btn-ghost"
+           href="{{ source_url }}" target="_blank" rel="noopener">
+          <i class="fa fa-external-link" aria-hidden="true"></i> {{ _('View source') }}
+        </a>
+      {% endif %}
+
+      {# Canonical ID as fallback if different from source_url #}
+      {% if c.pkg_dict.get('canonical_id') and c.pkg_dict.canonical_id != source_url %}
+        <a class="obis-pp-btn-ghost"
+           href="{{ c.pkg_dict.canonical_id }}" target="_blank" rel="noopener">
+          <i class="fa fa-external-link" aria-hidden="true"></i> {{ _('DOI') }}
+        </a>
+      {% endif %}
+
+      {# Admin actions #}
+      {% if h.check_access('package_update', {'id': c.pkg_dict.id}) %}
+        <a class="obis-pp-btn-ghost"
+           href="{{ h.url_for('dataset.edit', id=c.pkg_dict.name) }}">
+          <i class="fa fa-pencil" aria-hidden="true"></i> {{ _('Edit') }}
+        </a>
+        {% if source_url %}
+          <form method="post"
+                action="{{ h.url_for('doi_import.sync_dataset', dataset_id=c.pkg_dict.id) }}"
+                style="display:inline;">
+            {{ h.csrf_input() }}
+            <button type="submit" class="obis-pp-btn-ghost">
+              <i class="fa fa-refresh" aria-hidden="true"></i> {{ _('Sync') }}
+            </button>
+          </form>
+        {% endif %}
+      {% endif %}
+
+    </div>
+
+  </div>{# end hero body #}
+</div>{# end hero #}
+
+
+{# ============================================================
+   Page body
+   ============================================================ #}
+<div class="obis-pp-body">
+
+  {# Description #}
   {% block package_notes %}
     {% if c.pkg_dict.notes %}
-      <div class="notes embedded-content">
+      <div class="obis-pp-desc notes embedded-content">
         {{ h.render_markdown(h.get_translated(c.pkg_dict, 'notes')) }}
       </div>
     {% endif %}
   {% endblock %}
 
-{% if hero_image %}
-  </div>{# end relative content #}
-</div>{# end hero wrapper #}
-{% endif %}
+  {# Thematic tags #}
+  {% if c.pkg_dict.get('thematic_tags') %}
+    <div class="obis-pp-thematic-tags">
+      {% set thematic = c.pkg_dict.thematic_tags %}
+      {% if thematic is string %}
+        <a href="{{ h.url_for('dataset.search', vocab_thematic_tags=thematic) }}"
+           class="obis-pp-tag-pill">{{ thematic }}</a>
+      {% else %}
+        {% for item in thematic %}
+          <a href="{{ h.url_for('dataset.search', vocab_thematic_tags=item) }}"
+             class="obis-pp-tag-pill">{{ item }}</a>
+        {% endfor %}
+      {% endif %}
+    </div>
+  {% endif %}
 
+  {# Resources #}
   {% block package_resources %}
-    {% snippet "package/snippets/resources_list.html", pkg=c.pkg_dict, resources=c.pkg_dict.resources %}
+    <div class="obis-pp-section">
+      {% snippet "package/snippets/resources_list.html",
+         pkg=c.pkg_dict, resources=c.pkg_dict.resources %}
+    </div>
   {% endblock %}
 
+  {# Additional info #}
   {% block package_additional_info %}
-    {% snippet "package/snippets/additional_info.html", pkg_dict=c.pkg_dict %}
+    <div class="obis-pp-section">
+      <span class="obis-pp-section-label">{{ _('Additional info') }}</span>
+      {% snippet "package/snippets/additional_info.html", pkg_dict=c.pkg_dict %}
+    </div>
   {% endblock %}
+
+</div>{# end body #}
 
 {% endblock %}

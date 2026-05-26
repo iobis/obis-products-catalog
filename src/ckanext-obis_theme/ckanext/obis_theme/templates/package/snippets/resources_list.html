@@ -12,26 +12,258 @@
 
 <section id="dataset-resources" class="resources">
   <h2>{{ _('Resources') }}</h2>
+  <div class="obis-rl">
+ 
   {% block resource_list %}
     {% if resources %}
-      {% set can_edit = can_edit or h.check_access('package_update', {'id':pkg.id }) %}
-      <ul class="{% block resource_list_class %}resource-list{% endblock %}">
-        {% block resource_list_inner %}
-          {% for resource in resources %}
-            {% snippet 'package/snippets/resource_item.html', pkg=pkg, res=resource, can_edit=can_edit %}
-          {% endfor %}
-        {% endblock %}
-      </ul>
+      {% set can_edit = can_edit or h.check_access('package_update', {'id': pkg.id}) %}
+ 
+      {% for res in resources %}
+        <div class="obis-rl__card">
+ 
+          {# ---- Format icon (CKAN native) ---- #}
+          <div class="obis-rl__icon">
+            <span class="format-label" data-format="{{ res.format.lower() or 'data' }}"></span>
+          </div>
+ 
+          {# ---- Name & description ---- #}
+          <div class="obis-rl__body">
+            <a class="obis-rl__name"
+               href="{{ h.url_for(pkg.type ~ '_resource.read', id=pkg.name, resource_id=res.id) }}"
+               title="{{ res.name or res.description }}">
+              {{ h.resource_display_name(res) | truncate(60) }}
+            </a>
+            {% if res.description %}
+              <p class="obis-rl__desc">
+                {{ h.markdown_extract(h.get_translated(res, 'description'), extract_length=100) }}
+              </p>
+            {% endif %}
+            {% if res.size %}
+              <span class="obis-rl__meta">{{ h.localised_filesize(res.size) }}</span>
+            {% endif %}
+          </div>
+ 
+          {# ---- Actions: reuse resource_item.html explore block ---- #}
+          <div class="obis-rl__actions">
+            {% if res.url and h.is_url(res.url) and (res.has_views or res.url_type == 'upload') %}
+              <a class="obis-rl__btn obis-rl__btn--primary"
+                 href="{{ res.url }}" target="_blank" rel="noreferrer">
+                <i class="fa fa-download" aria-hidden="true"></i> {{ _('Download') }}
+              </a>
+            {% endif %}
+ 
+            <div class="dropdown">
+              <a href="#"
+                 class="obis-rl__btn obis-rl__btn--ghost dropdown-toggle"
+                 id="obis-explore-{{ res.id }}"
+                 data-bs-toggle="dropdown"
+                 aria-expanded="false">
+                <i class="fa fa-share" aria-hidden="true"></i> {{ _('Explore') }}
+              </a>
+              <ul class="dropdown-menu" aria-labelledby="obis-explore-{{ res.id }}">
+                <li>
+                  <a class="dropdown-item"
+                     href="{{ h.url_for(pkg.type ~ '_resource.read', id=pkg.name, resource_id=res.id) }}">
+                    {% if res.has_views %}
+                      <i class="fa fa-bar-chart-o" aria-hidden="true"></i> {{ _('Preview') }}
+                    {% else %}
+                      <i class="fa fa-info-circle" aria-hidden="true"></i> {{ _('More information') }}
+                    {% endif %}
+                  </a>
+                </li>
+ 
+                {% if res.url and h.is_url(res.url) and not (res.has_views or res.url_type == 'upload') %}
+                  <li>
+                    <a class="dropdown-item resource-url-analytics"
+                       href="{{ res.url }}" target="_blank" rel="noreferrer">
+                      <i class="fa fa-external-link" aria-hidden="true"></i> {{ _('Go to resource') }}
+                    </a>
+                  </li>
+                {% endif %}
+ 
+                {% if can_edit %}
+                  <li>
+                    <a class="dropdown-item"
+                       href="{{ h.url_for(pkg.type ~ '_resource.edit', id=pkg.name, resource_id=res.id) }}">
+                      <i class="fa fa-pencil-square-o" aria-hidden="true"></i> {{ _('Edit') }}
+                    </a>
+                  </li>
+                {% endif %}
+              </ul>
+            </div>
+          </div>
+ 
+        </div>
+      {% endfor %}
+ 
     {% else %}
+ 
       {% block resource_list_empty %}
         {% if h.check_access('resource_create', {'package_id': pkg['id']}) %}
           {% trans url=h.url_for(pkg.type ~ '_resource.new', id=pkg.name) %}
-          <p class="empty">This dataset has no data, <a href="{{ url }}">why not add some?</a></p>
+            <p class="obis-rl__empty">
+              This dataset has no data, <a href="{{ url }}">why not add some?</a>
+            </p>
           {% endtrans %}
         {% else %}
-          <p class="empty">{{ _('This dataset has no data') }}</p>
+          <p class="obis-rl__empty">{{ _('This dataset has no data') }}</p>
         {% endif %}
       {% endblock %}
+ 
     {% endif %}
   {% endblock %}
+ 
+</div>
 </section>
+
+<style>
+  /* ---- Wrapper ---- */
+  .obis-rl {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+ 
+  /* ---- Card ---- */
+  .obis-rl__card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    border: 0.5px solid var(--color-border);
+    border-radius: 10px;
+    background: white;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .obis-rl__card:hover {
+    border-color: #185FA5;
+    background: #E6F1FB;
+  }
+ 
+  /* ---- Format icon (CKAN native .format-label) ---- */
+  .obis-rl__icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-light, #F4F6F8);
+  }
+  /* Let CKAN's format-label fill the icon slot */
+  .obis-rl__icon .format-label {
+    width: 36px;
+    height: 36px;
+    margin: 0;
+    border-radius: 8px;
+    font-size: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+ 
+  /* ---- Body ---- */
+  .obis-rl__body {
+    flex: 1;
+    min-width: 0;
+  }
+ 
+  .obis-rl__name {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: #042C53;
+    text-decoration: none;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .obis-rl__card:hover .obis-rl__name {
+    color: #185FA5;
+  }
+ 
+  .obis-rl__desc {
+    font-size: 12px;
+    color: var(--color-mid);
+    margin: 0 0 2px;
+    line-height: 1.5;
+  }
+ 
+  .obis-rl__meta {
+    font-size: 11px;
+    color: var(--color-mid);
+  }
+ 
+  /* ---- Actions ---- */
+  .obis-rl__actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+ 
+  .obis-rl__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 7px;
+    padding: 6px 12px;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .obis-rl__btn i { font-size: 11px; }
+ 
+  .obis-rl__btn--primary {
+    background: #042C53;
+    color: #fff;
+    border: 1px solid #042C53;
+  }
+  .obis-rl__btn--primary:hover {
+    background: #185FA5;
+    border-color: #185FA5;
+    color: #fff;
+    text-decoration: none;
+  }
+ 
+  .obis-rl__btn--ghost {
+    background: transparent;
+    color: #042C53;
+    border: 1px solid var(--color-border);
+  }
+  .obis-rl__btn--ghost:hover {
+    border-color: #185FA5;
+    color: #185FA5;
+    text-decoration: none;
+  }
+  .obis-rl__card:hover .obis-rl__btn--ghost {
+    border-color: #B5D4F4;
+  }
+ 
+  /* ---- Empty state ---- */
+  .obis-rl__empty {
+    font-size: 13px;
+    color: var(--color-mid);
+    padding: 1rem 0;
+  }
+  .obis-rl__empty a {
+    color: #185FA5;
+  }
+ 
+  /* ---- Responsive ---- */
+  @media (max-width: 600px) {
+    .obis-rl__card {
+      flex-wrap: wrap;
+    }
+    .obis-rl__actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
+  }
+</style>

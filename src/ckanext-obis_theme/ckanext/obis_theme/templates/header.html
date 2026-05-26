@@ -1,4 +1,5 @@
 {% set dataset_type = h.default_package_type() %}
+{% set is_homepage = (g.blueprint == 'home' and g.view == 'index') %}
 
 {% block header_wrapper %} 
 <!--
@@ -139,7 +140,7 @@
   </div>
    </div>
    <div class="container masthead-container-2">
-    {% if g.blueprint == 'home' and g.view == 'index' %}
+    {% if is_homepage %}
         <div class="super-title-container">
           <!-- <div class="hero-kicker">Intergovernmental Oceanographic Commission</div> -->
           <span class="super-title">The <span class="super-title-highlight">OBIS</span> products</span>  
@@ -149,7 +150,9 @@ Browse tools, models, software, notebooks, and more, all derived from OBIS-media
         </div>
     {% endif %}
     <div class="container">
+      {% if is_homepage %}
       <div class="homepage-search-wrapper">
+      {% endif %}
         {% block header_site_search %}
           <form id="site-search-form" class="d-flex site-search position-relative"
                 action="{% url_for dataset_type ~ '.search' %}" method="get">
@@ -171,7 +174,9 @@ Browse tools, models, software, notebooks, and more, all derived from OBIS-media
               <i class="fa fa-search"></i>
             </button>
           </form>
+        {% if is_homepage %}
         </div>
+        {% endif %}
 
         <!-- Topics / Product types -->
          <!-- {% macro highlights_grid(title, stats, url_param) %}
@@ -192,23 +197,20 @@ Browse tools, models, software, notebooks, and more, all derived from OBIS-media
         {% endmacro %} -->
 
         {% macro product_types(stats, url_param) %}
-          <div class="topics-row" role="list" aria-label="Browse by topic">
-            {% for stat in stats %}
-              <span class="topic-chip" role="listitem" href="{{ h.url_for('dataset.search', **{url_param: stat.name}) }}">
-                <i class="fa-solid {{ stat.icon }}" aria-hidden="true"></i>{{ stat.display_name }} ({{ stat.count }})
-              </span>
-            {% endfor %}
-            <!-- <span class="topic-chip" role="listitem"><i class="fa-solid fa-fish" aria-hidden="true"></i>Fish</span>
-            <span class="topic-chip" role="listitem"><i class="fa-solid fa-bacterium" aria-hidden="true"></i>Phytoplankton</span>
-            <span class="topic-chip" role="listitem"><i class="fa-solid fa-earth-americas" aria-hidden="true"></i>Geospatial</span>
-            <span class="topic-chip" role="listitem"><i class="fa-solid fa-code" aria-hidden="true"></i>Real-time APIs</span>
-            <span class="topic-chip" role="listitem"><i class="fa-solid fa-temperature-half" aria-hidden="true"></i>Climate</span>
-            <span class="topic-chip" role="listitem"><i class="fa-solid fa-shrimp" aria-hidden="true"></i>Invertebrates</span>
-            <span class="topic-chip" role="listitem"><i class="fa-solid fa-database" aria-hidden="true"></i>Datasets</span> -->
-          </div>
-        {% endmacro %}
+        <div class="topics-row" role="list" aria-label="Browse by topic">
+          {% for stat in stats %}
+            <a class="topic-chip"
+              role="listitem"
+              href="{{ h.url_for('dataset.search', **{url_param: stat.name}) }}">
+              <i class="fa-solid {{ stat.icon }}" aria-hidden="true"></i>{{ stat.display_name }} ({{ stat.count }})
+            </a>
+          {% endfor %}
+        </div>
+      {% endmacro %}
 
+        {% if is_homepage %}
         {{ product_types(h.obis_get_product_type_stats(), 'vocab_product_type_tags') }}
+        {% endif %}
           
           <!-- <div class="topics-row" role="list" aria-label="Browse by topic">
             <span class="topic-chip" role="listitem"><i class="fa-solid fa-fish" aria-hidden="true"></i>Fish</span>

@@ -1,0 +1,151 @@
+{% extends "page.html" %}
+
+{% block subtitle %}{{ h.humanize_entity_type('organization', group_type, 'page title') or _('Organizations') }}{% endblock %}
+
+{% block breadcrumb_content %}
+  <li class="active">
+    {% link_for h.humanize_entity_type('organization', group_type, 'breadcrumb') or _('Organizations'), named_route=group_type+'.index' %}
+  </li>
+{% endblock %}
+
+{% block page_header %}{% endblock %}
+
+{% block page_primary_action %}
+  {% if h.check_access('organization_create') %}
+    {% link_for h.humanize_entity_type('organization', group_type, 'add link') or _('Add Organization'),
+       named_route=group_type ~ '.new',
+       class_='btn btn-primary',
+       icon='plus-square' %}
+  {% endif %}
+{% endblock %}
+
+{% block primary_content_inner %}
+
+{# ---- Page header ---- #}
+<div class="obis-np-header">
+  <div>
+    <span class="obis-np-eyebrow">{{ _('OBIS network') }}</span>
+    <h1 class="obis-np-title hide-heading">
+      {% block page_heading %}
+        {{ h.humanize_entity_type('organization', group_type, 'page title') or _('Organizations') }}
+      {% endblock %}
+    </h1>
+    <p class="obis-np-subtitle">
+      {{ _('Regional and thematic members of the OBIS network. Each node manages, curates, and publishes marine biodiversity data products on behalf of their region or community.') }}
+    </p>
+  </div>
+  {% if page.item_count %}
+    <span class="obis-np-count">{{ page.item_count }} {{ _('nodes') }}</span>
+  {% endif %}
+</div>
+
+{# ---- Sort toolbar ---- #}
+{% block organizations_search_form %}
+  <div class="obis-np-toolbar">
+    <form method="get" action="" class="obis-np-sort-form">
+      {% if q %}<input type="hidden" name="q" value="{{ q }}"/>{% endif %}
+      <span class="obis-np-sort-label">{{ _('Sort by') }}</span>
+      <select class="obis-np-sort-select"
+              name="sort"
+              onchange="this.form.submit()"
+              aria-label="{{ _('Sort nodes') }}">
+        <option value="title asc"  {% if sort_by_selected == 'title asc'  or not sort_by_selected %}selected{% endif %}>{{ _('Name A–Z') }}</option>
+        <option value="title desc" {% if sort_by_selected == 'title desc' %}selected{% endif %}>{{ _('Name Z–A') }}</option>
+        <option value="packages desc" {% if sort_by_selected == 'packages desc' %}selected{% endif %}>{{ _('Most products') }}</option>
+      </select>
+    </form>
+  </div>
+{% endblock %}
+
+{# ---- Organisations grid ---- #}
+{% block organizations_list %}
+  {% if page.items or request.args %}
+    {% if page.items %}
+
+      {# Gradients defined HERE — inside the block where they are used #}
+      {% set gradients = [
+        "linear-gradient(135deg, #042C53 0%, #185FA5 55%, #1D9E75 100%)",
+        "linear-gradient(135deg, #04342C 0%, #0F6E56 50%, #085041 100%)",
+        "linear-gradient(135deg, #412402 0%, #854F0B 50%, #BA7517 100%)",
+        "linear-gradient(135deg, #4B1528 0%, #993556 50%, #D4537E 100%)",
+        "linear-gradient(135deg, #173404 0%, #3B6D11 50%, #639922 100%)",
+        "linear-gradient(135deg, #26215C 0%, #534AB7 50%, #7F77DD 100%)"
+      ] %}
+      {% set grad_count = gradients | length %}
+
+      <div class="obis-np-grid" role="list">
+        {% for org in page.items %}
+
+          {% if org.image_url %}
+            {% if 'http' in org.image_url %}
+              {% set img_src = org.image_url %}
+            {% else %}
+              {% set img_src = h.url_for_static('uploads/group/' ~ org.image_url) %}
+            {% endif %}
+            {% set banner_style = "background-image: url('" ~ img_src ~ "'); background-size: cover; background-position: center;" %}
+            {% set has_image = True %}
+          {% else %}
+            {% set banner_style = "background: " ~ gradients[loop.index0 % grad_count] ~ ";" %}
+            {% set has_image = False %}
+          {% endif %}
+
+          <a class="obis-np-card"
+             href="{{ h.url_for(group_type ~ '.read', id=org.name) }}"
+             role="listitem"
+             aria-label="{{ org.title or org.name }}">
+
+            <div class="obis-np-card__banner" style="{{ banner_style }}">
+              {% if not has_image %}
+                <i class="fa fa-globe obis-np-card__banner-icon" aria-hidden="true"></i>
+              {% endif %}
+            </div>
+
+            <div class="obis-np-card__body">
+              <span class="obis-np-card__name">{{ org.title or org.name }}</span>
+
+              {% if org.description %}
+                <p class="obis-np-card__desc">{{ org.description | truncate(100) }}</p>
+              {% else %}
+                <p class="obis-np-card__desc obis-np-card__desc--empty">{{ _('No description available.') }}</p>
+              {% endif %}
+
+              <div class="obis-np-card__footer">
+                <span class="obis-np-card__stat">
+                  <i class="fa fa-cube" aria-hidden="true"></i>
+                  <strong>{{ org.package_count or 0 }}</strong> {{ _('Products') }}
+                </span>
+                <span class="obis-np-card__stat">
+                  <i class="fa fa-users" aria-hidden="true"></i>
+                  <strong>{{ org.num_followers or 0 }}</strong> {{ _('Members') }}
+                </span>
+              </div>
+            </div>
+
+          </a>
+        {% endfor %}
+      </div>
+
+    {% endif %}
+  {% else %}
+    <p class="obis-np-empty">
+      {{ _('There are currently no organizations for this site') }}.
+      {% if h.check_access('organization_create') %}
+        {% link_for _('How about creating one?'), named_route=group_type+'.new' %}
+      {% endif %}
+    </p>
+  {% endif %}
+{% endblock %}
+
+{# ---- Pagination ---- #}
+{% block page_pagination %}
+  <div class="obis-np-pagination">
+    {{ page.pager(q=q or '', sort=sort_by_selected or '') }}
+  </div>
+{% endblock %}
+
+{% endblock %}{# primary_content_inner #}
+
+
+{% block secondary_content %}
+  {% snippet "organization/snippets/helper.html", group_type=group_type %}
+{% endblock %}
