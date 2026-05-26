@@ -37,9 +37,96 @@ docker compose exec ckan ckan -c /srv/app/ckan.ini zenodo export-whitelist --out
 docker compose exec ckan ckan -c /srv/app/ckan.ini zenodo harvest
 ```
 
-## Dev Instance
+## Dev Auto-Deploy
 
-The dev instance runs on the same droplet as production at `https://dev.products.obis.org:8443`. It shares the host but uses separate Docker containers, databases, and SSL certificates.
+Pushes to the `dev` branch automatically deploy to `https://dev.products.obis.org:8443`. No SSH, no manual rebuild — push and wait.
+
+### How It Works
+
+1. You push a commit to `origin/dev`
+2. GitHub sends a webhook to `https://dev.products.obis.org:8443/webhook/deploy-dev`
+3. nginx proxies the request to a small daemon (`webhook`) running on the droplet
+4. The daemon verifies the request really came from GitHub (HMAC signature check), and that the push was to `refs/heads/dev`
+5. If both checks pass, it runs `/home/deploy/bin/deploy-dev.sh`, which pulls the new commit, rebuilds the ckan image, restarts the stack, and waits for it to be healthy
+6. The script reports back to GitHub as a commit status — green check on success, red X on failure
+
+Total time: ~30 seconds for a cached build, 2-3 minutes for a real one.
+
+### Monitoring
+
+Each commit on the dev branch gets a status next to it on GitHub. Click the status icon to see what happened.
+
+| Where | What |
+|---|---|
+| `https://github.com/iobis/obis-products-catalog/commits/dev` | Status badges on every commit |
+| GitHub webhook page → Recent Deliveries | Per-delivery request/response logs |
+| `/var/log/deploy-dev.log` on the droplet | Full deploy output |
+| `sudo journalctl -u webhook` | Webhook daemon logs |
+
+A failed status check on your own push generates a GitHub email by default. That's the failure ping.
+
+### Security
+
+The webhook URL is publicly reachable, but every request must carry a valid HMAC-SHA256 signature computed with a shared secret. Without the secret, requests are rejected with HTTP 500. The daemon itself binds to the docker bridge IP (`172.17.0.1:9000`), not the public internet — only nginx (which lives on the same bridge) can reach it. The deploy script runs as a non-root `deploy` user with Docker group access, not as root. The systemd unit hardens this further with `ProtectSystem=strict`, restricting filesystem writes to a small allowlist.
+
+The deploy script does `git reset --hard origin/dev` — anything edited directly in `/opt/dev-obis-products-catalog` will be wiped on the next deploy. Edit locally, push through GitHub.
+
+### Disabling Temporarily
+
+```bash
+sudo systemctl stop webhook
+```
+
+GitHub will retry deliveries a few times, then mark them failed. Re-enable with `sudo systemctl start webhook`.
+
+### Running a Deploy Manually
+
+If you need to bypass GitHub (e.g. the webhook isn't firing and you want to test):
+
+```bash
+sudo -u deploy /home/deploy/bin/deploy-dev.sh
+```
+
+### Moving Parts
+
+| What | Where | Notes |
+|---|---|---|
+| Deploy script | `/home/deploy/bin/deploy-dev.sh` | Runs as `deploy` user |
+| Systemd unit | `/etc/systemd/system/webhook.service` | `sudo systemctl status webhook` |
+| Webhook daemon config | `/etc/webhook/hooks.json` | Contains the HMAC secret |
+| GitHub PAT | `/etc/webhook/github-token` | For posting commit statuses; owned by `deploy`, mode 600 |
+| nginx route | `/opt/dev-obis-products-catalog/nginx/setup/default.dev.conf` | `location /webhook/` block |
+| Deploy log | `/var/log/deploy-dev.log` | Owned by `deploy`, no rotation configured |
+
+### Rotating the GitHub PAT
+
+The PAT expires (currently set to 1 year). When it does, commit statuses stop posting — deploys continue working, you just stop seeing green/red checks on GitHub.
+
+To rotate:
+
+1. Generate a new fine-grained PAT at https://github.com/settings/personal-access-tokens
+   - Resource owner: **iobis**
+   - Repository access: **Only select repositories** → `obis-products-catalog`
+   - Repository permissions: **Commit statuses: Read and write**
+2. Replace the file on the droplet:
+   ```bash
+   sudo install -m 600 -o deploy -g deploy /dev/stdin /etc/webhook/github-token
+   ```
+   Paste the new token, then Ctrl-D. No restart needed — the script re-reads the file on each deploy.
+3. Delete the old PAT on GitHub.
+
+### Rotating the Webhook Secret
+
+If the secret leaks (committed to git, posted in a screenshot, etc.):
+
+1. Generate a new secret: `openssl rand -hex 32`
+2. Replace it in `/etc/webhook/hooks.json` (the `"secret":` value)
+3. Restart the daemon: `sudo systemctl restart webhook`
+4. Update the secret in the GitHub webhook settings to match
+
+---
+
+That's it. Want me to also add a one-line mention in the "Dev Instance" intro section pointing readers at this new section? Something like "Deploys happen automatically on push to dev — see [Dev Auto-Deploy](#dev-auto-deploy) below."
 
 ### Directory Layout
 
