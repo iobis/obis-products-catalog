@@ -1,0 +1,16 @@
+{% extends "organization/read_base.html" %}
+
+{% block subtitle %}{{ _('About') }} {{ g.template_title_delimiter }} {{ super() }}{% endblock %}
+
+{% block primary_content_inner %}
+  {% block organization_description %}
+    {% if group_dict.description %}
+      <div class="obis-org-about-desc">
+        {{ h.render_markdown(group_dict.description) }}
+      </div>
+    {% endif %}
+  {% endblock %}
+  {% block organization_extras %}
+    {% snippet 'snippets/additional_info.html', extras=h.sorted_extras(group_dict.extras) %}
+  {% endblock %}
+{% endblock %}

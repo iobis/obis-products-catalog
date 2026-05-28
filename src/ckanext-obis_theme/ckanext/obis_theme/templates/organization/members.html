@@ -1,0 +1,38 @@
+{% extends "organization/read_base.html" %}
+
+{% block subtitle %}{{ _('Members') }} {{ g.template_title_delimiter }} {{ super() }}{% endblock %}
+
+{% block page_primary_action %}{% endblock %}
+
+{% block primary_content_inner %}
+
+  {# ---- Members table ---- #}
+  <div class="obis-org-members">
+
+    {% set count = members | length %}
+    <h2 class="obis-org-members__count">
+      {{ ungettext('{count} member', '{count} members', count).format(count=count) }}
+    </h2>
+
+    <table class="table table-header table-hover table-bordered">
+      <thead>
+        <tr>
+          <th>{{ _('User') }}</th>
+          <th>{{ _('Role') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user_id, user, role in members %}
+          <tr>
+            <td class="media">
+              {{ h.linked_user(user_id, maxlength=40) }}
+            </td>
+            <td>{{ role }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  </div>
+
+{% endblock %}

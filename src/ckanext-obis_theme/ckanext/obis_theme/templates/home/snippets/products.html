@@ -92,7 +92,7 @@
   }
 </style>
 
-<script>
+<!-- <script>
   (function () {
     /* ---- Config ---- */
     var AUTOPLAY_DELAY = 5000; /* milliseconds between auto-advances */
@@ -147,6 +147,74 @@
     function resetTimer() {
       clearInterval(timer);
       startTimer();
+    }
+
+    /* Pause on hover, resume on leave */
+    root.addEventListener('mouseenter', function () { clearInterval(timer); });
+    root.addEventListener('mouseleave', function () { startTimer(); });
+
+    /* ---- Init ---- */
+    goTo(0);
+    startTimer();
+  })();
+</script> -->
+
+<script>
+  (function () {
+    /* ---- Config ---- */
+    var AUTOPLAY_DELAY = 6000; /* ms between auto-advances */
+
+    /* ---- Elements ---- */
+    var carousels = document.querySelectorAll('.obis-carousel');
+    var root    = carousels[carousels.length - 1];
+    var track   = root.querySelector('.obis-carousel__track');
+    var dotsEl  = root.querySelector('.obis-carousel__dots');
+    var btnPrev = root.querySelector('.obis-carousel__btn--prev');
+    var btnNext = root.querySelector('.obis-carousel__btn--next');
+    var counter = root.querySelector('.obis-carousel__counter');
+    var slides  = track.querySelectorAll('.obis-carousel__slide');
+    var total   = slides.length;
+    var current = 0;
+    var timer   = null;
+
+    /* ---- Build dots ---- */
+    for (var i = 0; i < total; i++) {
+      var dot = document.createElement('span');
+      dot.className = 'obis-carousel__dot' + (i === 0 ? ' is-active' : '');
+      dot.dataset.index = i;
+      dot.addEventListener('click', function () {
+        goTo(parseInt(this.dataset.index));
+        startTimer(); /* self-clears any existing interval */
+      });
+      dotsEl.appendChild(dot);
+    }
+
+    /* ---- Navigate ---- */
+    function goTo(index) {
+      current = (index + total) % total; /* wraps around */
+      track.style.transform = 'translateX(-' + (current * 100) + '%)';
+      counter.textContent = (current + 1) + ' / ' + total;
+      dotsEl.querySelectorAll('.obis-carousel__dot').forEach(function (d, i) {
+        d.classList.toggle('is-active', i === current);
+      });
+    }
+
+    btnPrev.addEventListener('click', function () {
+      goTo(current - 1);
+      startTimer();
+    });
+
+    btnNext.addEventListener('click', function () {
+      goTo(current + 1);
+      startTimer();
+    });
+
+    /* ---- Auto-advance ---- */
+    /* Always clears any existing interval before creating a new one,
+       so it is impossible to have two intervals running at once. */
+    function startTimer() {
+      clearInterval(timer);
+      timer = setInterval(function () { goTo(current + 1); }, AUTOPLAY_DELAY);
     }
 
     /* Pause on hover, resume on leave */

@@ -68,6 +68,26 @@ a {
     text-decoration: none !important;
 }
 
+/* Fix footer */
+html {
+    height: 100%;
+}
+
+body {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* CKAN's main wrapper — grows to push footer down */
+.container-fluid {
+    flex: 1 0 auto;
+}
+
+.site-footer {
+    flex-shrink: 0;
+    margin-top: auto;
+}
 
 /* ================================================================
    3. LAYOUT — MASTHEAD & NAVIGATION
@@ -2324,6 +2344,104 @@ a.obis-pp-tag-pill:hover {
     color: var(--color-dark);
 }
 
+
+/* Organization member view */
+
+/* Organisation members table — scoped to members page only */
+/* ---- Members count heading ---- */
+.obis-org-members__count {
+    font-size: 20px;
+    font-weight: 800;
+    color: #042C53;
+    letter-spacing: -0.02em;
+    margin: 0 0 1rem;
+}
+
+/* ---- Table — scoped to members page only ---- */
+.obis-org-members .table-bordered {
+    border: none !important;
+}
+
+.obis-org-members .table-bordered>thead>tr>th,
+.obis-org-members .table-bordered>tbody>tr>td {
+    border: none !important;
+    border-bottom: 0.5px solid var(--color-border) !important;
+}
+
+.obis-org-members .table-header>thead>tr>th {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-mid);
+    padding: 8px 12px;
+    background: transparent;
+    border-bottom: 1px solid var(--color-border) !important;
+}
+
+.obis-org-members .table-hover>tbody>tr {
+    transition: background 0.15s;
+}
+
+.obis-org-members .table-hover>tbody>tr:last-child td {
+    border-bottom: none !important;
+}
+
+.obis-org-members .table-hover>tbody>tr:hover>td {
+    background: #F4F6F8 !important;
+}
+
+.obis-org-members .table-hover>tbody>tr>td {
+    padding: 10px 12px;
+    vertical-align: middle;
+    color: var(--color-dark);
+    font-size: 13px;
+}
+
+/* Avatar + name cell */
+.obis-org-members .table-hover>tbody>tr>td.media {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.obis-org-members .table-hover>tbody>tr>td.media .user-image {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.obis-org-members .table-hover>tbody>tr>td.media a {
+    font-weight: 600;
+    color: #185FA5;
+    text-decoration: none;
+    transition: color 0.15s;
+}
+
+.obis-org-members .table-hover>tbody>tr>td.media a:hover {
+    color: #0C447C;
+    text-decoration: none;
+}
+
+/* Role cell */
+.obis-org-members .table-hover>tbody>tr>td:last-child {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-mid);
+    text-transform: capitalize;
+}
+
+/* About page */
+.obis-org-about-desc {
+    font-size: 14px;
+    color: var(--color-mid);
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+}
+
+.obis-org-about-desc p { margin-bottom: 0.75rem; }
+.obis-org-about-desc p:last-child { margin-bottom: 0; }
 
 /* ================================================================
    21. CKAN OVERRIDES — GENERAL LAYOUT
