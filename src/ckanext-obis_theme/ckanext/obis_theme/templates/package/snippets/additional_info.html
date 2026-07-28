@@ -2,290 +2,421 @@
 
 <section class="additional-info">
   <h3>{{ _('Additional Info') }}</h3>
-  
-  <table class="table table-striped table-bordered table-condensed">
-    <thead>
-      <tr>
-        <th scope="col">{{ _('Field') }}</th>
-        <th scope="col">{{ _('Value') }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      {# Canonical ID / DOI #}
-      {% if pkg_dict.canonical_id %}
-        <tr>
-          <th scope="row">{{ _('Canonical ID') }}</th>
-          <td><a href="{{ pkg_dict.canonical_id }}" target="_blank">{{ pkg_dict.canonical_id }}</a></td>
-        </tr>
-      {% endif %}
+  <div class="obis-ai">
 
-      {# DOI (if different from canonical_id) #}
-      {% if pkg_dict.doi and pkg_dict.doi != pkg_dict.canonical_id %}
-        <tr>
-          <th scope="row">{{ _('DOI') }}</th>
-          <td><a href="{{ pkg_dict.doi }}" target="_blank">{{ pkg_dict.doi }}</a></td>
-        </tr>
-      {% endif %}
+    {# Canonical ID / DOI #}
+    {% if pkg_dict.canonical_id %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Canonical ID') }}</span>
+      <span class="obis-ai__value">
+        <a class="obis-ai__link" href="{{ pkg_dict.canonical_id }}" target="_blank">
+          {{ pkg_dict.canonical_id }}
+        </a>
+      </span>
+    </div>
+    {% endif %}
 
-      {# Resource Type #}
-      {% if pkg_dict.resource_type %}
-        <tr>
-          <th scope="row">{{ _('Resource Type') }}</th>
-          <td>{{ pkg_dict.resource_type }}</td>
-        </tr>
-      {% endif %}
+    {# DOI (if different from canonical_id) #}
+    {% if pkg_dict.doi and pkg_dict.doi != pkg_dict.canonical_id %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('DOI') }}</span>
+      <span class="obis-ai__value">
+        <a class="obis-ai__link" href="{{ pkg_dict.doi }}" target="_blank">{{ pkg_dict.doi }}</a>
+      </span>
+    </div>
+    {% endif %}
 
-      {# Authors #}
-      {% set authors = h.obis_parse_json_field(pkg_dict.authors) %}
-      {% if authors %}
-        <tr>
-          <th scope="row">{{ _('Authors') }}</th>
-          <td>
-            {% for author in authors %}
-              <div style="margin-bottom: 6px;">
-                <strong>{{ author.author_name or author.name or 'Unknown' }}</strong>
-                {% if author.author_affiliation_name or author.affiliation %}
-                  <span style="color: var(--color-mid);"> — {{ author.author_affiliation_name or author.affiliation }}</span>
-                {% endif %}
-                {% if author.author_orcid or author.orcid %}
-                  <a href="{{ author.author_orcid or author.orcid }}" target="_blank" style="margin-left: 6px;">
-                    <i class="fa fa-external-link"></i> ORCID
-                  </a>
-                {% endif %}
-              </div>
-            {% endfor %}
-          </td>
-        </tr>
-      {% endif %}
+    {# Resource Type #}
+    {% if pkg_dict.resource_type %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Resource Type') }}</span>
+      <span class="obis-ai__value">{{ pkg_dict.resource_type }}</span>
+    </div>
+    {% endif %}
 
-      {# Contributors #}
-      {% set contributors = h.obis_parse_json_field(pkg_dict.contributors) %}
-      {% if contributors %}
-        <tr>
-          <th scope="row">{{ _('Contributors') }}</th>
-          <td>
-            {% for contrib in contributors %}
-              <div style="margin-bottom: 6px;">
-                <strong>{{ contrib.contributor_name or contrib.name or 'Unknown' }}</strong>
-                {% if contrib.contributor_affiliation_name or contrib.affiliation %}
-                  <span style="color: var(--color-mid);"> — {{ contrib.contributor_affiliation_name or contrib.affiliation }}</span>
-                {% endif %}
-              </div>
-            {% endfor %}
-          </td>
-        </tr>
-      {% endif %}
+    {# Authors #}
+    {% set authors = h.obis_parse_json_field(pkg_dict.authors) %}
+    {% if authors %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Authors') }}</span>
+      <span class="obis-ai__value">
+        {% for author in authors %}
+        <div class="obis-ai__person">
+          <strong>{{ author.author_name or author.name or _('Unknown') }}</strong>
+          {% if author.author_affiliation_name or author.affiliation %}
+          <span class="obis-ai__muted"> — {{ author.author_affiliation_name or author.affiliation }}</span>
+          {% endif %}
+          {% if author.author_orcid or author.orcid %}
+          <a class="obis-ai__orcid" href="{{ author.author_orcid or author.orcid }}" target="_blank">
+            <i class="fa fa-external-link" aria-hidden="true"></i> ORCID
+          </a>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </span>
+    </div>
+    {% endif %}
 
-      {# Publisher #}
-      {% if pkg_dict.publisher_name %}
-        <tr>
-          <th scope="row">{{ _('Publisher') }}</th>
-          <td>{{ pkg_dict.publisher_name }}</td>
-        </tr>
-      {% endif %}
+    {# Contributors #}
+    {% set contributors = h.obis_parse_json_field(pkg_dict.contributors) %}
+    {% if contributors %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Contributors') }}</span>
+      <span class="obis-ai__value">
+        {% for contrib in contributors %}
+        <div class="obis-ai__person">
+          <strong>{{ contrib.contributor_name or contrib.name or _('Unknown') }}</strong>
+          {% if contrib.contributor_affiliation_name or contrib.affiliation %}
+          <span class="obis-ai__muted"> — {{ contrib.contributor_affiliation_name or contrib.affiliation }}</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </span>
+    </div>
+    {% endif %}
 
-      {# Date Published #}
-      {% if pkg_dict.date_published %}
-        <tr>
-          <th scope="row">{{ _('Date Published') }}</th>
-          <td>{{ pkg_dict.date_published }}</td>
-        </tr>
-      {% endif %}
+    {# Publisher #}
+    {% if pkg_dict.publisher_name %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Publisher') }}</span>
+      <span class="obis-ai__value">{{ pkg_dict.publisher_name }}</span>
+    </div>
+    {% endif %}
 
-      {# Date Created #}
-      {% if pkg_dict.date_created %}
-        <tr>
-          <th scope="row">{{ _('Date Created') }}</th>
-          <td>{{ pkg_dict.date_created }}</td>
-        </tr>
-      {% endif %}
+    {# Product Types #}
+    {% if pkg_dict.product_type %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Product Types') }}</span>
+      <span class="obis-ai__value obis-ai__tags">
+        {% if pkg_dict.product_type is string %}
+        <span class="obis-ai__tag obis-ai__tag--blue">{{ pkg_dict.product_type }}</span>
+        {% else %}
+        {% for item in pkg_dict.product_type %}
+        <span class="obis-ai__tag obis-ai__tag--blue">{{ item }}</span>
+        {% endfor %}
+        {% endif %}
+      </span>
+    </div>
+    {% endif %}
 
-      {# Date Modified #}
-      {% if pkg_dict.date_modified %}
-        <tr>
-          <th scope="row">{{ _('Date Modified') }}</th>
-          <td>{{ pkg_dict.date_modified }}</td>
-        </tr>
-      {% endif %}
+    {# Thematic Areas #}
+    {% if pkg_dict.thematic_tags %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Thematic Areas') }}</span>
+      <span class="obis-ai__value obis-ai__tags">
+        {% if pkg_dict.thematic_tags is string %}
+        <span class="obis-ai__tag obis-ai__tag--green">{{ pkg_dict.thematic_tags }}</span>
+        {% else %}
+        {% for item in pkg_dict.thematic_tags %}
+        <span class="obis-ai__tag obis-ai__tag--green">{{ item }}</span>
+        {% endfor %}
+        {% endif %}
+      </span>
+    </div>
+    {% endif %}
 
-      {# License #}
-      {% if pkg_dict.license_title %}
-        <tr>
-          <th scope="row">{{ _('License') }}</th>
-          <td>
-            {% if pkg_dict.license_url %}
-              <a href="{{ pkg_dict.license_url }}" target="_blank">{{ pkg_dict.license_title }}</a>
-            {% else %}
-              {{ pkg_dict.license_title }}
-            {% endif %}
-          </td>
-        </tr>
-      {% endif %}
+    {# License #}
+    {% if pkg_dict.license_title %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('License') }}</span>
+      <span class="obis-ai__value">
+        {% if pkg_dict.license_url %}
+        <a class="obis-ai__link" href="{{ pkg_dict.license_url }}" target="_blank">
+          {{ pkg_dict.license_title }}
+        </a>
+        {% else %}
+        {{ pkg_dict.license_title }}
+        {% endif %}
+      </span>
+    </div>
+    {% endif %}
 
-      {# Keywords #}
-      {% if pkg_dict.keywords %}
-        <tr>
-          <th scope="row">{{ _('Keywords') }}</th>
-          <td>{{ pkg_dict.keywords }}</td>
-        </tr>
-      {% endif %}
+    {# Version #}
+    {% if pkg_dict.version %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Version') }}</span>
+      <span class="obis-ai__value">{{ pkg_dict.version }}</span>
+    </div>
+    {% endif %}
 
-      {# Language #}
-      {% if pkg_dict.language %}
-        <tr>
-          <th scope="row">{{ _('Language') }}</th>
-          <td>{{ pkg_dict.language }}</td>
-        </tr>
-      {% endif %}
-      
-      {# Product Types #}
-      {% if pkg_dict.product_type %}
-        <tr>
-          <th scope="row">{{ _('Product Types') }}</th>
-          <td>
-            {% if pkg_dict.product_type is string %}
-              <span class="label label-info" style="background-color: #5bc0de; color: white; padding: 3px 8px; border-radius: 3px; font-size: 12px; display: inline-block; margin-right: 5px; margin-bottom: 5px;">{{ pkg_dict.product_type }}</span>
-            {% else %}
-              {% for item in pkg_dict.product_type %}
-                <span class="label label-info" style="background-color: #5bc0de; color: white; padding: 3px 8px; border-radius: 3px; font-size: 12px; display: inline-block; margin-right: 5px; margin-bottom: 5px;">{{ item }}</span>
-              {% endfor %}
-            {% endif %}
-          </td>
-        </tr>
-      {% endif %}
+    {# Language #}
+    {% if pkg_dict.language %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Language') }}</span>
+      <span class="obis-ai__value">{{ pkg_dict.language }}</span>
+    </div>
+    {% endif %}
 
-      {# Thematic Areas #}
-      {% if pkg_dict.thematic_tags %}
-        <tr>
-          <th scope="row">{{ _('Thematic Areas') }}</th>
-          <td>
-            {% if pkg_dict.thematic_tags is string %}
-              <span class="label label-success" style="background-color: #5cb85c; color: white; padding: 3px 8px; border-radius: 3px; font-size: 12px; display: inline-block; margin-right: 5px; margin-bottom: 5px;">{{ pkg_dict.thematic_tags }}</span>
-            {% else %}
-              {% for item in pkg_dict.thematic_tags %}
-                <span class="label label-success" style="background-color: #5cb85c; color: white; padding: 3px 8px; border-radius: 3px; font-size: 12px; display: inline-block; margin-right: 5px; margin-bottom: 5px;">{{ item }}</span>
-              {% endfor %}
-            {% endif %}
-          </td>
-        </tr>
-      {% endif %}
+    {# Keywords #}
+    {% if pkg_dict.keywords %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Keywords') }}</span>
+      <span class="obis-ai__value obis-ai__muted">{{ pkg_dict.keywords }}</span>
+    </div>
+    {% endif %}
 
-      {# Version #}
-      {% if pkg_dict.version %}
-        <tr>
-          <th scope="row">{{ _('Version') }}</th>
-          <td>{{ pkg_dict.version }}</td>
-        </tr>
-      {% endif %}
+    {# Temporal Coverage #}
+    {% if pkg_dict.temporal_coverage %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Temporal Coverage') }}</span>
+      <span class="obis-ai__value">{{ pkg_dict.temporal_coverage }}</span>
+    </div>
+    {% endif %}
 
-      {# Temporal Coverage #}
-      {% if pkg_dict.temporal_coverage %}
-        <tr>
-          <th scope="row">{{ _('Temporal Coverage') }}</th>
-          <td>{{ pkg_dict.temporal_coverage }}</td>
-        </tr>
-      {% endif %}
+    {# Spatial Coverage #}
+    {% if pkg_dict.spatial_coverage_type %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Spatial Coverage') }}</span>
+      <span class="obis-ai__value">{{ pkg_dict.spatial_coverage_type | capitalize }}</span>
+    </div>
+    {% endif %}
 
-      {# Spatial Coverage Type #}
-      {% if pkg_dict.spatial_coverage_type %}
-        <tr>
-          <th scope="row">{{ _('Spatial Coverage Type') }}</th>
-          <td>{{ pkg_dict.spatial_coverage_type | capitalize }}</td>
-        </tr>
-      {% endif %}
+    {% if pkg_dict.spatial_box %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Bounding Box') }}</span>
+      <span class="obis-ai__value obis-ai__muted">{{ pkg_dict.spatial_box }}</span>
+    </div>
+    {% endif %}
 
-      {# Spatial Bounding Box #}
-      {% if pkg_dict.spatial_box %}
-        <tr>
-          <th scope="row">{{ _('Spatial Bounding Box') }}</th>
-          <td>{{ pkg_dict.spatial_box }}</td>
-        </tr>
-      {% endif %}
+    {% if pkg_dict.spatial_point_latitude and pkg_dict.spatial_point_longitude %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Spatial Point') }}</span>
+      <span class="obis-ai__value obis-ai__muted">
+        Lat: {{ pkg_dict.spatial_point_latitude }}, Lon: {{ pkg_dict.spatial_point_longitude }}
+      </span>
+    </div>
+    {% endif %}
 
-      {# Spatial Point #}
-      {% if pkg_dict.spatial_point_latitude and pkg_dict.spatial_point_longitude %}
-        <tr>
-          <th scope="row">{{ _('Spatial Point') }}</th>
-          <td>Lat: {{ pkg_dict.spatial_point_latitude }}, Lon: {{ pkg_dict.spatial_point_longitude }}</td>
-        </tr>
-      {% endif %}
+    {% if pkg_dict.spatial_description %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Spatial Description') }}</span>
+      <span class="obis-ai__value">{{ pkg_dict.spatial_description }}</span>
+    </div>
+    {% endif %}
 
-      {# Spatial Description #}
-      {% if pkg_dict.spatial_description %}
-        <tr>
-          <th scope="row">{{ _('Spatial Description') }}</th>
-          <td>{{ pkg_dict.spatial_description }}</td>
-        </tr>
-      {% endif %}
+    {# Funding #}
+    {% set funding = h.obis_parse_json_field(pkg_dict.funding) %}
+    {% if funding %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Funding') }}</span>
+      <span class="obis-ai__value">
+        {% for fund in funding %}
+        <div class="obis-ai__person">
+          {% if fund.funder_name %}<strong>{{ fund.funder_name }}</strong>{% endif %}
+          {% if fund.grant_name %}<span class="obis-ai__muted"> — {{ fund.grant_name }}</span>{% endif %}
+          {% if fund.grant_id %}<span class="obis-ai__muted"> ({{ fund.grant_id }})</span>{% endif %}
+          {% if fund.grant_url %}
+          <a class="obis-ai__orcid" href="{{ fund.grant_url }}" target="_blank">
+            <i class="fa fa-external-link" aria-hidden="true"></i>
+          </a>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </span>
+    </div>
+    {% endif %}
 
-      {# Funding #}
-      {% set funding = h.obis_parse_json_field(pkg_dict.funding) %}
-      {% if funding %}
-        <tr>
-          <th scope="row">{{ _('Funding') }}</th>
-          <td>
-            {% for fund in funding %}
-              <div style="margin-bottom: 6px;">
-                {% if fund.funder_name %}<strong>{{ fund.funder_name }}</strong>{% endif %}
-                {% if fund.grant_name %} — {{ fund.grant_name }}{% endif %}
-                {% if fund.grant_id %} ({{ fund.grant_id }}){% endif %}
-                {% if fund.grant_url %}
-                  <a href="{{ fund.grant_url }}" target="_blank" style="margin-left: 6px;">
-                    <i class="fa fa-external-link"></i>
-                  </a>
-                {% endif %}
-              </div>
-            {% endfor %}
-          </td>
-        </tr>
-      {% endif %}
+    {# Source / Zenodo URLs #}
+    {% if pkg_dict.source_url %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Source URL') }}</span>
+      <span class="obis-ai__value">
+        <a class="obis-ai__link" href="{{ pkg_dict.source_url }}" target="_blank">
+          {{ pkg_dict.source_url }}
+        </a>
+      </span>
+    </div>
+    {% endif %}
 
-      {# Zenodo Record ID #}
-      {% if pkg_dict.zenodo_record_id %}
-        <tr>
-          <th scope="row">{{ _('Zenodo Record ID') }}</th>
-          <td>
-            <a href="https://zenodo.org/records/{{ pkg_dict.zenodo_record_id }}" target="_blank">
-              {{ pkg_dict.zenodo_record_id }}
-            </a>
-          </td>
-        </tr>
-      {% endif %}
+    {% if pkg_dict.zenodo_record_id %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Zenodo Record') }}</span>
+      <span class="obis-ai__value">
+        <a class="obis-ai__link" href="https://zenodo.org/records/{{ pkg_dict.zenodo_record_id }}" target="_blank">
+          {{ pkg_dict.zenodo_record_id }}
+        </a>
+      </span>
+    </div>
+    {% endif %}
 
-      {# Zenodo URL #}
-      {% if pkg_dict.source_url %}
-        <tr>
-          <th scope="row">{{ _('Source URL') }}</th>
-          <td><a href="{{ pkg_dict.source_url }}" target="_blank">{{ pkg_dict.source_url }}</a></td>
-        </tr>
-      {% endif %}
+    {# Content Size #}
+    {% if pkg_dict.content_size %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Content Size') }}</span>
+      <span class="obis-ai__value obis-ai__muted">{{ pkg_dict.content_size }}</span>
+    </div>
+    {% endif %}
 
-      {# Content Size #}
-      {% if pkg_dict.content_size %}
-        <tr>
-          <th scope="row">{{ _('Content Size') }}</th>
-          <td>{{ pkg_dict.content_size }}</td>
-        </tr>
-      {% endif %}
+    {# Dates #}
+    {% if pkg_dict.date_published %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Date Published') }}</span>
+      <span class="obis-ai__value obis-ai__muted">{{ pkg_dict.date_published }}</span>
+    </div>
+    {% endif %}
 
-      {# Harvest Timestamp #}
-      {% if pkg_dict.harvest_timestamp %}
-        <tr>
-          <th scope="row">{{ _('Harvest Timestamp') }}</th>
-          <td>{{ pkg_dict.harvest_timestamp }}</td>
-        </tr>
-      {% endif %}
+    {% if pkg_dict.date_created %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Date Created') }}</span>
+      <span class="obis-ai__value obis-ai__muted">{{ pkg_dict.date_created }}</span>
+    </div>
+    {% endif %}
 
-      {# CKAN Metadata #}
-      <tr>
-        <th scope="row">{{ _('Metadata Created') }}</th>
-        <td>{{ h.render_datetime(pkg_dict.metadata_created, with_hours=True) }}</td>
-      </tr>
+    {% if pkg_dict.date_modified %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Date Modified') }}</span>
+      <span class="obis-ai__value obis-ai__muted">{{ pkg_dict.date_modified }}</span>
+    </div>
+    {% endif %}
 
-      <tr>
-        <th scope="row">{{ _('Metadata Modified') }}</th>
-        <td>{{ h.render_datetime(pkg_dict.metadata_modified, with_hours=True) }}</td>
-      </tr>
-    </tbody>
-  </table>
+    {% if pkg_dict.harvest_timestamp %}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Harvest Timestamp') }}</span>
+      <span class="obis-ai__value obis-ai__muted">{{ pkg_dict.harvest_timestamp }}</span>
+    </div>
+    {% endif %}
+
+    {# CKAN system dates — always shown #}
+    <div class="obis-ai__row">
+      <span class="obis-ai__label">{{ _('Metadata Created') }}</span>
+      <span class="obis-ai__value obis-ai__muted">
+        {{ h.render_datetime(pkg_dict.metadata_created, with_hours=True) }}
+      </span>
+    </div>
+
+    <div class="obis-ai__row obis-ai__row--last">
+      <span class="obis-ai__label">{{ _('Metadata Modified') }}</span>
+      <span class="obis-ai__value obis-ai__muted">
+        {{ h.render_datetime(pkg_dict.metadata_modified, with_hours=True) }}
+      </span>
+    </div>
+
+  </div>
 </section>
+
+{# ================================================================
+CSS — add to your stylesheet
+================================================================ #}
+<style>
+  /* Bordered card wrapper */
+  .obis-ai {
+    border: 0.5px solid var(--color-border);
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 13px;
+  }
+
+  /* Each row */
+  .obis-ai__row {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 10px 14px;
+    border-bottom: 0.5px solid var(--color-border);
+  }
+
+  .obis-ai__row--last,
+  .obis-ai__row:last-child {
+    border-bottom: none;
+  }
+
+  /* Alternating row background */
+  .obis-ai__row:nth-child(even) {
+    background: var(--color-light, #F8F9FA);
+  }
+
+  /* Label column */
+  .obis-ai__label {
+    flex: 0 0 180px;
+    font-weight: 600;
+    color: var(--color-mid);
+    white-space: nowrap;
+  }
+
+  /* Value column */
+  .obis-ai__value {
+    flex: 1;
+    color: var(--color-dark);
+    line-height: 1.6;
+    min-width: 0;
+  }
+
+  .obis-ai__muted {
+    color: var(--color-mid);
+  }
+
+  /* Links */
+  .obis-ai__link {
+    color: #185FA5;
+    text-decoration: none;
+    word-break: break-all;
+  }
+
+  .obis-ai__link:hover {
+    text-decoration: underline;
+  }
+
+  /* ORCID / external link badge */
+  .obis-ai__orcid {
+    font-size: 11px;
+    color: #185FA5;
+    text-decoration: none;
+    margin-left: 6px;
+  }
+
+  .obis-ai__orcid:hover {
+    text-decoration: underline;
+  }
+
+  /* Person / funding entries */
+  .obis-ai__person {
+    margin-bottom: 6px;
+    line-height: 1.5;
+  }
+
+  .obis-ai__person:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Tag chips */
+  .obis-ai__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+
+  .obis-ai__tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: 4px;
+    padding: 2px 8px;
+  }
+
+  .obis-ai__tag--blue {
+    background: #E6F1FB;
+    color: #0C447C;
+  }
+
+  .obis-ai__tag--green {
+    background: #E1F5EE;
+    color: #0F6E56;
+  }
+
+  /* Responsive: stack label above value on small screens */
+  @media (max-width: 600px) {
+    .obis-ai__row {
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .obis-ai__label {
+      flex: none;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+  }
+</style>

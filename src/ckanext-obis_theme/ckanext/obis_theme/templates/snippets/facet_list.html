@@ -86,32 +86,3 @@ Dictionary with search facets
         </div>
     </section>
 {% endif %}
-
-<style>
-    .facet-toggle {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        text-decoration: none;
-        color: inherit;
-        width: 100%;
-    }
-
-    .facet-toggle:hover {
-        text-decoration: none;
-        color: inherit;
-    }
-
-    .facet-caret {
-        font-size: 10px;
-        transition: transform 0.2s ease;
-    }
-
-    .facet-toggle.collapsed .facet-caret {
-        transform: rotate(0deg);
-    }
-
-    .facet-toggle:not(.collapsed) .facet-caret {
-        transform: rotate(180deg);
-    }
-</style>

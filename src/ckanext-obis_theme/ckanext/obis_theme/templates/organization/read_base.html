@@ -1,0 +1,157 @@
+{% extends "page.html" %}
+{% set dataset_type = h.default_package_type() %}
+{% set organization = group_dict %}
+
+{% block subtitle %}{{ group_dict.display_name }} {{ g.template_title_delimiter }} {{ h.humanize_entity_type('organization', group_type, 'page title') or _('Organizations') }}{% endblock %}
+
+{% block breadcrumb_content %}
+  <li>{% link_for h.humanize_entity_type('organization', group_type, 'breadcrumb') or _('Organizations'), named_route=group_type+'.index' %}</li>
+  <li class="active">{% link_for group_dict.display_name|truncate(35), named_route=group_type+'.read', id=group_dict.name, title=group_dict.display_name %}</li>
+{% endblock %}
+
+{# Suppress the default "Manage" button — we put Edit in the hero tabs #}
+{% block content_action %}{% endblock %}
+
+{# Suppress the default nav tabs — we render our own below the hero #}
+{% block content_primary_nav %}{% endblock %}
+
+{% block primary_content %}
+
+  {# ---- Resolve banner ---- #}
+  {% if group_dict.image_url %}
+    {% if 'http' in group_dict.image_url %}
+      {% set img_src = group_dict.image_url %}
+    {% else %}
+      {% set img_src = h.url_for_static('uploads/group/' ~ group_dict.image_url) %}
+    {% endif %}
+    {% set banner_style = "background-image: url('" ~ img_src ~ "'); background-size: cover; background-position: center;" %}
+  {% else %}
+    {% set banner_style = "background: linear-gradient(135deg, #042C53 0%, #185FA5 55%, #1D9E75 100%);" %}
+  {% endif %}
+
+  {# ---- Hero ---- #}
+  <div class="obis-org-hero" style="{{ banner_style }}">
+    <div class="obis-org-hero__overlay"></div>
+    <div class="obis-org-hero__body">
+      <div>
+        <span class="obis-org-hero__eyebrow">{{ _('OBIS Node') }}</span>
+        <h1 class="obis-org-hero__name">{{ group_dict.title or group_dict.name }}</h1>
+        {% if group_dict.description %}
+          <p class="obis-org-hero__sub">{{ group_dict.description | truncate(100) }}</p>
+        {% endif %}
+      </div>
+      <div class="obis-org-hero__stats">
+        <div class="obis-org-hero__stat">
+          <strong>{{ group_dict.package_count or 0 }}</strong>
+          <span>{{ _('Products') }}</span>
+        </div>
+        <div class="obis-org-hero__stat">
+          <strong>{{ h.follow_count('group', group_dict.id) }}</strong>
+          <span>{{ _('Followers') }}</span>
+        </div>
+        <div class="obis-org-hero__stat">
+          <strong>{{ h.member_count(group_dict.id) }}</strong>
+          <span>{{ _('Members') }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ---- Tabs ---- #}
+  <div class="obis-org-tabs">
+    <a class="obis-org-tab {% if request.endpoint == group_type ~ '.read' %}is-active{% endif %}"
+       href="{{ h.url_for(group_type ~ '.read', id=group_dict.name) }}">
+      <i class="fa fa-cube" aria-hidden="true"></i> {{ _('Products') }}
+    </a>
+    <a class="obis-org-tab {% if request.endpoint == group_type ~ '.members' %}is-active{% endif %}"
+       href="{{ h.url_for(group_type ~ '.members', id=group_dict.name) }}">
+      <i class="fa fa-users" aria-hidden="true"></i> {{ _('Members') }}
+    </a>
+    <a class="obis-org-tab {% if request.endpoint == group_type ~ '.about' %}is-active{% endif %}"
+       href="{{ h.url_for(group_type ~ '.about', id=group_dict.name) }}">
+      <i class="fa fa-info-circle" aria-hidden="true"></i> {{ _('About') }}
+    </a>
+    {% if h.check_access('organization_update', {'id': group_dict.id}) %}
+      <a class="obis-org-tab obis-org-tab--admin"
+         href="{{ h.url_for(group_type ~ '.edit', id=group_dict.name) }}">
+        <i class="fa fa-pencil" aria-hidden="true"></i> {{ _('Edit') }}
+      </a>
+    {% endif %}
+  </div>
+
+  {# ---- Page-specific content (products list, members table, about text) ---- #}
+  {% block primary_content_inner %}{% endblock %}
+
+{% endblock %}
+
+
+{# ---- Sidebar ---- #}
+{% block secondary_content %}
+
+  {# About box #}
+  {% if group_dict.description %}
+    <div class="obis-org-aside-box">
+      <div class="obis-org-aside-box__title">{{ _('About this node') }}</div>
+      <p class="obis-org-aside-box__text">
+        {{ group_dict.description | truncate(220) }}
+        {% if group_dict.description | length > 220 %}
+          <a class="obis-org-aside-box__more"
+             href="{{ h.url_for(group_type ~ '.about', id=group_dict.name) }}">
+            {{ _('read more') }}
+          </a>
+        {% endif %}
+      </p>
+    </div>
+  {% endif %}
+
+  {# Node details #}
+  <div class="obis-org-aside-box">
+    <div class="obis-org-aside-box__title">{{ _('Node details') }}</div>
+    <div class="obis-org-aside-stats">
+      <div class="obis-org-aside-stat">
+        <span class="obis-org-aside-stat__label">
+          <i class="fa fa-cube" aria-hidden="true"></i> {{ _('Products') }}
+        </span>
+        <span class="obis-org-aside-stat__val">{{ group_dict.package_count or 0 }}</span>
+      </div>
+      <div class="obis-org-aside-stat">
+        <span class="obis-org-aside-stat__label">
+          <i class="fa fa-heart" aria-hidden="true"></i> {{ _('Followers') }}
+        </span>
+        <span class="obis-org-aside-stat__val">{{ h.follow_count('group', group_dict.id) }}</span>
+      </div>
+      <div class="obis-org-aside-stat">
+        <span class="obis-org-aside-stat__label">
+          <i class="fa fa-users" aria-hidden="true"></i> {{ _('Members') }}
+        </span>
+        <span class="obis-org-aside-stat__val">{{ h.member_count(group_dict.id) }}</span>
+      </div>
+      {% if group_dict.created %}
+        <div class="obis-org-aside-stat">
+          <span class="obis-org-aside-stat__label">
+            <i class="fa fa-calendar" aria-hidden="true"></i> {{ _('Created') }}
+          </span>
+          <span class="obis-org-aside-stat__val">
+            {{ h.render_datetime(group_dict.created, '%Y') }}
+          </span>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# Follow button #}
+  {% if current_user.is_authenticated %}
+    <div class="obis-org-aside-box">
+      {% snippet 'snippets/follow_button.html', am_following=am_following, obj_type='organization', obj_id=group_dict.id %}
+    </div>
+  {% endif %}
+
+  {# Facets — only shown on the products tab, injected by read.html #}
+  {% block organization_facets %}{% endblock %}
+
+{% endblock %}
+
+{% block links %}
+  {{ super() }}
+  {% include "organization/snippets/feeds.html" %}
+{% endblock %}

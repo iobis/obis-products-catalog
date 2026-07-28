@@ -3,51 +3,240 @@
 {% block subtitle %}{{ _('About') }}{% endblock %}
 
 {% block breadcrumb_content %}
-  <li class="active">{{ _('About') }}</li>
+  <li class="active">{% link_for _('About'), named_route='home.about' %}</li>
 {% endblock %}
 
-{% block secondary_content %}
-  <div class="module">
-    <div class="module-content">
-      <h2 class="module-heading">A discovery tool for researchers and data users</h2>
-      <p>The OBIS Products Catalog is built for scientists, researchers, and data-fluent practitioners who want to find products derived from OBIS-mediated data and reuse them directly in their work.</p>
-      <p>If you're looking for high-level summaries of OBIS's impact or policy-facing outputs, those resources will live on <a href="https://obis.org" target="_blank" rel="noopener noreferrer">obis.org</a>, although we are still developing those resources.</p>
-    </div>
+{# Keep secondary empty so CKAN doesn't render a sidebar column #}
+{% block secondary_content %}{% endblock %}
+
+{# ================================================================
+   Primary — full-width, we build the two-column layout ourselves
+   ================================================================ #}
+{% block primary %}
+  <div class="obis-about-wrap">
+
+    {# ---- TOC sidebar ---- #}
+    <aside class="obis-about-toc" aria-label="{{ _('Page contents') }}">
+      <span class="obis-about-toc__title">{{ _('On this page') }}</span>
+      <a class="obis-about-toc__item is-active" href="#what-is">{{ _("What's in the catalogue") }}</a>
+      <a class="obis-about-toc__item" href="#linked-data">{{ _('Linked data') }}</a>
+      <a class="obis-about-toc__item" href="#community">{{ _('Community effort') }}</a>
+      <a class="obis-about-toc__item" href="#contribute">{{ _('How to contribute') }}</a>
+    </aside>
+
+    {# ---- Main content ---- #}
+    <article class="obis-about" role="main">
+
+      <h1 class="obis-about__title">{{ _('About the OBIS Products Catalogue') }}</h1>
+
+      <div class="obis-about__callout">
+        {% trans github_link='https://github.com/iobis/obis-products-catalog', helpdesk='mailto:helpdesk@obis.org' %}
+          Help us improve the OBIS Products Catalogue by offering feedback via
+          <a href="{{ github_link }}" target="_blank" rel="noopener">GitHub</a>
+          or <a href="{{ helpdesk }}">helpdesk@obis.org</a>
+        {% endtrans %}
+      </div>
+
+      <p class="obis-about__lead">
+        {{ _('The OBIS Products Catalogue helps you find and access information products built from OBIS-mediated marine biodiversity data. As our network has grown, we found it challenging to keep track of all the amazing products created from OBIS-mediated data. This metadata catalogue helps users find and access those products.') }}
+      </p>
+
+      {# ---- What's in the catalogue ---- #}
+      <a name="what-is" id="what-is" class="obis-about__anchor"></a>
+      <h2 class="obis-about__h2">{{ _("What's in the catalogue") }}</h2>
+      <p class="obis-about__p">
+        {{ _("Our catalogue includes diverse products created from OBIS-mediated data, organised using Zenodo's resource type classification:") }}
+      </p>
+
+      <div class="obis-about__type-grid">
+
+        <a class="obis-about__type-card"
+           href="{{ h.url_for('dataset.search', vocab_product_type_tags='dataset') }}">
+          <div class="obis-about__type-icon" style="background:#E6F1FB;">
+            <i class="fa fa-database" style="color:#185FA5;" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div class="obis-about__type-name">{{ _('Datasets') }}</div>
+            <div class="obis-about__type-desc">{{ _('Derived datasets improved or aggregated for specific purposes') }}</div>
+          </div>
+        </a>
+
+        <a class="obis-about__type-card"
+           href="{{ h.url_for('dataset.search', vocab_product_type_tags='publication') }}">
+          <div class="obis-about__type-icon" style="background:#E1F5EE;">
+            <i class="fa fa-book" style="color:#0F6E56;" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div class="obis-about__type-name">{{ _('Publications') }}</div>
+            <div class="obis-about__type-desc">{{ _('Research articles, reports, and technical documents') }}</div>
+          </div>
+        </a>
+
+        <a class="obis-about__type-card"
+           href="{{ h.url_for('dataset.search', vocab_product_type_tags='presentation') }}">
+          <div class="obis-about__type-icon" style="background:#FAEEDA;">
+            <i class="fa fa-desktop" style="color:#854F0B;" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div class="obis-about__type-name">{{ _('Presentations') }}</div>
+            <div class="obis-about__type-desc">{{ _('Conference presentations and slideshows') }}</div>
+          </div>
+        </a>
+
+        <a class="obis-about__type-card"
+           href="{{ h.url_for('dataset.search', vocab_product_type_tags='poster') }}">
+          <div class="obis-about__type-icon" style="background:#FBEAF0;">
+            <i class="fa fa-image" style="color:#993556;" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div class="obis-about__type-name">{{ _('Posters') }}</div>
+            <div class="obis-about__type-desc">{{ _('Scientific posters and visual communications') }}</div>
+          </div>
+        </a>
+
+        <a class="obis-about__type-card"
+           href="{{ h.url_for('dataset.search', vocab_product_type_tags='image') }}">
+          <div class="obis-about__type-icon" style="background:#EEEDFE;">
+            <i class="fa fa-map" style="color:#534AB7;" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div class="obis-about__type-name">{{ _('Images') }}</div>
+            <div class="obis-about__type-desc">{{ _('Maps, data visualisations, and infographics') }}</div>
+          </div>
+        </a>
+
+        <a class="obis-about__type-card"
+           href="{{ h.url_for('dataset.search', vocab_product_type_tags='video') }}">
+          <div class="obis-about__type-icon" style="background:#F4EEFD;">
+            <i class="fa fa-film" style="color:#7B4FBE;" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div class="obis-about__type-name">{{ _('Videos') }}</div>
+            <div class="obis-about__type-desc">{{ _('Animated visualisations and educational content') }}</div>
+          </div>
+        </a>
+
+        <a class="obis-about__type-card"
+           href="{{ h.url_for('dataset.search', vocab_product_type_tags='software') }}">
+          <div class="obis-about__type-icon" style="background:#EAF3DE;">
+            <i class="fa fa-code" style="color:#3B6D11;" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div class="obis-about__type-name">{{ _('Software') }}</div>
+            <div class="obis-about__type-desc">{{ _('Analysis tools, dashboards, and applications') }}</div>
+          </div>
+        </a>
+
+        <a class="obis-about__type-card"
+           href="{{ h.url_for('dataset.search', vocab_product_type_tags='lesson') }}">
+          <div class="obis-about__type-icon" style="background:#F4F6F8;">
+            <i class="fa fa-graduation-cap" style="color:#5F5E5A;" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div class="obis-about__type-name">{{ _('Lessons') }}</div>
+            <div class="obis-about__type-desc">{{ _('Educational materials and tutorials') }}</div>
+          </div>
+        </a>
+
+        <a class="obis-about__type-card"
+           href="{{ h.url_for('dataset.search') }}">
+          <div class="obis-about__type-icon" style="background:#F4F6F8;">
+            <i class="fa fa-ellipsis-h" style="color:#5F5E5A;" aria-hidden="true"></i>
+          </div>
+          <div>
+            <div class="obis-about__type-name">{{ _('Other') }}</div>
+            <div class="obis-about__type-desc">{{ _("Additional product types that don't fit the above categories") }}</div>
+          </div>
+        </a>
+
+      </div>
+
+      <p class="obis-about__p">
+        {{ _('Each product includes detailed metadata about data sources, methods, authors, and how to access or cite the work.') }}
+      </p>
+
+      {# ---- Linked data ---- #}
+      <a name="linked-data" id="linked-data" class="obis-about__anchor"></a>
+      <h2 class="obis-about__h2">{{ _('Linked data') }}</h2>
+      <p class="obis-about__p">
+        {{ _("We try as much as possible to use linked data so that the people who created the products don't have to do extra work to maintain metadata. We pull institution records from the OBIS and OceanExpert APIs. We have a tool for import of Zenodo records via a DOI.") }}
+      </p>
+
+      {# ---- Community ---- #}
+      <a name="community" id="community" class="obis-about__anchor"></a>
+      <h2 class="obis-about__h2">{{ _('Community effort') }}</h2>
+      <p class="obis-about__p">
+        {% trans pcg_link='https://manual.obis.org/nodes.html#obis-products-coordination-group', helpdesk='mailto:helpdesk@obis.org' %}
+          This catalogue is developed through the OBIS Products Coordination Group (PCG). The PCG is tasked with coordinating data and information products, from any type of analysis that synthesises and generates new information from data hosted on OBIS and other sources. The PCG meets every other month and is open to attendance by the OBIS community. More information can be found in the <a href="{{ pcg_link }}" target="_blank" rel="noopener">OBIS Manual</a>, and by contacting the OBIS Helpdesk (<a href="{{ helpdesk }}">helpdesk@obis.org</a>).
+        {% endtrans %}
+      </p>
+
+      {# ---- Contribute ---- #}
+      <a name="contribute" id="contribute" class="obis-about__anchor"></a>
+      <h2 class="obis-about__h2">{{ _('How to contribute') }}</h2>
+      <p class="obis-about__p">
+        {{ _('If you have created a product using OBIS-mediated data, we encourage you to add it to the catalogue. Contact the OBIS Secretariat or submit a request via GitHub to get started.') }}
+      </p>
+      <div class="obis-about__cta-row">
+        <a class="obis-about__btn-primary"
+           href="https://github.com/iobis/obis-products-catalog"
+           target="_blank" rel="noopener">
+          <i class="fa-brands fa-github" aria-hidden="true"></i> {{ _('Contribute on GitHub') }}
+        </a>
+        <a class="obis-about__btn-secondary" href="mailto:helpdesk@obis.org">
+          <i class="fa fa-envelope" aria-hidden="true"></i> {{ _('Contact the helpdesk') }}
+        </a>
+      </div>
+
+    </article>
+
   </div>
 {% endblock %}
 
-{% block primary_content %}
-  <article class="module">
-    <div class="module-content">
-      <h1 class="page-heading">{{ _('About the OBIS Products Catalog') }}</h1>
-      
-      <div class="alert alert-info">
-        Help us improve the OBIS Products Catalog by offering feedback via <a href="https://github.com/iobis/obis-products-catalog">GitHub</a> or <a href="mailto:helpdesk@obis.org">helpdesk@obis.org</a>
-      </div>
-      
-      <p>The OBIS Products Catalog helps you find and access information products built from OBIS-mediated marine biodiversity data. As our network has grown, we've found that it was challenging to keep track of all the amazing products that have been created from OBIS-mediated data. This metadata catalog helps users find and access those products.</p>
-      
-      <h2>What's in the Catalog</h2>
-      <p>Our catalog includes diverse products created from OBIS-mediated data, organized using Zenodo's resource type classification:</p>
-      <ul>
-        <li><strong>Datasets</strong> - Derived datasets improved or aggregated for specific purposes</li>
-        <li><strong>Publications</strong> - Research articles, reports, and technical documents</li>
-        <li><strong>Presentations</strong> - Conference presentations and slideshows</li>
-        <li><strong>Posters</strong> - Scientific posters and visual communications</li>
-        <li><strong>Images</strong> - Maps, data visualizations, and infographics</li>
-        <li><strong>Videos</strong> - Animated visualizations and educational content</li>
-        <li><strong>Software</strong> - Analysis tools, dashboards, and applications</li>
-        <li><strong>Lessons</strong> - Educational materials and tutorials</li>
-        <li><strong>Other</strong> - Additional product types that don't fit the above categories</li>
-      </ul>
-      <p>Each product includes detailed metadata about data sources, methods, authors, and how to access or cite the work.</p>
-      
-      <h2>Linked Data</h2>
-      <p>We try as much as possible to use linked data so that the people who created the products don't have to do extra work to maintain metadata. We pull institution records from the OBIS and OceanExpert APIs. We have a tool for import of Zenodo records via a DOI.</p>
-      
-      <h2>Community Effort</h2>
-      <p>This catalog is developed through the OBIS Products Coordination Group (PCG). The PCG is tasked with coordinating data and information products, from any type of analysis (e.g. description, data visualisation, etc.) that synthesise and generate new information from data hosted on OBIS and other sources. The PCG meets every other month and is open to attendance by the OBIS community. More information on the PCG can be found in the <a href="https://manual.obis.org/nodes.html#obis-products-coordination-group" target="_blank" rel="noopener noreferrer">OBIS Manual</a>, and by contacting the OBIS Helpdesk (<a href="mailto:helpdesk@obis.org">helpdesk@obis.org</a>).</p>
-      
-    </div>
-  </article>
+{% block styles %}
+  {{ super() }}
+
+  <script>
+    /* Smooth scroll for TOC links + active state update on scroll */
+    (function () {
+      var tocLinks = document.querySelectorAll('.obis-about-toc .obis-about-toc__item');
+      var sections = ['what-is', 'linked-data', 'community', 'contribute'];
+
+      /* Smooth scroll on click */
+      tocLinks.forEach(function (link) {
+        link.addEventListener('click', function (e) {
+          var href = this.getAttribute('href');
+          if (!href || href.charAt(0) !== '#') return;
+          var target = document.getElementById(href.slice(1));
+          if (!target) return;
+          e.preventDefault();
+          /* Scroll to anchor position, accounting for navbar */
+          var top = target.getBoundingClientRect().top + window.pageYOffset - 20;
+          window.scrollTo({ top: top, behavior: 'smooth' });
+          /* Update active state immediately */
+          tocLinks.forEach(function (l) { l.classList.remove('is-active'); });
+          link.classList.add('is-active');
+        });
+      });
+
+      /* Update active state on scroll */
+      function onScroll() {
+        var scrollY = window.pageYOffset + 100;
+        var active = null;
+        sections.forEach(function (id) {
+          var el = document.getElementById(id);
+          if (el && el.getBoundingClientRect().top + window.pageYOffset <= scrollY) {
+            active = id;
+          }
+        });
+        tocLinks.forEach(function (link) {
+          var href = link.getAttribute('href');
+          link.classList.toggle('is-active', href === '#' + active);
+        });
+      }
+
+      window.addEventListener('scroll', onScroll, { passive: true });
+    })();
+  </script>
+
 {% endblock %}

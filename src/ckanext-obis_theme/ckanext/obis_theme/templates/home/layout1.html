@@ -8,23 +8,26 @@
   <div class="main hero">
     <div class="container">
       <div class="row">
-        <div class="col-xs-12" style="padding: 20px 0 10px;">
+        <!-- <div class="col-xs-12" style="padding: 20px 0 10px;">
           <p style="text-align: center; font-size: 16px; color: var(--color-dark);">A discovery catalog for researchers, analysts, and data practitioners. <br>Browse tools, models, software, notebooks, and more, all derived from OBIS-mediated data.</p>
-        </div>
+        </div> -->
         {% snippet 'home/snippets/products.html' %}
         {% snippet 'home/snippets/highlights.html' %}
       </div>
     </div>
   </div>
 
+  {% snippet 'home/snippets/value-cards.html' %}
+
   <div class="main-secondary">
-    <div class="contribution-section">
+    {% snippet 'home/snippets/contribute.html' %}
+    <!-- <div class="contribution-section">
       <span style="font-weight: 900; font-size: 28px;">Want to contribute?</span>
       <div style="display: flex; gap: 20px; justify-content: center; margin-top: 15px;">
         <span style="font-size: 18px;">Contact us at: </span>
         <a href="#" id="contact-email" style="font-size: 18px; color: var(--main-color); font-weight: 600;"></a>
       </div>
-    </div>
+    </div> -->
 
     <script>
       (function() {

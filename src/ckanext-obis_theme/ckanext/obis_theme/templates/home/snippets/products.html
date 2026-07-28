@@ -1,57 +1,228 @@
-<div class="highlights-container" style="margin-bottom: 20px;">
-    <div style="display: flex; align-items: center; justify-content: space-between;">
-        <span class="section-title">Featured Products</span>
-        {% if h.obis_is_sysadmin() %}
-        <a href="{{ h.url_for('obis_theme.featured_products') }}"
-           style="font-size: 12px; color: var(--color-mid);">
-            <i class="fa fa-pencil"></i> Edit
-        </a>
-        {% endif %}
-    </div>
-    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 15px 0;">
-        {% set featured = h.obis_get_featured_datasets(4) %}
+<div class="highlights-container">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+    <!-- <span class="section-title">Featured Products</span> -->
+    {% if h.obis_is_sysadmin() %}
+      <a href="{{ h.url_for('obis_theme.featured_products') }}"
+         style="font-size: 12px; color: var(--color-mid);">
+        <i class="fa fa-pencil"></i> Edit
+      </a>
+    {% endif %}
+  </div>
+
+  {% set featured = h.obis_get_featured_datasets(6) %}
+
+  {% set gradients = [
+    "linear-gradient(135deg, #042C53 0%, #185FA5 50%, #1D9E75 100%)",
+    "linear-gradient(135deg, #04342C 0%, #0F6E56 50%, #085041 100%)",
+    "linear-gradient(135deg, #412402 0%, #854F0B 50%, #BA7517 100%)",
+    "linear-gradient(135deg, #4B1528 0%, #993556 50%, #D4537E 100%)",
+    "linear-gradient(135deg, #173404 0%, #3B6D11 50%, #639922 100%)",
+    "linear-gradient(135deg, #26215C 0%, #534AB7 50%, #7F77DD 100%)"
+  ] %}
+  {% set grad_count = gradients | length %}
+
+  <section class="obis-carousel" aria-roledescription="carousel" aria-label="Featured products">
+    <div class="obis-carousel__viewport">
+      <div class="obis-carousel__track" id="obis-track">
+
         {% for dataset in featured %}
-        <a href="{{ h.url_for('dataset.read', id=dataset.name) }}" style="text-decoration: none; color: inherit;">
-            <div style="
-                position: relative;
-                border-radius: 10px;
-                border: 1px solid var(--color-border);
-                height: 100%;
-                overflow: hidden;
-                {% if dataset.hero_image %}
-                background-image: url('{{ dataset.hero_image }}');
-                background-size: cover;
-                background-position: center;
-                {% endif %}
-            ">
-                {# Overlay — white tint if hero image, plain white otherwise #}
-                <div style="
-                    position: absolute;
-                    inset: 0;
-                    background: {% if dataset.hero_image %}rgba(255,255,255,0.82){% else %}white{% endif %};
-                "></div>
-                {# Content #}
-                <div style="position: relative; z-index: 1; padding: 12px; display: flex; flex-direction: column; gap: 6px; height: 100%;">
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        {% if dataset.product_type_tags and dataset.product_type_tags|length > 0 %}
-                            <span style="background: var(--color-accent); width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; display: block;"></span>
-                            <span style="font-weight: 700; font-size: 10px; color: var(--color-mid); text-transform: uppercase; letter-spacing: 0.05em;">{{ dataset.product_type_tags[0] }}</span>
-                        {% else %}
-                            <span style="background: var(--color-border); width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; display: block;"></span>
-                            <span style="font-weight: 700; font-size: 10px; color: var(--color-mid); text-transform: uppercase; letter-spacing: 0.05em;">Dataset</span>
-                        {% endif %}
-                    </div>
-                    <div style="font-weight: 700; font-size: 13px; line-height: 1.3; color: var(--color-dark);">
-                        {{ dataset.title|truncate(70) }}
-                    </div>
-                    <div style="font-size: 11px; color: var(--color-mid); margin-top: auto;">
-                        {% if dataset.owner_org %}
-                            {{ h.get_organization(dataset.owner_org).title }}
-                        {% endif %}
-                    </div>
-                </div>
+
+          {# Background: hero image or gradient fallback #}
+          {% if dataset.hero_image %}
+            {% set bg_style = "background-image: url('" ~ dataset.hero_image ~ "'); background-size: cover; background-position: center;" %}
+          {% else %}
+            {% set bg_style = "background: " ~ gradients[loop.index0 % grad_count] ~ ";" %}
+          {% endif %}
+
+          {# Badge: first product_type_tag or fallback #}
+          {% if dataset.product_type_tags and dataset.product_type_tags | length > 0 %}
+            {% set badge = dataset.product_type_tags[0] %}
+          {% else %}
+            {% set badge = 'Dataset' %}
+          {% endif %}
+
+          <a class="obis-carousel__slide"
+             href="{{ h.url_for('dataset.read', id=dataset.name) }}"
+             aria-roledescription="slide"
+             aria-label="Slide {{ loop.index }} of {{ featured | length }}">
+            <div class="obis-carousel__bg" style="{{ bg_style }}"></div>
+            <div class="obis-carousel__overlay"></div>
+            <div class="obis-carousel__content">
+              <span class="obis-carousel__badge">{{ badge }}</span>
+              <p class="obis-carousel__title">{{ dataset.title | truncate(80) }}</p>
+              {% if dataset.owner_org %}
+                <p class="obis-carousel__org">{{ h.get_organization(dataset.owner_org).title }}</p>
+              {% endif %}
+              <span class="obis-carousel__cta">
+                View product <i class="fa fa-arrow-right" aria-hidden="true"></i>
+              </span>
             </div>
-        </a>
+          </a>
+
         {% endfor %}
+
+      </div>
     </div>
+
+    <div class="obis-carousel__dots" id="obis-dots" aria-hidden="true"></div>
+
+    <div class="obis-carousel__controls">
+      <button class="obis-carousel__btn obis-carousel__btn--prev" id="obis-prev" aria-label="Previous slide">
+        <i class="fa fa-chevron-left" aria-hidden="true"></i>
+      </button>
+      <span class="obis-carousel__counter" id="obis-counter" aria-live="polite">
+        1 / {{ featured | length }}
+      </span>
+      <button class="obis-carousel__btn obis-carousel__btn--next" id="obis-next" aria-label="Next slide">
+        <i class="fa fa-chevron-right" aria-hidden="true"></i>
+      </button>
+    </div>
+  </section>
+
 </div>
+
+<style>
+  .obis-carousel__org {
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0 0 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+</style>
+
+<!-- <script>
+  (function () {
+    /* ---- Config ---- */
+    var AUTOPLAY_DELAY = 5000; /* milliseconds between auto-advances */
+
+    /* ---- Elements ---- */
+    var carousels = document.querySelectorAll('.obis-carousel');
+    var root    = carousels[carousels.length - 1];
+    var track   = root.querySelector('.obis-carousel__track');
+    var dotsEl  = root.querySelector('.obis-carousel__dots');
+    var btnPrev = root.querySelector('.obis-carousel__btn--prev');
+    var btnNext = root.querySelector('.obis-carousel__btn--next');
+    var counter = root.querySelector('.obis-carousel__counter');
+    var slides  = track.querySelectorAll('.obis-carousel__slide');
+    var total   = slides.length;
+    var current = 0;
+    var timer   = null;
+
+    /* ---- Build dots ---- */
+    for (var i = 0; i < total; i++) {
+      var dot = document.createElement('span');
+      dot.className = 'obis-carousel__dot' + (i === 0 ? ' is-active' : '');
+      dot.dataset.index = i;
+      dot.addEventListener('click', function () {
+        goTo(parseInt(this.dataset.index));
+        resetTimer();
+      });
+      dotsEl.appendChild(dot);
+    }
+
+    /* ---- Navigate ---- */
+    function goTo(index) {
+      current = (index + total) % total; /* wraps around */
+      track.style.transform = 'translateX(-' + (current * 100) + '%)';
+      counter.textContent = (current + 1) + ' / ' + total;
+      dotsEl.querySelectorAll('.obis-carousel__dot').forEach(function (d, i) {
+        d.classList.toggle('is-active', i === current);
+      });
+      /* Disable prev/next only if you don't want wrap-around;
+         with wrap-around both are always enabled */
+      btnPrev.disabled = false;
+      btnNext.disabled = false;
+    }
+
+    btnPrev.addEventListener('click', function () { goTo(current - 1); resetTimer(); });
+    btnNext.addEventListener('click', function () { goTo(current + 1); resetTimer(); });
+
+    /* ---- Auto-advance ---- */
+    function startTimer() {
+      timer = setInterval(function () { goTo(current + 1); }, AUTOPLAY_DELAY);
+    }
+
+    function resetTimer() {
+      clearInterval(timer);
+      startTimer();
+    }
+
+    /* Pause on hover, resume on leave */
+    root.addEventListener('mouseenter', function () { clearInterval(timer); });
+    root.addEventListener('mouseleave', function () { startTimer(); });
+
+    /* ---- Init ---- */
+    goTo(0);
+    startTimer();
+  })();
+</script> -->
+
+<script>
+  (function () {
+    /* ---- Config ---- */
+    var AUTOPLAY_DELAY = 6000; /* ms between auto-advances */
+
+    /* ---- Elements ---- */
+    var carousels = document.querySelectorAll('.obis-carousel');
+    var root    = carousels[carousels.length - 1];
+    var track   = root.querySelector('.obis-carousel__track');
+    var dotsEl  = root.querySelector('.obis-carousel__dots');
+    var btnPrev = root.querySelector('.obis-carousel__btn--prev');
+    var btnNext = root.querySelector('.obis-carousel__btn--next');
+    var counter = root.querySelector('.obis-carousel__counter');
+    var slides  = track.querySelectorAll('.obis-carousel__slide');
+    var total   = slides.length;
+    var current = 0;
+    var timer   = null;
+
+    /* ---- Build dots ---- */
+    for (var i = 0; i < total; i++) {
+      var dot = document.createElement('span');
+      dot.className = 'obis-carousel__dot' + (i === 0 ? ' is-active' : '');
+      dot.dataset.index = i;
+      dot.addEventListener('click', function () {
+        goTo(parseInt(this.dataset.index));
+        startTimer(); /* self-clears any existing interval */
+      });
+      dotsEl.appendChild(dot);
+    }
+
+    /* ---- Navigate ---- */
+    function goTo(index) {
+      current = (index + total) % total; /* wraps around */
+      track.style.transform = 'translateX(-' + (current * 100) + '%)';
+      counter.textContent = (current + 1) + ' / ' + total;
+      dotsEl.querySelectorAll('.obis-carousel__dot').forEach(function (d, i) {
+        d.classList.toggle('is-active', i === current);
+      });
+    }
+
+    btnPrev.addEventListener('click', function () {
+      goTo(current - 1);
+      startTimer();
+    });
+
+    btnNext.addEventListener('click', function () {
+      goTo(current + 1);
+      startTimer();
+    });
+
+    /* ---- Auto-advance ---- */
+    /* Always clears any existing interval before creating a new one,
+       so it is impossible to have two intervals running at once. */
+    function startTimer() {
+      clearInterval(timer);
+      timer = setInterval(function () { goTo(current + 1); }, AUTOPLAY_DELAY);
+    }
+
+    /* Pause on hover, resume on leave */
+    root.addEventListener('mouseenter', function () { clearInterval(timer); });
+    root.addEventListener('mouseleave', function () { startTimer(); });
+
+    /* ---- Init ---- */
+    goTo(0);
+    startTimer();
+  })();
+</script>

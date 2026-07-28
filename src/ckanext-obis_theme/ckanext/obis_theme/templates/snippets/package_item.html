@@ -1,0 +1,129 @@
+{#
+  OBIS restyled package_item.html
+  Displays a single product as a card row in search results.
+#}
+{% set title = package.title or package.name %}
+{% set notes = h.markdown_extract(package.notes, extract_length=160) %}
+
+{# Resolve product type badge #}
+{% set product_types = package.get('product_type', []) %}
+{% if product_types %}
+  {% set badge = product_types[0] %}
+{% else %}
+  {% set badge = 'Dataset' %}
+{% endif %}
+
+{# Badge colour mapping #}
+{% if badge | lower == 'software' %}
+  {% set badge_style = "background:#EAF3DE;color:#3B6D11;" %}
+{% elif badge | lower == 'publication' %}
+  {% set badge_style = "background:#E1F5EE;color:#0F6E56;" %}
+{% elif badge | lower == 'dataset' or badge | lower == 'datasets' %}
+  {% set badge_style = "background:#E6F1FB;color:#0C447C;" %}
+{% elif badge | lower == 'image' or badge | lower == 'images' %}
+  {% set badge_style = "background:#EEEDFE;color:#534AB7;" %}
+{% elif badge | lower == 'video' or badge | lower == 'videos' %}
+  {% set badge_style = "background:#F4EEFD;color:#7B4FBE;" %}
+{% elif badge | lower == 'presentation' or badge | lower == 'presentations' %}
+  {% set badge_style = "background:#FAEEDA;color:#854F0B;" %}
+{% else %}
+  {% set badge_style = "background:#F4F6F8;color:#5F5E5A;" %}
+{% endif %}
+
+{% block package_item %}
+<li class="obis-result-card {{ item_class or '' }}">
+  {% block content %}
+
+    <div class="obis-result-card__body">
+
+      {# Top row: title + badge #}
+      <div class="obis-result-card__top">
+        {% block heading_title %}
+          <a class="obis-result-card__title"
+             href="{{ h.url_for('%s.read' % package.type, id=package.name) }}"
+             aria-label="{{ title }}">
+            {% if package.private %}
+              <span class="obis-result-card__private">
+                <i class="fa fa-lock" aria-hidden="true"></i> {{ _('Private') }}
+              </span>
+            {% endif %}
+            {{ title | truncate(80) }}
+            {% if package.get('state', '').startswith('draft') %}
+              <span class="obis-result-card__state">{{ _('Draft') }}</span>
+            {% elif package.get('state', '').startswith('deleted') %}
+              <span class="obis-result-card__state obis-result-card__state--deleted">{{ _('Deleted') }}</span>
+            {% endif %}
+          </a>
+        {% endblock %}
+        <span class="obis-result-card__badge" style="{{ badge_style }}">
+          {{ badge }}
+        </span>
+      </div>
+
+      {# Description #}
+      {% block notes %}
+        {% if notes %}
+          <p class="obis-result-card__desc">{{ notes | urlize }}</p>
+        {% else %}
+          <p class="obis-result-card__desc obis-result-card__desc--empty">
+            {{ _('No description available.') }}
+          </p>
+        {% endif %}
+      {% endblock %}
+
+      {# Meta row: org, date, thematic tags, resource formats #}
+      <div class="obis-result-card__meta">
+
+        {% if package.organization %}
+          <a class="obis-result-card__pill obis-result-card__pill--link"
+                href="{{ h.url_for('dataset.search', organization=package.organization.name) }}">
+                <i class="fa fa-university" aria-hidden="true"></i>
+                {{ package.organization.title }}
+            </a>
+        {% endif %}
+
+        {% if package.metadata_modified %}
+          <span class="obis-result-card__pill">
+            <i class="fa fa-calendar" aria-hidden="true"></i>
+            {{ h.render_datetime(package.metadata_modified, '%b %Y') }}
+          </span>
+        {% endif %}
+
+        {# Thematic tags #}
+        {% if package.get('thematic_tags') %}
+          {% set thematic = package.thematic_tags %}
+          {% if thematic is string %}
+            <a class="obis-result-card__thematic"
+                href="{{ h.url_for('dataset.search', vocab_thematic_tags=thematic) }}">
+                {{ thematic }}
+            </a>
+            {% else %}
+            {% for tag in thematic[:3] %}
+                <a class="obis-result-card__thematic"
+                href="{{ h.url_for('dataset.search', vocab_thematic_tags=tag) }}">
+                {{ tag }}
+                </a>
+            {% endfor %}
+            {% endif %}
+        {% endif %}
+
+        {# Resource format badges #}
+        {% block resources %}
+          {% if package.resources and not hide_resources %}
+            {% for fmt in h.dict_list_reduce(package.resources, 'format') %}
+              <a href="{{ h.url_for(package.type ~ '.read', id=package.name) }}"
+                 class="obis-result-card__format"
+                 data-format="{{ fmt.lower() }}">
+                {{ fmt }}
+              </a>
+            {% endfor %}
+          {% endif %}
+        {% endblock %}
+
+      </div>
+
+    </div>
+
+  {% endblock %}
+</li>
+{% endblock %}
