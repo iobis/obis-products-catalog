@@ -34,6 +34,7 @@
 0000-0003-0830-9814 node-caribbean-obis # Ana Carolina Peralta Brichtova
 0000-0001-8851-8602 node-obis-argentina # Marcos Zarate
 0000-0002-7878-1607 node-obis-brazil # Keila Macfadem Juarez
+0009-0002-2689-6434 node-obis-brazil # Clara Baringo Fonseca
 0000-0002-1528-3272 node-obis-canada # Maria Cornthwaite
 0009-0003-6935-8203 node-obis-colombia # Martha Patricia Vides Casado
 0000-0002-9709-6787 node-obis-colombia # Erika Montoya-Cadavid
