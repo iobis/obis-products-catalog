@@ -283,9 +283,9 @@ def obis_get_thematic_stats():
             'pollution': 'fa-exclamation-triangle',
             'coastal management': 'fa-anchor',
             'deep sea': 'fa-water',
-            'coral reefs': 'fa-pagelines',
+            'coral reefs': 'fa-plant-wilt',
             'species distribution': 'fa-map-marker',
-            'near-realtime': 'fa-clock-o',
+            'near-realtime': 'fa-clock',
         }
 
         label_mapping = {
