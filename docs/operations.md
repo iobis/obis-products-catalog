@@ -193,6 +193,9 @@ These files exist only in the dev directory and are excluded from git via `.giti
 !!! note "SSL architecture changed (commit 012e3f8)"
     TLS termination moved from each stack's own Docker nginx container to a single host-level nginx in front of both prod and dev. Docker nginx in each stack now binds only to a localhost port and serves plain HTTP. Dev's URL no longer needs an explicit `:8443` port. The "stop prod nginx to grab dev's cert" workaround described in "Setting Up a Fresh Dev Instance" below is now **obsolete** — cert renewal is fully automated at the host level via `certbot.timer`, independently for both domains, confirmed via a successful `certbot renew --dry-run` for both. That section should be revised or removed; a fresh dev cert can now be obtained the same way, via the host-level `certbot --nginx -d dev.products.obis.org` (no need to stop prod nginx to free port 80).
 
+!!! warning "No automatic sync between tracked and dev-specific files"
+    `nginx/Dockerfile.dev` and `nginx/setup/default.dev.conf` are manual copies of the tracked `nginx/Dockerfile` and `nginx/setup/default.conf`. Any change to the tracked files (new dependencies, changed routes, etc.) must be manually re-applied to their dev counterparts — nothing propagates automatically. Before assuming a tracked-file change has taken effect on dev, check the corresponding gitignored file directly.
+
 ### Running Dev Commands
 
 Always pass `-f docker-compose.dev.yml` when working with the dev stack:
