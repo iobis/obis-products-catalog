@@ -129,7 +129,17 @@
                 </ul>
               </li>
 
-              <li><a href="/docs/" target="_blank">Docs</a></li>
+              <li class="dropdown">
+                <a data-bs-toggle="dropdown" aria-expanded="false">
+                  Docs <span class="caret"></span>
+                </a>
+                <ul class="dropdown-menu">
+                  <li><a href="/docs/" target="_blank">Overview</a></li>
+                  <li><a href="/docs/searching/" target="_blank">User Guide</a></li>
+                  <li><a href="/api-docs/" target="_blank">API Reference</a></li>
+                  <li><a href="/docs/architecture/" target="_blank">Developer Guide</a></li>
+                </ul>
+              </li>
 	          {% endblock %}
           </ul>
 

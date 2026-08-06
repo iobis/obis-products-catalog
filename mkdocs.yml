@@ -23,7 +23,7 @@ extra_css:
   - stylesheets/extra.css
 
 nav:
-  - About: index.md
+  - Overview: index.md
   - User Guide:
       - Searching Products: searching.md
       - Contributing Products: contributing-products.md
