@@ -16,12 +16,14 @@ theme:
   features:
     - content.code.copy
     - toc.integrate
+    - navigation.tabs
+    - navigation.tabs.sticky
 
 extra_css:
   - stylesheets/extra.css
 
 nav:
-  - Home: index.md
+  - About: index.md
   - User Guide:
       - Searching Products: searching.md
       - Contributing Products: contributing-products.md
