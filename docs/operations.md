@@ -152,12 +152,15 @@ These files exist only in the dev directory and are excluded from git via `.giti
 
 | Setting | Production | Dev |
 |---|---|---|
-| URL | `https://products.obis.org` | `https://dev.products.obis.org:8443` |
-| HTTPS port | 443 | 8443 |
-| HTTP port | 80 | 8080 |
+| URL | `https://products.obis.org` | `https://dev.products.obis.org` |
+| HTTPS port | 443 (via host nginx) | 443 (via host nginx, shared with prod) |
+| HTTP port (Docker, internal only) | 127.0.0.1:8080 | 127.0.0.1:8081 |
 | Databases | `ckandb`, `datastore` | `ckandb_dev`, `datastore_dev` |
 | Compose project name | `obis-products-catalog` (directory default) | `ckan-dev` (set via `COMPOSE_PROJECT_NAME`) |
 | SSL cert | `/etc/letsencrypt/live/products.obis.org/` | `/etc/letsencrypt/live/dev.products.obis.org/` |
+
+!!! note "SSL architecture changed (commit 012e3f8)"
+    TLS termination moved from each stack's own Docker nginx container to a single host-level nginx in front of both prod and dev. Docker nginx in each stack now binds only to a localhost port and serves plain HTTP. Dev's URL no longer needs an explicit `:8443` port. The "stop prod nginx to grab dev's cert" workaround described in "Setting Up a Fresh Dev Instance" below is now **obsolete** — cert renewal is fully automated at the host level via `certbot.timer`, independently for both domains, confirmed via a successful `certbot renew --dry-run` for both. That section should be revised or removed; a fresh dev cert can now be obtained the same way, via the host-level `certbot --nginx -d dev.products.obis.org` (no need to stop prod nginx to free port 80).
 
 ### Running Dev Commands
 
@@ -184,25 +187,24 @@ docker compose -f docker-compose.dev.yml exec ckan ckan -c /srv/app/ckan.ini obi
 If you need to rebuild dev from scratch:
 
 1. Clone the repo:
-   ```bash
+```bash
    git clone https://github.com/iobis/obis-products-catalog.git /opt/dev-obis-products-catalog
-   ```
+```
 
 2. Copy and edit the env file:
-   ```bash
+```bash
    cp /opt/obis-products-catalog/.env /opt/dev-obis-products-catalog/.env
-   ```
+```
    Update these values in `.env`:
-   - `CKAN_SITE_URL=https://dev.products.obis.org:8443`
-   - `CKANEXT__OAUTH2_LOGIN__REDIRECT_URI=https://dev.products.obis.org:8443/oauth2/callback`
+   - `CKAN_SITE_URL=https://dev.products.obis.org` (no port needed — see note below)
+   - `CKANEXT__OAUTH2_LOGIN__REDIRECT_URI=https://dev.products.obis.org/oauth2/callback`
    - `POSTGRES_DB=postgres_dev`, `CKAN_DB=ckandb_dev`, `DATASTORE_DB=datastore_dev`
    - Update all three DB connection URL strings to use the `_dev` database names
-   - `NGINX_PORT_HOST=8080`, `NGINX_SSLPORT_HOST=8443`
    - `COMPOSE_PROJECT_NAME=ckan-dev`
    - Regenerate all secrets (session secret, API token secrets) — do not reuse prod values
 
 3. Recreate the dev-specific files (not in git — see above table). Use the versions in the existing dev directory as reference, or recreate them:
-   ```bash
+```bash
    # nginx config
    cp nginx/setup/default.conf nginx/setup/default.dev.conf
    sed -i 's/products\.obis\.org/dev.products.obis.org/g' nginx/setup/default.dev.conf
@@ -213,31 +215,53 @@ If you need to rebuild dev from scratch:
 
    # compose file
    cp docker-compose.yml docker-compose.dev.yml
-   sed -i 's/0\.0\.0\.0:80:80/0.0.0.0:8080:80/' docker-compose.dev.yml
-   sed -i 's/0\.0\.0\.0:${NGINX_SSLPORT_HOST}:${NGINX_SSLPORT}/0.0.0.0:8443:443/' docker-compose.dev.yml
    sed -i 's/dockerfile: Dockerfile/dockerfile: Dockerfile.dev/' docker-compose.dev.yml
-   sed -i 's|/etc/letsencrypt/live/products.obis.org|/etc/letsencrypt/live/dev.products.obis.org|g' docker-compose.dev.yml
-   sed -i 's|/etc/letsencrypt/archive/products.obis.org|/etc/letsencrypt/archive/dev.products.obis.org|g' docker-compose.dev.yml
-   ```
+```
 
-4. Obtain the SSL cert (briefly stop prod nginx to free port 80):
-   ```bash
-   docker compose -f /opt/obis-products-catalog/docker-compose.yml stop nginx
-   certbot certonly --standalone -d dev.products.obis.org
-   docker compose -f /opt/obis-products-catalog/docker-compose.yml start nginx
-   ```
+   !!! note "Docker nginx is HTTP-only, host nginx handles SSL"
+       Since the host-level nginx refactor (commit 012e3f8), Docker's nginx container no longer terminates TLS or binds to a public port. In `docker-compose.dev.yml`, the `ckan-nginx` (or equivalent) service should bind only to a localhost port, e.g.:
+```yaml
+       ports:
+         - "127.0.0.1:8081:80"
+```
+       matching prod's pattern of `127.0.0.1:8080:80`. Do not carry over the old `0.0.0.0:80:80` / `${NGINX_SSLPORT_HOST}` port mappings or the Let's Encrypt volume mounts — those belong to the pre-refactor, per-stack-SSL setup and are no longer used.
 
-5. Register the dev redirect URI with ORCID: add `https://dev.products.obis.org:8443/oauth2/callback` to the allowed redirect URIs in your ORCID developer app settings.
+4. Add a `server_name dev.products.obis.org` block to the **host-level** nginx config (not the Docker one) so it routes to dev's Docker stack on its localhost port:
+```bash
+   sudo nano /etc/nginx/sites-available/dev.products.obis.org
+```
+   Reference the existing `products.obis.org` host-nginx config as a template, adjusting `server_name` and the `proxy_pass`/`upstream` target to point at dev's localhost port (e.g. `127.0.0.1:8081`). Enable it and reload:
+```bash
+   sudo ln -s /etc/nginx/sites-available/dev.products.obis.org /etc/nginx/sites-enabled/
+   sudo nginx -t
+   sudo systemctl reload nginx
+```
 
-6. Build and start:
-   ```bash
+5. Obtain the SSL cert for the new dev domain using certbot's nginx plugin, directly at the host level — no need to stop prod, since host nginx serves both domains independently on the same port 443:
+```bash
+   sudo certbot --nginx -d dev.products.obis.org
+```
+   This both obtains the certificate and configures the host nginx config's SSL block automatically. Renewal is then handled automatically by `certbot.timer` (already running twice daily for all certs on the host) — no further action needed.
+
+6. Register the dev redirect URI with ORCID: add `https://dev.products.obis.org/oauth2/callback` to the allowed redirect URIs in the ORCID developer app settings. This app is registered under Stephen Formel's (sformel) personal ORCID account.
+
+7. Build and start:
+```bash
    docker compose -f docker-compose.dev.yml up -d --build
    docker compose -f docker-compose.dev.yml exec ckan ckan -c /srv/app/ckan.ini obis sync-nodes
    docker compose -f docker-compose.dev.yml exec ckan ckan -c /srv/app/ckan.ini obis sync-institutions
    docker compose -f docker-compose.dev.yml exec ckan ckan -c /srv/app/ckan.ini obis sync-whitelist
-   ```
+```
 
 ## User Management
+
+### ORCID Developer App Ownership
+
+The ORCID OAuth application used for catalog login is registered under **Stephen Formel's (sformel) personal ORCID account** — not a shared or organizational account. Any change to registered redirect URIs (e.g., updating dev's URI after a URL/port change) requires his access to make.
+
+Registered redirect URIs:
+- `https://products.obis.org/oauth2/callback`
+- `https://dev.products.obis.org/oauth2/callback` (updated from `:8443` following the host-nginx SSL refactor, commit 012e3f8 — confirm this has been applied in the ORCID app settings, not just documented here)
 
 ### ORCID Whitelist
 
@@ -359,6 +383,29 @@ user = model.User.by_name('orcid-XXXX-XXXX-XXXX-XXXX')
 user.sysadmin = True
 model.Session.commit()
 ```
+### Droplet Access
+
+The following individuals have full sudo (root-equivalent) access to the droplet via named accounts:
+
+| User | Linux account |
+|---|---|
+| Stephen Formel | sformel |
+| Silas Principe | sprincipe |
+
+Each account uses a dedicated, personal SSH key. Direct `root` SSH login is disabled (`PermitRootLogin no`); all admin access goes through named accounts plus `sudo`.
+
+**Gotcha — shared repo, multiple identities**: `/opt/obis-products-catalog` and `/opt/dev-obis-products-catalog` are single shared clones used by all sudo users plus the root-run cron job. Git identity (`user.name`/`user.email`) must never be set via `git config --local` in these repos — a local value applies to *whoever* runs git there, regardless of Linux account, and will silently misattribute commits (this happened during onboarding — a stray local override attributed a real commit to "OBIS Catalog Bot"). Each person sets identity in their own `~/.gitconfig` (global scope). The automated whitelist-export script instead scopes the bot identity per-command with `git -c user.name="OBIS Catalog Bot" -c user.email="helpdesk@obis.org" commit ...`, so it never touches shared repo config.
+
+**Gotcha — new user, repo permissions**: A freshly created sudo user will likely hit two errors in these shared repos on first use:
+1. `fatal: detected dubious ownership` — fix with `git config --global --add safe.directory <path>` (per-user, run once for each repo).
+2. `error: insufficient permission for adding an object to repository database .git/objects` — ownership/group-write issue. Fix with:
+```bash
+   sudo find <repo-path> -type d -exec chmod g+rwx {} \;
+   sudo find <repo-path> -type f -exec chmod g+rw {} \;
+   sudo chown -R <owner>:<owner> <repo-path>
+   sudo chgrp -R sudo <repo-path>
+```
+   Directory-level group permissions alone aren't sufficient — individual files (e.g. existing `.git/objects` blobs) may lack the group-write bit if created under a different user's default umask, and must be fixed explicitly with `find`.
 
 ## Featured Products
 

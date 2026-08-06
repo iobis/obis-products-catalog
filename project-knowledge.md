@@ -216,9 +216,9 @@ CKANEXT__OAUTH2_LOGIN__ORCID_CLIENT_SECRET=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 CKANEXT__OAUTH2_LOGIN__REDIRECT_URI=https://your-domain/oauth2/callback
 ```
 
-**ORCID developer app**: Both prod and dev redirect URIs must be registered in the ORCID developer app settings. Current registered URIs:
+**ORCID developer app**: Both prod and dev redirect URIs must be registered in the ORCID developer app settings. This app is registered under Stephen Formel's (sformel) personal ORCID account — redirect URI changes require his access. Current registered URIs:
 - `https://products.obis.org/oauth2/callback`
-- `https://dev.products.obis.org:8443/oauth2/callback`
+- `https://dev.products.obis.org/oauth2/callback` (updated from `:8443` following the host-nginx SSL refactor, commit 012e3f8)
 
 ## Authentication and Authorization
 
@@ -229,8 +229,10 @@ CKANEXT__OAUTH2_LOGIN__REDIRECT_URI=https://your-domain/oauth2/callback
 - **Emergency admin recovery**: SSH to droplet → `docker compose exec -it ckan ckan -c /srv/app/ckan.ini shell` → set any ORCID user as sysadmin via `user.sysadmin = True`.
 
 ### Current Sysadmins
-- Stephen Formel (orcid-0000-0001-7418-1244)
-- Pieter Provoost, Ward Appeltans, Silas Principe, Jonathan Pye — will become sysadmins on first ORCID login
+- Stephen Formel (orcid-0000-0001-7418-1244) — also holds root/sudo droplet access (sformel)
+- Silas Principe — also holds root/sudo droplet access (sprincipe)
+- Pieter Provoost — also holds root/sudo droplet access (Linux username TBD)
+- Ward Appeltans, Jonathan Pye — will become sysadmins on first ORCID login
 
 ### Authorization Model
 | Action | Who can do it |
@@ -464,6 +466,8 @@ SSH key for push: `~/.ssh/github_deploy` (repo-scoped deploy key).
 - **Disabled non-ORCID login UI (Issue #54)**: Login page shows only ORCID button. Password reset page returns 404. Sidebar updated with ORCID login info.
 - **Extension reorg (Issue #56)**: Retired `ckanext-zenodo`. Created source-agnostic `ckanext-obis_schema` (schema, facets, validators, `init-vocabularies`). Moved harvest/export-whitelist CLI to `ckanext-doi-import`. Restructured `mappers/zenodo.py` into `mappers/zenodo/` package with `get_last_modified()`. Updated all config, Dockerfiles, and docs.
 - **License family facet (Issue #13)**: Added `ckan/licenses.json` with SPDX IDs. Added `LICENSE_FAMILY_MAP` and `license_family` Solr field in `ckanext-obis_schema`. License sidebar facet now shows constraint-oriented buckets. `Unclassified` bucket acts as work queue for unmapped license strings.
+- **Host-level SSL termination (commit 012e3f8)**: Moved TLS termination from each stack's Docker nginx to a single host-level nginx in front of both prod and dev. Docker nginx now binds to a localhost-only port and serves plain HTTP internally, trusting `X-Forwarded-Proto` from host nginx. Dev no longer requires an explicit `:8443` port. Follow-up needed: confirm dev's Docker nginx localhost port, whether cert renewal is now host-level for both domains, and whether the ORCID redirect URI has been updated in ORCID's developer app settings to match.
+- **Named sudo accounts replace shared root login**: Created individual sudo-privileged accounts for Stephen Formel (sformel) and Silas Principe (sprincipe), each with dedicated SSH keys, to replace shared root SSH access. Root SSH login disabled. Surfaced and fixed several shared-repo permission/identity issues along the way (see Gotchas 21–24).
 
 ## Gotchas
 
@@ -487,6 +491,10 @@ SSH key for push: `~/.ssh/github_deploy` (repo-scoped deploy key).
 18. **Snippets don't inherit parent template context**: Variables must be explicitly passed in snippet calls. `about_formatted` was missing from the `user/snippets/info.html` call in `read_base.html`.
 19. **`licenses.json` must be a file not a directory on the host**: Docker creates volume mount targets as directories if the host path doesn't exist yet. Always create the file on the host before bringing up the stack. If it becomes a directory: `rm -rf ckan/licenses.json`, recreate the file, then `docker compose down && up -d`.
 20. **`pyproject.toml` entry points take precedence over `setup.cfg`**: When both files declare entry points, `pyproject.toml` wins. Keep entry points in `pyproject.toml` only — do not duplicate in `setup.cfg`.
+21. **Shared repo clones need per-user `safe.directory` and file-permission fixes for new sudo users**: `/opt/obis-products-catalog` and `/opt/dev-obis-products-catalog` are single shared clones. A new sudo user hits `fatal: detected dubious ownership` (fix: `git config --global --add safe.directory <path>`, per-user) and potentially `insufficient permission for adding an object to repository database .git/objects` (fix: directory-level `chmod g+rwx` isn't enough — existing files may lack the group-write bit from a prior user's umask; use `find <path> -type f -exec chmod g+rw {} \;` explicitly).
+22. **Never set git identity via `--local` config in the shared repo clones**: `user.name`/`user.email` set with `git config --local` applies to whoever runs git in that directory, regardless of Linux account — this misattributed a real human commit to "OBIS Catalog Bot" during onboarding. Each person sets identity in their own `~/.gitconfig` (global). The whitelist-export cron script scopes the bot identity per-command instead: `git -c user.name="OBIS Catalog Bot" -c user.email="helpdesk@obis.org" commit ...`.
+23. **Root SSH login is now disabled**: `PermitRootLogin no` in `/etc/ssh/sshd_config`. All droplet access goes through named sudo accounts (sformel, sprincipe, Pieter — username TBD) with personal SSH keys and `sudo` for privileged actions.
+24. **`core.sshCommand` in a repo's local `.git/config` uses the running user's home directory**: prod's repo has `core.sshCommand = ssh -i ~/.ssh/github_deploy` set locally, which was written assuming root's home. Any other user running git there will look for `~/.ssh/github_deploy` under their own home and fail unless they either copy the deploy key locally or (preferred) unset `core.sshCommand` and use their own personal GitHub-associated SSH key instead.
 
 ## Open Questions / Future Work
 
@@ -497,5 +505,4 @@ SSH key for push: `~/.ssh/github_deploy` (repo-scoped deploy key).
 - **Automated DB backups**: Cron job similar to whitelist export.
 - **SMTP configuration**: For future email notifications (user approval, etc.).
 - **Organization→Node renaming**: i18n override to replace "Organization/Organizations" with "Node/Nodes" throughout UI.
-- **SSL cert renewal automation**: Let's Encrypt certs expire every 90 days. Currently manual (`certbot renew`). Consider a cron job, but nginx is containerized so the standard certbot renewal hook doesn't apply directly.
 - **Additional data sources**: GBIF, Dryad, etc. Each needs a mapper package in `ckanext-doi-import/mappers/` and any new license strings added to `licenses.json` and `LICENSE_FAMILY_MAP`.

@@ -4,9 +4,19 @@
 
 The entire stack runs in Docker Compose with six services: CKAN, Nginx, PostgreSQL, Solr, Redis, and DataPusher.
 
-```
-Browser → nginx (port 80) → ckan (port 5000) → db/solr/redis
-```
+As of the "do not run on port 80 and let host handle ssl" change (commit 012e3f8, Pieter Provoost), SSL termination happens at the **host level**, outside Docker:
+
+\`\`\`
+Browser → host nginx (80/443, terminates SSL for both products.obis.org and dev.products.obis.org)
+        → Docker nginx (127.0.0.1:8080 for prod, 127.0.0.1:8081 for dev — plain HTTP, no SSL)
+        → ckan (port 5000) → db/solr/redis
+\`\`\`
+
+Host nginx holds the Let's Encrypt certificates for both domains and routes by `server_name`. Each stack's Docker nginx container only binds to a localhost port and no longer handles TLS — it trusts the `X-Forwarded-Proto` header set by host nginx (via `$http_x_forwarded_proto` in `nginx/setup/default.conf`) to know whether the original request was HTTPS.
+
+**Practical effect**: dev no longer requires an explicit port in its URL — `https://dev.products.obis.org` works without `:8443`.
+
+Host nginx is a standard `apt`-installed systemd service (`nginx.service`, enabled on boot), serving both `products.obis.org` and `dev.products.obis.org` via separate `server_name` blocks in the same config. Certificate renewal is fully automated at the host level via `certbot.timer` (runs twice daily), using the `nginx` authenticator/installer plugin for both domains independently — no manual intervention or service interruption required for either.
 
 ## Services
 
