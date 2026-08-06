@@ -18,13 +18,14 @@ services:
       ckan:
         condition: service_healthy
     ports:
-      - "0.0.0.0:80:80"
-      - "0.0.0.0:${NGINX_SSLPORT_HOST}:${NGINX_SSLPORT}"
-    volumes:
-      - /etc/letsencrypt/live/products.obis.org/fullchain.pem:/etc/nginx/certs/fullchain.pem:ro
-      - /etc/letsencrypt/live/products.obis.org/privkey.pem:/etc/nginx/certs/privkey.pem:ro
-      - /etc/letsencrypt/archive/products.obis.org:/etc/letsencrypt/archive/products.obis.org:ro
-    
+      # Host nginx terminates TLS; Docker nginx is HTTP-only on localhost
+      - "127.0.0.1:8080:80"
+      # - "0.0.0.0:${NGINX_SSLPORT_HOST}:${NGINX_SSLPORT}"
+    # volumes:
+    #   - /etc/letsencrypt/live/products.obis.org/fullchain.pem:/etc/nginx/certs/fullchain.pem:ro
+    #   - /etc/letsencrypt/live/products.obis.org/privkey.pem:/etc/nginx/certs/privkey.pem:ro
+    #   - /etc/letsencrypt/archive/products.obis.org:/etc/letsencrypt/archive/products.obis.org:ro
+
   ckan:
     build:
       context: .
