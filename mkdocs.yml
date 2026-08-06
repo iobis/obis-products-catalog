@@ -29,7 +29,7 @@ nav:
       - Contributing Products: contributing-products.md
       - How the Catalog is Organized: catalog-organization.md
       - Your Account: your-account.md
-  - API Reference: /api-docs/
+  - API Reference: api-reference.md
   - Developer Guide:
       - Architecture: architecture.md
       - Extensions: extensions.md
@@ -37,6 +37,9 @@ nav:
       - Operations: operations.md
       - Data Model: data-model.md
       - Contributing: contributing.md
+
+plugins:
+  - swagger-ui-tag
 
 markdown_extensions:
   - admonition
