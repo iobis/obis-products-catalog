@@ -59,13 +59,13 @@ docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-institutions
 docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-whitelist
 
 # Export catalog whitelist
-docker compose exec ckan ckan -c /srv/app/ckan.ini zenodo export-whitelist
+docker compose exec ckan ckan -c /srv/app/ckan.ini doi-import export-whitelist
 
 # Export whitelist to file
-docker compose exec ckan ckan -c /srv/app/ckan.ini zenodo export-whitelist --output /srv/app/catalog_whitelist.csv
+docker compose exec ckan ckan -c /srv/app/ckan.ini doi-import export-whitelist --output /srv/app/catalog_whitelist.csv
 
 # Bulk harvest from DOI list
-docker compose exec ckan ckan -c /srv/app/ckan.ini zenodo harvest
+docker compose exec ckan ckan -c /srv/app/ckan.ini doi-import harvest
 ```
 
 ## Dev Auto-Deploy
@@ -156,8 +156,6 @@ If the secret leaks (committed to git, posted in a screenshot, etc.):
 4. Update the secret in the GitHub webhook settings to match
 
 ---
-
-That's it. Want me to also add a one-line mention in the "Dev Instance" intro section pointing readers at this new section? Something like "Deploys happen automatically on push to dev — see [Dev Auto-Deploy](#dev-auto-deploy) below."
 
 ### Directory Layout
 
@@ -425,6 +423,7 @@ The following individuals have full sudo (root-equivalent) access to the droplet
 |---|---|
 | Stephen Formel | sformel |
 | Silas Principe | sprincipe |
+| Pieter Provoost | root |
 
 Each account uses a dedicated, personal SSH key. Direct `root` SSH login is disabled (`PermitRootLogin no`); all admin access goes through named accounts plus `sudo`.
 
