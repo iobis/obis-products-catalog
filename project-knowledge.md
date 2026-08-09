@@ -15,7 +15,7 @@ The catalog is maintained by a small team under the OBIS Products Coordination G
 - **GitHub**: https://github.com/iobis/obis-products-catalog
 - **Branch**: `main`
 - **Documentation**: https://iobis.github.io/obis-products-catalog/ (MkDocs Material)
-- **Dev instance**: Running on the prod droplet at https://dev.products.obis.org:8443 (143.198.98.101), directory `/opt/dev-obis-products-catalog`
+- **Dev instance**: Running on the prod droplet at https://dev.products.obis.org (143.198.98.101), directory `/opt/dev-obis-products-catalog`
 - **Production instance**: Live at https://products.obis.org (143.198.98.101), directory `/opt/obis-products-catalog`
 
 ## Architecture
@@ -38,12 +38,16 @@ Total idle memory: ~1GB. Under load with 20-40 users: ~2GB. Minimum droplet: 4GB
 ### How Traffic Flows
 
 ```
-Browser → nginx (port 80, redirects to 443) → nginx (port 443, SSL) → ckan (port 5000) → db/solr/redis
+Browser → host nginx (80/443, terminates SSL for both products.obis.org and dev.products.obis.org)
+        → Docker nginx (127.0.0.1:8080 for prod, 127.0.0.1:8081 for dev — plain HTTP, no SSL)
+        → ckan (port 5000) → db/solr/redis
 ```
+
+As of commit 012e3f8 ("do not run on port 80 and let host handle ssl"), SSL termination happens at a single host-level nginx (systemd, apt-installed) in front of both prod and dev, rather than in each stack's own Docker nginx container. Both domains are reachable on the standard port 443 — dev no longer needs `:8443`.
 
 ### Dev Instance
 
-Both prod and dev run on the same droplet (143.198.98.101). Dev is a full separate Docker Compose stack in `/opt/dev-obis-products-catalog`. Dev uses different ports (8080/8443), different databases (`ckandb_dev`, `datastore_dev`), and its own SSL cert for `dev.products.obis.org`.
+Both prod and dev run on the same droplet (143.198.98.101). Dev is a full separate Docker Compose stack in `/opt/dev-obis-products-catalog`. Dev's Docker nginx binds to a different internal port (`127.0.0.1:8081`, vs. prod's `127.0.0.1:8080`), and dev uses different databases (`ckandb_dev`, `datastore_dev`). Both prod and dev use the standard port 443 via host nginx — dev has its own SSL cert for `dev.products.obis.org`, independently renewed.
 
 **Dev-specific files (gitignored, must be recreated if cloning fresh):**
 - `.env` — different ports, DB names, URLs, secrets
@@ -69,13 +73,11 @@ alias cddev='cd /opt/dev-obis-products-catalog'
 
 ### HTTPS / SSL
 
-- **Let's Encrypt** certificates, obtained via `certbot --standalone`
-- Certs are mounted into nginx container as volumes (not baked into image)
-- nginx config redirects all HTTP to HTTPS
-- `NGINX_SSLPORT_HOST=443` in `.env` (prod), `8443` (dev)
-- Let's Encrypt certs stored at `/etc/letsencrypt/live/<domain>/`
-- Volume mounts also include `/etc/letsencrypt/archive/<domain>/` because `live/` files are symlinks
-- **Dev cert**: `/etc/letsencrypt/live/dev.products.obis.org/` — obtained by temporarily stopping prod nginx
+- **Let's Encrypt** certificates, held and renewed at the **host level** (not in a container) since commit 012e3f8
+- Two separate certs, one per domain: `products.obis.org` and `dev.products.obis.org`, both managed via certbot's `nginx` authenticator/installer plugin against host nginx
+- Renewal is fully automated via `certbot.timer` (runs twice daily) — confirmed via a clean `certbot renew --dry-run` for both domains
+- Docker's nginx containers no longer hold certs or terminate TLS at all; they bind to a localhost-only port and serve plain HTTP, trusting the `X-Forwarded-Proto` header set by host nginx
+- Obtaining a cert for a new/rebuilt dev instance: `sudo certbot --nginx -d dev.products.obis.org` at the host level — does **not** require stopping prod nginx (the old standalone-mode workaround is obsolete)
 
 ### How Extensions Are Installed
 
@@ -231,7 +233,7 @@ CKANEXT__OAUTH2_LOGIN__REDIRECT_URI=https://your-domain/oauth2/callback
 ### Current Sysadmins
 - Stephen Formel (orcid-0000-0001-7418-1244) — also holds root/sudo droplet access (sformel)
 - Silas Principe — also holds root/sudo droplet access (sprincipe)
-- Pieter Provoost — also holds root/sudo droplet access (Linux username TBD)
+- Pieter Provoost — also holds root/sudo droplet access (root)
 - Ward Appeltans, Jonathan Pye — will become sysadmins on first ORCID login
 
 ### Authorization Model
@@ -310,7 +312,7 @@ MkDocs Material site deployed to GitHub Pages via GitHub Actions.
 - **Pages source**: Set to "GitHub Actions" in repo Settings → Pages
 
 ### Doc pages:
-- **Home**: Project overview, key features, infrastructure summary
+- **Overview**: Project overview, key features, infrastructure summary
 - **User Guide**: Signing in (ORCID whitelist), data model, product types, searching, contributing products, permissions, DOI import workflow, catalog manifest
 - **Theming & Aesthetics**: Colors, fonts, logos, icons — for comms team
 - **Architecture**: Infrastructure, services, auth model, plugin load order
@@ -412,7 +414,7 @@ SSH key for push: `~/.ssh/github_deploy` (repo-scoped deploy key).
 | DOI import says "excluded from catalog" | DOI is on the blacklist (`catalog_blacklist.csv`) — remove it if this was a mistake |
 | DOI import says "already in catalog" | Product exists — it will be updated with curated fields preserved |
 | Flash messages not styled (no color) | CKAN 2.11 uses the flash category directly as CSS class. Use `alert-warning`, `alert-info`, etc., not `warning` or `info` |
-| Dev port collision on startup | Both stacks can't bind to 80/443. Dev uses 8080/8443 — check `docker-compose.dev.yml` has hardcoded ports not env var references. |
+| Dev port collision on startup | Docker nginx for prod and dev must bind to different localhost ports (prod: `127.0.0.1:8080`, dev: `127.0.0.1:8081`) — check `docker-compose.dev.yml` has hardcoded ports not env var references. Host nginx (not Docker) handles the public 80/443 for both domains. |
 | New volume mount not picked up after `docker compose restart` | `restart` doesn't apply new volume mounts. Use `docker compose down && docker compose up -d`. |
 | ORCID profile edit gives 400 Bad Request | Flask-WTF SSL strict referrer check. Fixed via `IMiddleware` setting `WTF_CSRF_SSL_STRICT=False` in `ckanext-oauth2-login`. |
 | ORCID profile edit gives 500 after removing password field | CKAN's user edit view crashes on missing `old_password`. Fixed by routing ORCID users through `/user/edit-orcid/<id>` which re-authenticates via ORCID. |
@@ -468,6 +470,7 @@ SSH key for push: `~/.ssh/github_deploy` (repo-scoped deploy key).
 - **License family facet (Issue #13)**: Added `ckan/licenses.json` with SPDX IDs. Added `LICENSE_FAMILY_MAP` and `license_family` Solr field in `ckanext-obis_schema`. License sidebar facet now shows constraint-oriented buckets. `Unclassified` bucket acts as work queue for unmapped license strings.
 - **Host-level SSL termination (commit 012e3f8)**: Moved TLS termination from each stack's Docker nginx to a single host-level nginx in front of both prod and dev. Docker nginx now binds to a localhost-only port and serves plain HTTP internally, trusting `X-Forwarded-Proto` from host nginx. Dev no longer requires an explicit `:8443` port. Follow-up needed: confirm dev's Docker nginx localhost port, whether cert renewal is now host-level for both domains, and whether the ORCID redirect URI has been updated in ORCID's developer app settings to match.
 - **Named sudo accounts replace shared root login**: Created individual sudo-privileged accounts for Stephen Formel (sformel) and Silas Principe (sprincipe), each with dedicated SSH keys, to replace shared root SSH access. Root SSH login disabled. Surfaced and fixed several shared-repo permission/identity issues along the way (see Gotchas 21–24).
+- **Docs navigation overhaul + integrated API Reference (Issue #52)**: Restructured the docs site's own navbar to use Material's `navigation.tabs` (top navbar instead of sidebar), renamed the landing page from Home to "Overview" consistently in both the docs nav and the catalog's Docs dropdown. Expanded the catalog's main navbar "Docs" link into a dropdown linking directly to each top-level doc section (Overview, User Guide, API Reference, Developer Guide) instead of a single generic link. Replaced the standalone static Swagger page (`/api-docs/`, `docs/api/index.html`) with an integrated API Reference page (`docs/api-reference.md`) rendered via the `mkdocs-swagger-ui-tag` plugin, so API docs now share the same MkDocs header/nav as the rest of the documentation rather than opening as a separate page. Required adding `mkdocs-swagger-ui-tag` to both `nginx/Dockerfile` and `nginx/Dockerfile.dev` (see Gotcha 25) and removing the old `/api-docs/` nginx routes from both `default.conf` and `default.dev.conf`.
 
 ## Gotchas
 
@@ -484,7 +487,7 @@ SSH key for push: `~/.ssh/github_deploy` (repo-scoped deploy key).
 11. **style.css must be in webassets.yml AND have an asset tag**: Registering via `toolkit.add_resource()` in `plugin.py` is not enough. Must also add entry to `webassets.yml` and include `{% asset 'obis_theme/obis_theme-css' %}` in `base.html`.
 12. **theme.css has no cache busting**: Loaded via hardcoded `<link>` tag in `base.html`. Browser may serve stale version. Use `--no-cache` build and hard refresh when debugging CSS.
 13. **Bootstrap 5 navbar hover bleeds into dropdowns**: CKAN's `main.css` has `.masthead .main-navbar ul li:hover a` which applies dark background to ALL nested `<a>` tags including dropdown items. Fix: use `>` direct child combinator in `theme.css` hover rules.
-14. **Dev nginx ports must be hardcoded in docker-compose.dev.yml**: The env var references (`${NGINX_PORT_HOST}`) don't work reliably. Hardcode `0.0.0.0:8080:80` and `0.0.0.0:8443:443` directly in the compose file.
+14. **Dev nginx ports must be hardcoded in docker-compose.dev.yml**: The env var references don't work reliably. Hardcode the port mapping directly in the compose file. Pattern changed with the host-nginx SSL refactor (commit 012e3f8): Docker nginx now only needs a single localhost-bound port, e.g. `127.0.0.1:8081:80` for dev (vs. prod's `127.0.0.1:8080:80`) — no public 80/443 binding or SSL cert volume mounts needed in Docker anymore.
 15. **`docker compose restart` does not apply new volume mounts**: Must use `docker compose down && docker compose up -d` to pick up new volumes.
 16. **ORCID profile edit re-authenticates via ORCID**: The form action for ORCID users points to `/user/edit-orcid/<id>` not the standard CKAN edit route. State is `profile_update:...` in the OAuth flow to distinguish from login.
 17. **Flask-WTF SSL strict check blocks forms on non-standard ports**: Fixed via `IMiddleware` in `ckanext-oauth2-login` setting `WTF_CSRF_SSL_STRICT=False`. Do not use the `.env` variable approach — CKAN doesn't map it to Flask config.
@@ -493,7 +496,7 @@ SSH key for push: `~/.ssh/github_deploy` (repo-scoped deploy key).
 20. **`pyproject.toml` entry points take precedence over `setup.cfg`**: When both files declare entry points, `pyproject.toml` wins. Keep entry points in `pyproject.toml` only — do not duplicate in `setup.cfg`.
 21. **Shared repo clones need per-user `safe.directory` and file-permission fixes for new sudo users**: `/opt/obis-products-catalog` and `/opt/dev-obis-products-catalog` are single shared clones. A new sudo user hits `fatal: detected dubious ownership` (fix: `git config --global --add safe.directory <path>`, per-user) and potentially `insufficient permission for adding an object to repository database .git/objects` (fix: directory-level `chmod g+rwx` isn't enough — existing files may lack the group-write bit from a prior user's umask; use `find <path> -type f -exec chmod g+rw {} \;` explicitly).
 22. **Never set git identity via `--local` config in the shared repo clones**: `user.name`/`user.email` set with `git config --local` applies to whoever runs git in that directory, regardless of Linux account — this misattributed a real human commit to "OBIS Catalog Bot" during onboarding. Each person sets identity in their own `~/.gitconfig` (global). The whitelist-export cron script scopes the bot identity per-command instead: `git -c user.name="OBIS Catalog Bot" -c user.email="helpdesk@obis.org" commit ...`.
-23. **Root SSH login is now disabled**: `PermitRootLogin no` in `/etc/ssh/sshd_config`. All droplet access goes through named sudo accounts (sformel, sprincipe, Pieter — username TBD) with personal SSH keys and `sudo` for privileged actions.
+23. **Root SSH login is now disabled**: `PermitRootLogin no` in `/etc/ssh/sshd_config`. All droplet access goes through named sudo accounts (sformel, sprincipe) plus root (Pieter) with personal SSH keys and `sudo` for privileged actions.
 24. **`core.sshCommand` in a repo's local `.git/config` uses the running user's home directory**: prod's repo has `core.sshCommand = ssh -i ~/.ssh/github_deploy` set locally, which was written assuming root's home. Any other user running git there will look for `~/.ssh/github_deploy` under their own home and fail unless they either copy the deploy key locally or (preferred) unset `core.sshCommand` and use their own personal GitHub-associated SSH key instead.
 25. **Two of the four gitignored dev-specific files require manual mirroring when their tracked counterpart changes — the other two don't**: `nginx/Dockerfile.dev` and `nginx/setup/default.dev.conf` are hand-copies of `nginx/Dockerfile` and `nginx/setup/default.conf` respectively, with no automated sync. Any edit to the tracked file (e.g., adding a pip package, adding/removing an nginx `location` block) must be manually re-applied to the dev version, or dev will silently diverge — this bit us directly: a `pip3 install` addition to `Dockerfile` didn't reach `Dockerfile.dev`, causing a plugin-not-installed build failure, and a `location /api-docs/` removal from `default.conf` left a dead route in `default.dev.conf` pointing at a directory with no `index.html`. By contrast, `docker-compose.dev.yml`'s differences from `docker-compose.yml` are all intentional (ports, `Dockerfile.dev` reference, cert paths) and don't need mirroring — check with `diff docker-compose.yml docker-compose.dev.yml` if unsure whether a change needs to be ported. `docker-compose.override.yml` is listed in `.gitignore` but not currently in use.
 
