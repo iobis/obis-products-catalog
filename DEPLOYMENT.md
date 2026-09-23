@@ -183,11 +183,7 @@ git config core.sshCommand "ssh -i ~/.ssh/github_deploy"
 git remote set-url origin git@github.com:iobis/obis-products-catalog.git
 ```
 
-Set up git identity for automated commits:
-```bash
-git config user.email "helpdesk@obis.org"
-git config user.name "OBIS Catalog Bot"
-```
+Do not set a git identity in the repo config (`git config user.name ...`): it would apply to every user who commits in this shared clone. The export script below passes the bot identity per command instead.
 
 Create the export script:
 ```bash
@@ -195,9 +191,13 @@ mkdir -p /root/bin
 cat > /root/bin/export-whitelist.sh << 'EOF'
 #!/bin/bash
 cd /opt/obis-products-catalog
-docker compose exec -T ckan ckan -c /srv/app/ckan.ini zenodo export-whitelist 2>/dev/null > catalog_whitelist.csv
+docker compose exec -T ckan ckan -c /srv/app/ckan.ini doi-import export-whitelist 2>/dev/null > catalog_whitelist.csv
 git add catalog_whitelist.csv
-git diff --cached --quiet catalog_whitelist.csv || (git commit -m "Auto-update catalog whitelist $(date +%Y-%m-%d)" && git push)
+git diff --cached --quiet catalog_whitelist.csv || (
+  git -c user.name="OBIS Catalog Bot" -c user.email="helpdesk@obis.org" commit -m "Auto-update catalog whitelist $(date +%Y-%m-%d)" &&
+  git -c user.name="OBIS Catalog Bot" -c user.email="helpdesk@obis.org" pull --rebase --autostash origin main &&
+  git push
+)
 EOF
 chmod +x /root/bin/export-whitelist.sh
 ```
@@ -247,7 +247,7 @@ docker compose exec ckan ckan -c /srv/app/ckan.ini search-index rebuild
 
 **Export catalog whitelist manually:**
 ```bash
-docker compose exec ckan ckan -c /srv/app/ckan.ini zenodo export-whitelist
+docker compose exec ckan ckan -c /srv/app/ckan.ini doi-import export-whitelist
 ```
 
 ## Troubleshooting
