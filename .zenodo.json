@@ -1,0 +1,71 @@
+{
+  "title": "OBIS Products Catalog",
+  "upload_type": "software",
+  "description": "<p>The OBIS Products Catalog is a metadata catalog for discovering data products built from data mediated by the Ocean Biodiversity Information System (OBIS), such as datasets, software, publications, maps, dashboards, and training materials. It is not a data repository: it stores metadata and links to products held in repositories such as Zenodo. Each product is linked to OBIS nodes and OceanExpert institutions, and exported as ODIS-compliant Schema.org JSON-LD for discovery through the Ocean Data and Information System (ODIS).</p><p>This archive contains the source code and configuration for the catalog: a CKAN 2.11 deployment (Docker Compose with PostgreSQL, Solr, Redis, and Nginx), custom CKAN extensions for the OBIS theme, product schema, DOI import, JSON-LD export, ORCID login, and cross-node editing, plus the documentation. It also contains the catalog manifest (<code>catalog_whitelist.csv</code>), a list of every product in the catalog at the time of the release.</p><p>The catalog is live at <a href=\"https://products.obis.org\">products.obis.org</a>, with documentation at <a href=\"https://iobis.github.io/obis-products-catalog/\">iobis.github.io/obis-products-catalog</a>. It is developed and maintained by the OBIS Products Coordination Group.</p>",
+  "creators": [
+    {
+      "name": "OBIS Products Coordination Group"
+    }
+  ],
+  "contributors": [
+    {
+      "name": "Formel, Stephen",
+      "orcid": "0000-0001-7418-1244",
+      "affiliation": "The Data Patch",
+      "type": "ProjectLeader"
+    },
+    {
+      "name": "Principe, Silas",
+      "orcid": "0000-0002-8059-6304",
+      "affiliation": "International Oceanographic Data and Information Exchange (IODE), IOC-UNESCO",
+      "type": "ProjectLeader"
+    },
+    {
+      "name": "Provoost, Pieter",
+      "orcid": "0000-0002-4236-0384",
+      "affiliation": "International Oceanographic Data and Information Exchange (IODE), IOC-UNESCO",
+      "type": "ProjectMember"
+    },
+    {
+      "name": "Pye, Jonathan",
+      "orcid": "0000-0003-2807-5867",
+      "affiliation": "Ocean Tracking Network",
+      "type": "ProjectLeader"
+    },
+    {
+      "name": "Ocean Biodiversity Information System",
+      "type": "Producer"
+    }
+  ],
+  "license": "AGPL-3.0-or-later",
+  "keywords": [
+    "OBIS",
+    "marine biodiversity",
+    "data products",
+    "metadata catalog",
+    "CKAN",
+    "ODIS",
+    "Schema.org",
+    "JSON-LD",
+    "Zenodo",
+    "FAIR"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/iobis/obis-products-catalog",
+      "relation": "isSupplementTo",
+      "resource_type": "software",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://products.obis.org",
+      "relation": "isSourceOf",
+      "scheme": "url"
+    },
+    {
+      "identifier": "https://iobis.github.io/obis-products-catalog/",
+      "relation": "isDocumentedBy",
+      "scheme": "url"
+    }
+  ]
+}
