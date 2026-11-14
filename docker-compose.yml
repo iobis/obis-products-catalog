@@ -11,6 +11,7 @@ services:
     build:
       context: .
       dockerfile: nginx/Dockerfile
+    restart: unless-stopped
     networks:
       - webnet
       - ckannet
