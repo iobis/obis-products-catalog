@@ -69,12 +69,12 @@ docker compose exec ckan ckan -c /srv/app/ckan.ini doi-import harvest
 
 ## Dev Auto-Deploy
 
-Pushes to the `dev` branch automatically deploy to `https://dev.products.obis.org:8443`. No SSH, no manual rebuild — push and wait.
+Pushes to the `dev` branch automatically deploy to `https://dev.products.obis.org`. No SSH, no manual rebuild — push and wait.
 
 ### How It Works
 
 1. You push a commit to `origin/dev`
-2. GitHub sends a webhook to `https://dev.products.obis.org:8443/webhook/deploy-dev`
+2. GitHub sends a webhook to `https://dev.products.obis.org/webhook/deploy-dev`
 3. nginx proxies the request to a small daemon (`webhook`) running on the droplet
 4. The daemon verifies the request really came from GitHub (HMAC signature check), and that the push was to `refs/heads/dev`
 5. If both checks pass, it runs `/home/deploy/bin/deploy-dev.sh`, which pulls the new commit, rebuilds the ckan image, restarts the stack, and waits for it to be healthy
