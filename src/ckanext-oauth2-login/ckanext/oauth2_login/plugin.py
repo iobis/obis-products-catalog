@@ -8,11 +8,11 @@ Flow:
 1. User clicks "Sign in with ORCID" → redirected to ORCID authorization page
 2. User authorizes → ORCID redirects back with an authorization code
 3. Extension exchanges code for access token + ORCID iD
-4. Extension checks ORCID iD against whitelist
+4. Extension checks ORCID iD against allowlist
 5. Extension creates or finds a matching CKAN user, logs them in
-6. Extension applies roles from whitelist (sysadmin, org admin) — on every login
+6. Extension applies roles from allowlist (sysadmin, org admin) — on every login
 
-Whitelist format: <orcid> [role1|role2|...] # comment
+Allowlist format: <orcid> [role1|role2|...] # comment
   sysadmin              → full system access (org role logic skipped)
   <org-name>            → admin capacity in that org (e.g. node-obis-uk)
   (no role)             → regular editor, added to obis-community on first login
@@ -89,14 +89,14 @@ def _userinfo_url():
 
 
 # ---------------------------------------------------------------------------
-# Whitelist
+# Allowlist
 # ---------------------------------------------------------------------------
 
-_whitelist_cache = None
+_allowlist_cache = None
 
 
-def _load_whitelist():
-    """Load approved ORCID iDs and their roles from the whitelist file.
+def _load_allowlist():
+    """Load approved ORCID iDs and their roles from the allowlist file.
 
     Format per line: <orcid> [role1|role2|...] # comment
       - sysadmin: full system access
@@ -111,22 +111,25 @@ def _load_whitelist():
         '0000-0002-1234-5678': [],
     }
     """
-    global _whitelist_cache
-    if _whitelist_cache is not None:
-        return _whitelist_cache
+    global _allowlist_cache
+    if _allowlist_cache is not None:
+        return _allowlist_cache
 
-    custom_path = _config('whitelist_path')
+    # The *_whitelist names are pre-rename fallbacks (issue #68).
+    custom_path = _config('allowlist_path') or _config('whitelist_path')
     ext_dir = os.path.dirname(os.path.abspath(__file__))
     candidates = [
         custom_path,
+        os.path.join(ext_dir, '..', '..', 'orcid_allowlist.txt'),
+        '/srv/app/orcid_allowlist.txt',
         os.path.join(ext_dir, '..', '..', 'orcid_whitelist.txt'),
         '/srv/app/orcid_whitelist.txt',
     ]
 
-    whitelist = {}
+    allowlist = {}
     for path in candidates:
         if path and os.path.isfile(path):
-            log.info(f'Loading ORCID whitelist from: {path}')
+            log.info(f'Loading ORCID allowlist from: {path}')
             with open(path, 'r') as f:
                 for line in f:
                     # Strip comments
@@ -140,31 +143,31 @@ def _load_whitelist():
                         roles = parts[1].split('|')
                     else:
                         roles = []
-                    whitelist[orcid_id] = roles
-            log.info(f'Loaded {len(whitelist)} approved ORCID iDs')
-            _whitelist_cache = whitelist
-            return whitelist
+                    allowlist[orcid_id] = roles
+            log.info(f'Loaded {len(allowlist)} approved ORCID iDs')
+            _allowlist_cache = allowlist
+            return allowlist
 
-    log.warning('No ORCID whitelist file found — all ORCID logins will be rejected')
-    _whitelist_cache = whitelist
-    return whitelist
+    log.warning('No ORCID allowlist file found — all ORCID logins will be rejected')
+    _allowlist_cache = allowlist
+    return allowlist
 
 
 def _is_orcid_approved(orcid_id):
-    """Check if an ORCID iD is on the approved whitelist."""
-    return orcid_id in _load_whitelist()
+    """Check if an ORCID iD is on the approved allowlist."""
+    return orcid_id in _load_allowlist()
 
 
 def _get_roles(orcid_id):
     """Return the list of roles for an ORCID iD. Empty list = regular editor."""
-    return _load_whitelist().get(orcid_id, [])
+    return _load_allowlist().get(orcid_id, [])
 
 
-def reload_whitelist():
-    """Force reload of the whitelist (e.g. after editing the file)."""
-    global _whitelist_cache
-    _whitelist_cache = None
-    return _load_whitelist()
+def reload_allowlist():
+    """Force reload of the allowlist (e.g. after editing the file)."""
+    global _allowlist_cache
+    _allowlist_cache = None
+    return _load_allowlist()
 
 
 # ---------------------------------------------------------------------------
@@ -172,9 +175,9 @@ def reload_whitelist():
 # ---------------------------------------------------------------------------
 
 def _apply_roles(orcid_id, username):
-    """Apply (or revoke) roles for a user based on the whitelist.
+    """Apply (or revoke) roles for a user based on the allowlist.
 
-    Called on every login so whitelist changes propagate without manual
+    Called on every login so allowlist changes propagate without manual
     shell intervention. Handles:
     - sysadmin promotion and demotion
     - org admin promotion and demotion (per org, for non-sysadmins only)
@@ -265,7 +268,7 @@ def _find_or_create_user(orcid_id, name, email=None):
         user = toolkit.get_action('user_show')(
             {'ignore_auth': True}, {'id': username, 'include_deleted': True}
         )
-        # Reactivate if user was deleted (but still on whitelist)
+        # Reactivate if user was deleted (but still on allowlist)
         if user.get('state') == 'deleted':
             log.info(f'Reactivating deleted user: {username}')
             userobj = model.User.by_name(username)
@@ -524,9 +527,9 @@ def orcid_callback():
     if state.startswith('profile_update:'):
         return _handle_profile_update(orcid_id)
 
-    # Check whitelist
+    # Check allowlist
     if not _is_orcid_approved(orcid_id):
-        log.warning(f'ORCID {orcid_id} ({name}) not on whitelist — login rejected')
+        log.warning(f'ORCID {orcid_id} ({name}) not on allowlist — login rejected')
         toolkit.h.flash_error(
             'Your ORCID iD is not yet approved for this catalog. '
             'Please contact helpdesk@obis.org to request access.'
@@ -558,7 +561,7 @@ def orcid_callback():
     # Find or create user
     user = _find_or_create_user(orcid_id, name, email)
 
-    # Apply roles from whitelist (every login)
+    # Apply roles from allowlist (every login)
     _apply_roles(orcid_id, user['name'])
 
     # Log in
