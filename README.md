@@ -2,7 +2,7 @@
 
 A CKAN-based metadata catalog for discovering and accessing data products created from OBIS-mediated marine biodiversity data. The catalog aggregates metadata from sources like Zenodo, links to OBIS nodes and Ocean Expert institutions, and exports ODIS-compliant Schema.org JSON-LD for semantic web integration.
 
-**[Documentation](https://iobis.github.io/obis-products-catalog/)** · **[Issues](https://github.com/iobis/obis-products-catalog/issues)** · **[OBIS Products Coordination Group](https://manual.obis.org/nodes.html#obis-products-coordination-group)**
+**[Documentation](https://products.obis.org/docs/)** · **[Issues](https://github.com/iobis/obis-products-catalog/issues)** · **[OBIS Products Coordination Group](https://manual.obis.org/nodes.html#obis-products-coordination-group)**
 
 ## Stack
 

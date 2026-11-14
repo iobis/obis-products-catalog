@@ -14,7 +14,7 @@ The catalog is maintained by a small team under the OBIS Products Coordination G
 
 - **GitHub**: https://github.com/iobis/obis-products-catalog
 - **Branch**: `main`
-- **Documentation**: https://iobis.github.io/obis-products-catalog/ (MkDocs Material)
+- **Documentation**: https://products.obis.org/docs/ (MkDocs Material)
 - **Dev instance**: Running on the prod droplet at https://dev.products.obis.org (143.198.98.101), directory `/opt/dev-obis-products-catalog`
 - **Production instance**: Live at https://products.obis.org (143.198.98.101), directory `/opt/obis-products-catalog`
 
@@ -304,12 +304,11 @@ The nightly export runs via `/root/bin/export-allowlist.sh` on the prod droplet,
 
 ## Documentation
 
-MkDocs Material site deployed to GitHub Pages via GitHub Actions.
+MkDocs Material site, built into the nginx image and served by the catalog at `/docs`.
 
 - **Source**: `docs/` directory in repo root + `mkdocs.yml`
-- **URL**: https://iobis.github.io/obis-products-catalog/
-- **Deployment**: Push to `main` triggers `.github/workflows/docs.yml` → builds with `mkdocs build` → deploys via `actions/deploy-pages`
-- **Pages source**: Set to "GitHub Actions" in repo Settings → Pages
+- **URL**: https://products.obis.org/docs/
+- **Deployment**: `nginx/Dockerfile` (and the server-only `nginx/Dockerfile.dev`) runs `mkdocs build` and copies the site to `/usr/share/nginx/html/docs`, so docs update whenever nginx is rebuilt. GitHub Pages (the old `iobis.github.io/obis-products-catalog` site) was turned off on 2026-11-14.
 
 ### Doc pages:
 - **Overview**: Project overview, key features, infrastructure summary
