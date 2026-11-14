@@ -1,6 +1,6 @@
 site_name: OBIS Products Catalog
 site_description: Documentation for the OBIS Products Catalog — a CKAN-based metadata catalog for ocean biodiversity research products.
-site_url: http://products.obis.org/docs
+site_url: https://products.obis.org/docs/
 
 repo_name: iobis/obis-products-catalog
 repo_url: https://github.com/iobis/obis-products-catalog
