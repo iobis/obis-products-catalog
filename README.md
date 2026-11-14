@@ -100,7 +100,7 @@ CKAN reads environment variables via the `envvars` plugin using triple-underscor
 
 ## Contributing
 
-See the [full documentation](https://iobis.github.io/obis-products-catalog/) for architecture details, theming guide, and development setup.
+See the [full documentation](https://products.obis.org/docs/) for architecture details, theming guide, and development setup.
 
 Contact: [helpdesk@obis.org](mailto:helpdesk@obis.org)
 
