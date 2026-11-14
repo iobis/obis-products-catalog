@@ -55,12 +55,12 @@ Both prod and dev run on the same droplet (143.198.98.101). Dev is a full separa
 - `nginx/Dockerfile.dev` — points to `default.dev.conf`
 - `nginx/setup/default.dev.conf` — nginx config for `dev.products.obis.org`
 
-**Running dev commands** — always use `-f docker-compose.dev.yml` or run from `/opt/dev-obis-products-catalog` which has `COMPOSE_PROJECT_NAME=ckan-dev` in `.env`:
+**Running dev commands** — always use `-f docker-compose.dev.yml`, from `/opt/dev-obis-products-catalog`. The `.env` there only sets `COMPOSE_PROJECT_NAME=ckan-dev`; plain `docker compose` still reads the prod `docker-compose.yml`, so its nginx tries to bind prod's 127.0.0.1:8080 and dev returns 502:
 ```bash
 cd /opt/dev-obis-products-catalog
 docker compose -f docker-compose.dev.yml up -d --build
 docker compose -f docker-compose.dev.yml logs -f ckan
-docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-nodes
+docker compose -f docker-compose.dev.yml exec ckan ckan -c /srv/app/ckan.ini obis sync-nodes
 ```
 
 **Shell aliases on the droplet:**
