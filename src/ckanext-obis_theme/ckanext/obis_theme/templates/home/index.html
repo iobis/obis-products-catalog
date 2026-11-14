@@ -3,6 +3,26 @@
 
 {% block subtitle %}{% endblock %}
 
+{% block head_extras -%}
+  {{ super() }}
+  {% set home_description = "A discovery catalog for researchers, analysts, and data practitioners. Browse tools, models, software, notebooks, and more, all derived from OBIS-mediated data." %}
+  <meta name="description" content="{{ home_description }}">
+  <meta property="og:title" content="{{ g.site_title }}">
+  <meta property="og:description" content="{{ home_description }}">
+  <script type="application/ld+json">{{ {
+    "@context": "https://schema.org",
+    "@type": "DataCatalog",
+    "name": g.site_title,
+    "url": g.site_url,
+    "description": home_description,
+    "publisher": {
+      "@type": "Organization",
+      "name": "Ocean Biodiversity Information System (OBIS)",
+      "url": "https://obis.org"
+    }
+  }|tojson }}</script>
+{% endblock -%}
+
 {% block maintag %}{% endblock %}
 {% block toolbar %}{% endblock %}
 

@@ -11,6 +11,7 @@ log = logging.getLogger(__name__)
 class OdisPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IConfigurer)
     plugins.implements(plugins.IBlueprint)
+    plugins.implements(plugins.ITemplateHelpers)
 
     def sitemap(self):
         """Generate an ODIS-compliant sitemap.xml listing all dataset JSON-LD endpoints."""
@@ -69,6 +70,18 @@ class OdisPlugin(plugins.SingletonPlugin):
             methods=['GET']
         )
         return blueprint
+
+    # ITemplateHelpers
+    def get_helpers(self):
+        return {'odis_jsonld': self.odis_jsonld}
+
+    def odis_jsonld(self, dataset):
+        """Schema.org JSON-LD for embedding in a product page (same as odis.jsonld)."""
+        try:
+            return self.transform_to_odis(dataset)
+        except Exception as e:
+            log.error(f"Error building page JSON-LD for {dataset.get('name')}: {e}")
+            return None
 
     def export_odis(self, id):
         """
