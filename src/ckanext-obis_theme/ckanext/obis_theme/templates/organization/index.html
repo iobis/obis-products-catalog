@@ -116,7 +116,7 @@
                 </span>
                 <span class="obis-np-card__stat">
                   <i class="fa fa-users" aria-hidden="true"></i>
-                  <strong>{{ org.num_followers or 0 }}</strong> {{ _('Members') }}
+                  <strong>{{ h.member_count(org.id) }}</strong> {{ _('Members') }}
                 </span>
               </div>
             </div>
