@@ -245,7 +245,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '403':
-          description: DOI is blacklisted or user not authorized
+          description: DOI is on the denylist or user not authorized
           content:
             application/json:
               schema:

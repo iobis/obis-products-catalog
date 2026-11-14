@@ -4,7 +4,7 @@
 
 The catalog uses **ORCID** for authentication. Click "Sign in with ORCID" on the login page to authenticate using your existing ORCID account.
 
-Access is controlled by an approved whitelist. If your ORCID iD is not on the list, you'll see a message directing you to contact [helpdesk@obis.org](mailto:helpdesk@obis.org) to request access.
+Access is controlled by an approved allowlist. If your ORCID iD is not on the list, you'll see a message directing you to contact [helpdesk@obis.org](mailto:helpdesk@obis.org) to request access.
 
 On your first approved login, the catalog will:
 

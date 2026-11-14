@@ -9,8 +9,8 @@ import ckan.plugins.toolkit as toolkit
 from ckanext.doi_import.mappers.base import extract_doi_from_url, detect_source
 from ckanext.doi_import.mappers import zenodo as zenodo_mapper
 
-# Blacklist CSV path (volume-mounted from repo root)
-BLACKLIST_PATH = '/srv/app/catalog_blacklist.csv'
+# Denylist CSV path (volume-mounted from repo root)
+DENYLIST_PATH = '/srv/app/catalog_denylist.csv'
 
 # Fields that curators may have edited — never overwrite these on update
 PROTECTED_FIELDS = {
@@ -21,12 +21,12 @@ PROTECTED_FIELDS = {
 }
 
 
-def _is_blacklisted(doi_url):
-    """Check if a DOI is on the blacklist. Returns reason string or None."""
-    if not doi_url or not os.path.exists(BLACKLIST_PATH):
+def _is_denylisted(doi_url):
+    """Check if a DOI is on the denylist. Returns reason string or None."""
+    if not doi_url or not os.path.exists(DENYLIST_PATH):
         return None
     try:
-        with open(BLACKLIST_PATH, 'r') as f:
+        with open(DENYLIST_PATH, 'r') as f:
             reader = csv.DictReader(f)
             for row in reader:
                 if row.get('doi', '').strip() == doi_url.strip():
@@ -157,12 +157,12 @@ class DoiImportPlugin(plugins.SingletonPlugin):
             flash("Please provide a DOI URL", "error")
             return redirect(url_for("doi_import.import_doi_form"))
 
-        # Check blacklist before fetching
-        blacklist_reason = _is_blacklisted(doi_url)
-        if blacklist_reason:
+        # Check denylist before fetching
+        denylist_reason = _is_denylisted(doi_url)
+        if denylist_reason:
             flash(
                 f'This DOI has been reviewed and excluded from the catalog. '
-                f'Reason: {blacklist_reason}',
+                f'Reason: {denylist_reason}',
                 'alert-warning'
             )
             return redirect(url_for("doi_import.import_doi_form"))
@@ -260,11 +260,11 @@ class DoiImportPlugin(plugins.SingletonPlugin):
 
             doi_url = data["doi_url"]
 
-            # Check blacklist
-            blacklist_reason = _is_blacklisted(doi_url)
-            if blacklist_reason:
+            # Check denylist
+            denylist_reason = _is_denylisted(doi_url)
+            if denylist_reason:
                 return jsonify({
-                    "error": f"DOI is blacklisted: {blacklist_reason}"
+                    "error": f"DOI is on the denylist: {denylist_reason}"
                 }), 403
 
             # Fetch metadata
@@ -340,9 +340,9 @@ class DoiImportPlugin(plugins.SingletonPlugin):
             flash("This product has no source URL — cannot sync.", "alert-warning")
             return redirect(url_for("dataset.read", id=existing["name"]))
 
-        blacklist_reason = _is_blacklisted(source_url)
-        if blacklist_reason:
-            flash(f"This DOI is blacklisted and cannot be synced. Reason: {blacklist_reason}", "alert-warning")
+        denylist_reason = _is_denylisted(source_url)
+        if denylist_reason:
+            flash(f"This DOI is on the denylist and cannot be synced. Reason: {denylist_reason}", "alert-warning")
             return redirect(url_for("dataset.read", id=existing["name"]))
 
         try:

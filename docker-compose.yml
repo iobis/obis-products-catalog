@@ -50,8 +50,8 @@ services:
       - ckan_storage:/var/lib/ckan
       - pip_cache:/root/.cache/pip
       - site_packages:/usr/lib/python3.10/site-packages
-      - ./catalog_blacklist.csv:/srv/app/catalog_blacklist.csv
-      - ./catalog_whitelist.csv:/srv/app/catalog_whitelist.csv
+      - ./catalog_denylist.csv:/srv/app/catalog_denylist.csv
+      - ./catalog_allowlist.csv:/srv/app/catalog_allowlist.csv
       - ./ckan/licenses.json:/srv/app/licenses.json
     restart: unless-stopped
     healthcheck:
