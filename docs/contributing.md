@@ -7,14 +7,26 @@ Development is done on a dedicated Digital Ocean droplet. Local Docker setup on 
 ## Git Workflow
 
 1. Create a branch off `main`
-2. Make changes and test on the dev droplet
-3. Commit and push
-4. Open a pull request or merge directly to `main` when stable
+2. Commit and push the branch
+3. Open a pull request from the branch into `dev` and merge it. This deploys it to the dev website
+4. Test on https://dev.products.obis.org
+5. When it works, open a pull request from the **same branch** into `main` and merge it
+6. On the droplet, pull `main` in `/opt/obis-products-catalog` and rebuild (see below)
+
+Don't merge `dev` into `main`; each branch goes into both separately.
 
 ## Rebuilding After Code Changes
 
+Prod (`/opt/obis-products-catalog`):
+
 ```bash
 docker compose build ckan && docker compose up -d
+```
+
+Dev (`/opt/dev-obis-products-catalog`) always needs the dev compose file. Without `-f`, compose uses the prod `docker-compose.yml`, whose nginx binds prod's port, and dev returns 502:
+
+```bash
+docker compose -f docker-compose.dev.yml build ckan && docker compose -f docker-compose.dev.yml up -d ckan nginx
 ```
 
 For nginx/docs changes only:
