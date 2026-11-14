@@ -64,15 +64,15 @@ Import datasets from DOIs (currently Zenodo). Provides a web UI for DOI import a
 - **Duplicate detection**: Checks for existing datasets by matching `source_url` before importing. If found, updates instead of creating a duplicate.
 - **Smart update**: On re-import, preserves curated fields (`thematic_tags`, `product_type`, `groups`, `owner_org`, `tag_string`) and only updates fields where the source provides new values.
 - **DOI-based URL slugs**: New imports use the DOI as the URL slug (e.g., `/dataset/10-5281-zenodo-17537386`) for stability and uniqueness.
-- **Blacklist check**: Checks `catalog_blacklist.csv` before importing. Blacklisted DOIs are rejected with an explanation.
+- **Denylist check**: Checks `catalog_denylist.csv` before importing. DOIs on the denylist are rejected with an explanation.
 - **Web form**: `/dataset/import-doi` — paste a DOI, select an organization, import.
 - **API endpoint**: `POST /api/harvest-doi` — for automated imports.
 - **Mapper pattern**: `mappers/base.py` (DOI detection and shared utilities), `mappers/zenodo/` (Zenodo-specific). See [Contributing > Adding a New Data Source](contributing.md#adding-a-new-data-source) for how to add a new source.
 
 **CLI Commands**:
 
-- `ckan doi-import harvest` — Bulk import/update from the DOI registry CSV. Checks blacklist, uses smart update to preserve curated fields.
-- `ckan doi-import export-whitelist` — Export all catalog products as CSV (`doi`, `title`, `source_url`, `catalog_url`). Used by the nightly cron job.
+- `ckan doi-import harvest` — Bulk import/update from the DOI registry CSV. Checks denylist, uses smart update to preserve curated fields.
+- `ckan doi-import export-allowlist` — Export all catalog products as CSV (`doi`, `title`, `source_url`, `catalog_url`). Used by the nightly cron job.
 
 ## ckanext-public-edit
 
@@ -101,13 +101,13 @@ Authorization policy extension that enables cross-node curation. Any logged-in u
 
 ## ckanext-oauth2-login
 
-ORCID OAuth2 login for researchers. Allows users to sign in with their ORCID iD instead of a CKAN username and password. Only ORCID iDs on the approved whitelist can log in. Creates a CKAN account on first login and auto-assigns new users to the OBIS Community organization as editors.
+ORCID OAuth2 login for researchers. Allows users to sign in with their ORCID iD instead of a CKAN username and password. Only ORCID iDs on the approved allowlist can log in. Creates a CKAN account on first login and auto-assigns new users to the OBIS Community organization as editors.
 
 **Plugin name**: `oauth2_login`
 
-**Access control**: Login is restricted to ORCID iDs listed in `orcid_whitelist.txt` in the extension root. Unapproved users are shown a message to contact helpdesk@obis.org. See [Operations > User Management](operations.md#orcid-whitelist) for how to manage the whitelist.
+**Access control**: Login is restricted to ORCID iDs listed in `orcid_allowlist.txt` in the extension root. Unapproved users are shown a message to contact helpdesk@obis.org. See [Operations > User Management](operations.md#orcid-allowlist) for how to manage the allowlist.
 
-**Whitelist**: `src/ckanext-oauth2-login/orcid_whitelist.txt` — one ORCID per line. A full rebuild is required after changes:
+**Allowlist**: `src/ckanext-oauth2-login/orcid_allowlist.txt` — one ORCID per line. A full rebuild is required after changes:
 
 ```bash
 docker compose build ckan && docker compose up -d
@@ -115,9 +115,9 @@ docker compose build ckan && docker compose up -d
 
 **Key behaviors**:
 
-- Whitelist checked after ORCID authentication, before account creation
+- Allowlist checked after ORCID authentication, before account creation
 - First-time approved users get a CKAN account and OBIS Community membership automatically
-- Deleted users are reactivated on next login (remove from whitelist to block)
+- Deleted users are reactivated on next login (remove from allowlist to block)
 - Session handling mirrors CKAN's native login (session regeneration + CSRF token rotation)
 
 **Routes**:

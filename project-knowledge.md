@@ -166,10 +166,10 @@ The production `docker-compose.yml` sets the CKAN build context to the repo root
 - **Duplicate detection**: Checks for existing datasets by matching `source_url` before importing. Routes to update if found.
 - **Smart update**: On re-import, preserves curated fields (`thematic_tags`, `product_type`, `groups`, `owner_org`, `tag_string`). Only overwrites fields where the source provides a non-empty value.
 - **DOI-based URL slugs**: New imports use the DOI as the URL slug (e.g., `/dataset/10-5281-zenodo-17537386`) for stability and uniqueness. Fallback to title-based slug for manual products without DOIs.
-- **Blacklist check**: Checks `catalog_blacklist.csv` before importing. Blacklisted DOIs are rejected with an explanation in both web form and API.
+- **Denylist check**: Checks `catalog_denylist.csv` before importing. DOIs on the denylist are rejected with an explanation in both web form and API.
 - **Flash messages**: Uses CKAN's `flash()` with `alert-warning` category for yellow warning boxes (CKAN 2.11 uses the category directly as a CSS class, not prefixed with `alert-`).
-- CLI: `ckan doi-import harvest` — bulk import/update from whitelist CSV. Default registry path is `/srv/app/catalog_whitelist.csv`. Checks blacklist, uses smart update.
-- CLI: `ckan doi-import export-whitelist` — export all catalog products as CSV for nightly cron.
+- CLI: `ckan doi-import harvest` — bulk import/update from allowlist CSV. Default registry path is `/srv/app/catalog_allowlist.csv`. Checks denylist, uses smart update.
+- CLI: `ckan doi-import export-allowlist` — export all catalog products as CSV for nightly cron.
 
 **Mapper structure**: Each source is a package under `mappers/`:
 ```
@@ -197,10 +197,10 @@ Each mapper must implement `fetch_metadata(doi)` and `get_last_modified(doi)`. A
 **What it does**:
 - "Sign in with ORCID" button on login page — username/password form is hidden, non-ORCID login is not supported via UI
 - Full OAuth2 authorization code flow with ORCID
-- **Whitelist-based access control**: Only ORCID iDs listed in `orcid_whitelist.txt` can log in
+- **Allowlist-based access control**: Only ORCID iDs listed in `orcid_allowlist.txt` can log in
 - Creates CKAN account on first login (username: `orcid-XXXX-XXXX-XXXX-XXXX`)
 - Auto-assigns new users to `obis-community` org as editor
-- Reactivates deleted users if still on whitelist
+- Reactivates deleted users if still on allowlist
 - Session handling mirrors CKAN native login (session regeneration + CSRF token rotation — both required for login to persist)
 - Stores ORCID iD in `plugin_extras` for future use
 - Unapproved users see: "Your ORCID iD is not yet approved. Contact helpdesk@obis.org."
@@ -209,7 +209,7 @@ Each mapper must implement `fetch_metadata(doi)` and `get_last_modified(doi)`. A
 - **Flask-WTF SSL strict check disabled**: Via `IMiddleware`, sets `WTF_CSRF_SSL_STRICT=False` on the Flask app to allow form submissions from non-standard ports (e.g. dev on :8443).
 - **Login page**: Shows only ORCID button. "Need an Account?" and "Forgot your password?" sidebar blocks are hidden. Info text explains ORCID-only access and links to helpdesk@obis.org.
 
-**Whitelist file**: `src/ckanext-oauth2-login/orcid_whitelist.txt` — one ORCID per line, comments after `#`. Rebuild required after changes.
+**Allowlist file**: `src/ckanext-oauth2-login/orcid_allowlist.txt` — one ORCID per line, comments after `#`. Rebuild required after changes.
 
 **Required `.env` variables**:
 ```
@@ -225,7 +225,7 @@ CKANEXT__OAUTH2_LOGIN__REDIRECT_URI=https://your-domain/oauth2/callback
 ## Authentication and Authorization
 
 ### Authentication
-- **ORCID login**: Only supported login method for UI users. Whitelist-controlled.
+- **ORCID login**: Only supported login method for UI users. Allowlist-controlled.
 - **No shared admin account**: `ckan_admin` has been purged. All admin access is via ORCID sysadmin accounts.
 - **Non-ORCID accounts**: Still technically possible via CLI (`ckan user add`) as an emergency escape hatch, but not supported via the UI. Password reset is blocked with 404.
 - **Emergency admin recovery**: SSH to droplet → `docker compose exec -it ckan ckan -c /srv/app/ckan.ini shell` → set any ORCID user as sysadmin via `user.sysadmin = True`.
@@ -294,13 +294,13 @@ Adding a new source requires creating a mapper package in `ckanext-doi-import/ck
 
 Two CSV files at the repo root serve as the archivable, citable record of the catalog:
 
-**`catalog_whitelist.csv`** — Every product in the catalog, exported nightly from the database. Columns: `doi`, `title`, `source_url`, `catalog_url`. Version-controlled in git, auto-committed by cron at 2am UTC if changes detected. Also used as the input file for `doi-import harvest`.
+**`catalog_allowlist.csv`** — Every product in the catalog, exported nightly from the database. Columns: `doi`, `title`, `source_url`, `catalog_url`. Version-controlled in git, auto-committed by cron at 2am UTC if changes detected. Also used as the input file for `doi-import harvest`.
 
-**`catalog_blacklist.csv`** — DOIs reviewed and determined out of scope. Manually curated. Columns: `doi`, `title`, `source_url`, `reason`, `reviewed_date`. Checked by web form, API, and bulk harvest CLI before importing.
+**`catalog_denylist.csv`** — DOIs reviewed and determined out of scope. Manually curated. Columns: `doi`, `title`, `source_url`, `reason`, `reviewed_date`. Checked by web form, API, and bulk harvest CLI before importing.
 
 Both files are volume-mounted into the CKAN container in both prod and dev `docker-compose` files.
 
-The nightly export runs via `/root/bin/export-whitelist.sh` on the prod droplet, using a deploy key for passwordless git push. The deploy key is repo-scoped (not user-scoped) and can be managed by any repo admin.
+The nightly export runs via `/root/bin/export-allowlist.sh` on the prod droplet, using a deploy key for passwordless git push. The deploy key is repo-scoped (not user-scoped) and can be managed by any repo admin.
 
 ## Documentation
 
@@ -313,11 +313,11 @@ MkDocs Material site deployed to GitHub Pages via GitHub Actions.
 
 ### Doc pages:
 - **Overview**: Project overview, key features, infrastructure summary
-- **User Guide**: Signing in (ORCID whitelist), data model, product types, searching, contributing products, permissions, DOI import workflow, catalog manifest
+- **User Guide**: Signing in (ORCID allowlist), data model, product types, searching, contributing products, permissions, DOI import workflow, catalog manifest
 - **Theming & Aesthetics**: Colors, fonts, logos, icons — for comms team
 - **Architecture**: Infrastructure, services, auth model, plugin load order
 - **Extensions**: All seven custom extensions documented
-- **Operations**: Routine commands, dev instance setup, catalog manifest, user management (whitelist), troubleshooting, gotchas
+- **Operations**: Routine commands, dev instance setup, catalog manifest, user management (allowlist), troubleshooting, gotchas
 - **Data Model, Contributing**: Skeleton pages to flesh out
 
 ## Operations
@@ -354,10 +354,10 @@ docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-nodes
 # Sync institutions
 docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-institutions
 
-# Export catalog whitelist
-docker compose exec ckan ckan -c /srv/app/ckan.ini doi-import export-whitelist --output /srv/app/catalog_whitelist.csv
+# Export catalog allowlist
+docker compose exec ckan ckan -c /srv/app/ckan.ini doi-import export-allowlist --output /srv/app/catalog_allowlist.csv
 
-# Bulk harvest from whitelist
+# Bulk harvest from allowlist
 docker compose exec ckan ckan -c /srv/app/ckan.ini doi-import harvest
 
 # Initialize vocabularies
@@ -366,7 +366,7 @@ docker compose exec ckan ckan -c /srv/app/ckan.ini obis-schema init-vocabularies
 
 ### User Management
 
-**Add to whitelist**: Edit `src/ckanext-oauth2-login/orcid_whitelist.txt`, add ORCID iD, rebuild and restart.
+**Add to allowlist**: Edit `src/ckanext-oauth2-login/orcid_allowlist.txt`, add ORCID iD, rebuild and restart.
 
 **Promote to sysadmin**: `docker compose exec -it ckan ckan -c /srv/app/ckan.ini shell` then:
 ```python
@@ -378,7 +378,7 @@ model.Session.commit()
 
 **Purge a user**: Same shell, then `user.purge()` and `model.Session.commit()`.
 
-**Warning**: If you only set a user to `deleted` state without removing from whitelist, they will be reactivated on next ORCID login.
+**Warning**: If you only set a user to `deleted` state without removing from allowlist, they will be reactivated on next ORCID login.
 
 ### Git Workflow
 
@@ -411,7 +411,7 @@ SSH key for push: `~/.ssh/github_deploy` (repo-scoped deploy key).
 | ORCID login: flash message appears but user not logged in | User may be in `deleted` state. Check with `user_show` include_deleted. Reactivate or purge and re-login. |
 | ORCID login: `login_user` returns False | User is inactive. Check `userobj.is_active` and `userobj.state`. |
 | `AttributeError: DefaultTranslation` | Import from `ckan.lib.plugins` not `toolkit` |
-| DOI import says "excluded from catalog" | DOI is on the blacklist (`catalog_blacklist.csv`) — remove it if this was a mistake |
+| DOI import says "excluded from catalog" | DOI is on the denylist (`catalog_denylist.csv`) — remove it if this was a mistake |
 | DOI import says "already in catalog" | Product exists — it will be updated with curated fields preserved |
 | Flash messages not styled (no color) | CKAN 2.11 uses the flash category directly as CSS class. Use `alert-warning`, `alert-info`, etc., not `warning` or `info` |
 | Dev port collision on startup | Docker nginx for prod and dev must bind to different localhost ports (prod: `127.0.0.1:8080`, dev: `127.0.0.1:8081`) — check `docker-compose.dev.yml` has hardcoded ports not env var references. Host nginx (not Docker) handles the public 80/443 for both domains. |
@@ -419,7 +419,7 @@ SSH key for push: `~/.ssh/github_deploy` (repo-scoped deploy key).
 | ORCID profile edit gives 400 Bad Request | Flask-WTF SSL strict referrer check. Fixed via `IMiddleware` setting `WTF_CSRF_SSL_STRICT=False` in `ckanext-oauth2-login`. |
 | ORCID profile edit gives 500 after removing password field | CKAN's user edit view crashes on missing `old_password`. Fixed by routing ORCID users through `/user/edit-orcid/<id>` which re-authenticates via ORCID. |
 | User About text not showing on profile page | `about_formatted` not passed to `user/snippets/info.html`. Fixed by overriding `user/read_base.html` in `ckanext-obis_theme`. |
-| `doi-import harvest` says registry file not found | Pass `--registry /srv/app/catalog_whitelist.csv` or ensure the default path is set correctly in `cli.py`. Also ensure `catalog_whitelist.csv` is volume-mounted in the compose file. |
+| `doi-import harvest` says registry file not found | Pass `--registry /srv/app/catalog_allowlist.csv` or ensure the default path is set correctly in `cli.py`. Also ensure `catalog_allowlist.csv` is volume-mounted in the compose file. |
 | License facet shows raw strings instead of display names | `licenses.json` not loading — check `CKAN___LICENSES_GROUP_URL` in `.env` and that `ckan/licenses.json` is a file not a directory on the host. |
 | License facet shows `license_id` values instead of `license_family` buckets | Solr index needs rebuild after deploying `obis_schema` plugin changes. |
 | `licenses.json` volume mounts as directory | Docker created it as a directory before the file existed on the host. Run `rm -rf ckan/licenses.json`, recreate the file, then `docker compose down && up -d`. |
@@ -436,7 +436,7 @@ SSH key for push: `~/.ssh/github_deploy` (repo-scoped deploy key).
 - **Repo cleanup**: Replaced old README with concise version. Removed obsolete docs.
 - **MkDocs docs**: Set up with Material theme, deployed to GitHub Pages. Updated with auth/extension/operations content.
 - **Built ckanext-public-edit**: Cross-node editing with org field protection. Override scheming's `organization.html` form snippet (not CKAN's `package_basic_fields.html`).
-- **Built ckanext-oauth2-login**: ORCID OAuth2 with whitelist, auto-assign to obis-community, session regeneration.
+- **Built ckanext-oauth2-login**: ORCID OAuth2 with allowlist, auto-assign to obis-community, session regeneration.
 - **HTTPS via Let's Encrypt**: Prod at products.obis.org, dev at dev.products.obis.org.
 - **Dataset→Product i18n**: English translation override in obis_theme replaces all "Dataset/Datasets" with "Product/Products".
 - **Org pre-selection**: "Add Product" from org pages passes `owner_org` through to create and import forms.
@@ -446,13 +446,13 @@ SSH key for push: `~/.ssh/github_deploy` (repo-scoped deploy key).
 - **Homepage shows all vocabulary items**: Product types and thematic areas display even with 0 count, helping users understand the full taxonomy. Sort: count descending, then alphabetical.
 - **DOI import duplicate detection**: Web form checks for existing datasets by `source_url` field. Routes to smart update if found, preserving curated fields.
 - **DOI-based URL slugs**: Replaced title-based slugs (collision-prone) with DOI-based slugs for stability and uniqueness.
-- **Catalog manifest system**: Nightly whitelist export to CSV via cron, blacklist enforcement on import. Removed `doi_registry.txt` and in-container file writing.
+- **Catalog manifest system**: Nightly allowlist export to CSV via cron, denylist enforcement on import. Removed `doi_registry.txt` and in-container file writing.
 - **Flash message styling**: CKAN 2.11 uses flash category as CSS class directly (not prefixed). Use `alert-warning` for yellow, `alert-info` for blue, `success` for green.
 - **Deploy key for prod**: Repo-scoped SSH deploy key (no passphrase) for automated git push from cron.
-- **Updated DEPLOYMENT.md**: Full walkthrough including SSL, ORCID sysadmin setup, node/institution sync, whitelist export cron.
-- **Renamed zenodo_url → source_url (Issue #27)**: Schema field renamed, mapper updated to output `source_url` and populate `canonical_id`, duplicate detection updated, whitelist export updated, templates updated.
+- **Updated DEPLOYMENT.md**: Full walkthrough including SSL, ORCID sysadmin setup, node/institution sync, allowlist export cron.
+- **Renamed zenodo_url → source_url (Issue #27)**: Schema field renamed, mapper updated to output `source_url` and populate `canonical_id`, duplicate detection updated, allowlist export updated, templates updated.
 - **ODIS sitemap and robots.txt (Issues #34, #35)**: Dynamic sitemap at `/sitemap.xml` listing all JSON-LD endpoints. robots.txt served via nginx with crawler directives.
-- **ORCID whitelist update (Issue #33)**: Added Emilie Boulanger, Saara Suominen, Laurent Chmiel, Lisa Benedetti.
+- **ORCID allowlist update (Issue #33)**: Added Emilie Boulanger, Saara Suominen, Laurent Chmiel, Lisa Benedetti.
 - **Dataset page JSON rendering**: Authors, contributors, and funding parsed from JSON and displayed as formatted HTML instead of raw JSON strings.
 - **OBIS Community org**: sync-nodes now automatically creates the obis-community organization.
 - **Removed product_type from PROTECTED_FIELDS (Issue #45)**: `product_type` is source-authoritative — corrections at Zenodo now propagate on reimport.
@@ -466,7 +466,7 @@ SSH key for push: `~/.ssh/github_deploy` (repo-scoped deploy key).
 - **ORCID user profile editing (Issue #53)**: ORCID users can now edit their profile without a password. Form submission intercepted, user re-authenticated via ORCID OAuth, then profile updated. Handles fullname, email, about, image_url.
 - **Fixed About text not displaying on profile page (Issue #53)**: `about_formatted` was not passed to `user/snippets/info.html`. Fixed by overriding `user/read_base.html` in `ckanext-obis_theme`.
 - **Disabled non-ORCID login UI (Issue #54)**: Login page shows only ORCID button. Password reset page returns 404. Sidebar updated with ORCID login info.
-- **Extension reorg (Issue #56)**: Retired `ckanext-zenodo`. Created source-agnostic `ckanext-obis_schema` (schema, facets, validators, `init-vocabularies`). Moved harvest/export-whitelist CLI to `ckanext-doi-import`. Restructured `mappers/zenodo.py` into `mappers/zenodo/` package with `get_last_modified()`. Updated all config, Dockerfiles, and docs.
+- **Extension reorg (Issue #56)**: Retired `ckanext-zenodo`. Created source-agnostic `ckanext-obis_schema` (schema, facets, validators, `init-vocabularies`). Moved harvest/export-allowlist CLI to `ckanext-doi-import`. Restructured `mappers/zenodo.py` into `mappers/zenodo/` package with `get_last_modified()`. Updated all config, Dockerfiles, and docs.
 - **License family facet (Issue #13)**: Added `ckan/licenses.json` with SPDX IDs. Added `LICENSE_FAMILY_MAP` and `license_family` Solr field in `ckanext-obis_schema`. License sidebar facet now shows constraint-oriented buckets. `Unclassified` bucket acts as work queue for unmapped license strings.
 - **Host-level SSL termination (commit 012e3f8)**: Moved TLS termination from each stack's Docker nginx to a single host-level nginx in front of both prod and dev. Docker nginx now binds to a localhost-only port and serves plain HTTP internally, trusting `X-Forwarded-Proto` from host nginx. Dev no longer requires an explicit `:8443` port. Follow-up needed: confirm dev's Docker nginx localhost port, whether cert renewal is now host-level for both domains, and whether the ORCID redirect URI has been updated in ORCID's developer app settings to match.
 - **Named sudo accounts replace shared root login**: Created individual sudo-privileged accounts for Stephen Formel (sformel) and Silas Principe (sprincipe), each with dedicated SSH keys, to replace shared root SSH access. Root SSH login disabled. Surfaced and fixed several shared-repo permission/identity issues along the way (see Gotchas 21–24).
@@ -477,7 +477,7 @@ SSH key for push: `~/.ssh/github_deploy` (repo-scoped deploy key).
 1. **Plugin load order matters**: `public_edit` must come BEFORE `scheming_datasets` in `CKAN__PLUGINS`. Earlier = higher template priority for scheming template overrides.
 2. **Scheming uses its own templates**: To override org field behavior, override `scheming/form_snippets/organization.html`, NOT `package/snippets/package_basic_fields.html`.
 3. **CKAN 2.11 login requires session regeneration**: After `login_user()`, must also call session `regenerate()` and `rotate_token()` or the session won't persist.
-4. **Deleted users get reactivated**: ORCID users in `deleted` state are reactivated on login if still on whitelist. Remove from whitelist AND purge to fully block.
+4. **Deleted users get reactivated**: ORCID users in `deleted` state are reactivated on login if still on allowlist. Remove from allowlist AND purge to fully block.
 5. **`DefaultTranslation` import**: Use `from ckan.lib.plugins import DefaultTranslation`, not `toolkit.DefaultTranslation`.
 6. **Let's Encrypt cert volumes**: Must mount both `live/` and `archive/` directories because `live/` contains symlinks.
 7. **Heredocs with Jinja syntax**: Shell heredocs (`<< 'EOF'`) break on `{%`, `{{` etc. Use Python file writes or `cat > /tmp/file` from a temp file instead.
@@ -495,7 +495,7 @@ SSH key for push: `~/.ssh/github_deploy` (repo-scoped deploy key).
 19. **`licenses.json` must be a file not a directory on the host**: Docker creates volume mount targets as directories if the host path doesn't exist yet. Always create the file on the host before bringing up the stack. If it becomes a directory: `rm -rf ckan/licenses.json`, recreate the file, then `docker compose down && up -d`.
 20. **`pyproject.toml` entry points take precedence over `setup.cfg`**: When both files declare entry points, `pyproject.toml` wins. Keep entry points in `pyproject.toml` only — do not duplicate in `setup.cfg`.
 21. **Shared repo clones need per-user `safe.directory` and file-permission fixes for new sudo users**: `/opt/obis-products-catalog` and `/opt/dev-obis-products-catalog` are single shared clones. A new sudo user hits `fatal: detected dubious ownership` (fix: `git config --global --add safe.directory <path>`, per-user) and potentially `insufficient permission for adding an object to repository database .git/objects` (fix: directory-level `chmod g+rwx` isn't enough — existing files may lack the group-write bit from a prior user's umask; use `find <path> -type f -exec chmod g+rw {} \;` explicitly).
-22. **Never set git identity via `--local` config in the shared repo clones**: `user.name`/`user.email` set with `git config --local` applies to whoever runs git in that directory, regardless of Linux account — this misattributed a real human commit to "OBIS Catalog Bot" during onboarding. Each person sets identity in their own `~/.gitconfig` (global). The whitelist-export cron script scopes the bot identity per-command instead: `git -c user.name="OBIS Catalog Bot" -c user.email="helpdesk@obis.org" commit ...`.
+22. **Never set git identity via `--local` config in the shared repo clones**: `user.name`/`user.email` set with `git config --local` applies to whoever runs git in that directory, regardless of Linux account — this misattributed a real human commit to "OBIS Catalog Bot" during onboarding. Each person sets identity in their own `~/.gitconfig` (global). The allowlist-export cron script scopes the bot identity per-command instead: `git -c user.name="OBIS Catalog Bot" -c user.email="helpdesk@obis.org" commit ...`.
 23. **Root SSH login is now disabled**: `PermitRootLogin no` in `/etc/ssh/sshd_config`. All droplet access goes through named sudo accounts (sformel, sprincipe) plus root (Pieter) with personal SSH keys and `sudo` for privileged actions.
 24. **`core.sshCommand` in a repo's local `.git/config` uses the running user's home directory**: prod's repo has `core.sshCommand = ssh -i ~/.ssh/github_deploy` set locally, which was written assuming root's home. Any other user running git there will look for `~/.ssh/github_deploy` under their own home and fail unless they either copy the deploy key locally or (preferred) unset `core.sshCommand` and use their own personal GitHub-associated SSH key instead.
 25. **Two of the four gitignored dev-specific files require manual mirroring when their tracked counterpart changes — the other two don't**: `nginx/Dockerfile.dev` and `nginx/setup/default.dev.conf` are hand-copies of `nginx/Dockerfile` and `nginx/setup/default.conf` respectively, with no automated sync. Any edit to the tracked file (e.g., adding a pip package, adding/removing an nginx `location` block) must be manually re-applied to the dev version, or dev will silently diverge — this bit us directly: a `pip3 install` addition to `Dockerfile` didn't reach `Dockerfile.dev`, causing a plugin-not-installed build failure, and a `location /api-docs/` removal from `default.conf` left a dead route in `default.dev.conf` pointing at a directory with no `index.html`. By contrast, `docker-compose.dev.yml`'s differences from `docker-compose.yml` are all intentional (ports, `Dockerfile.dev` reference, cert paths) and don't need mirroring — check with `diff docker-compose.yml docker-compose.dev.yml` if unsure whether a change needs to be ported. `docker-compose.override.yml` is listed in `.gitignore` but not currently in use.
@@ -506,7 +506,7 @@ SSH key for push: `~/.ssh/github_deploy` (repo-scoped deploy key).
 - **Consolidate theme.css into style.css**: `theme.css` is loaded without cache busting. Moving its contents into `style.css` would fix this and simplify the CSS loading story.
 - **Search help box (Issue #14)**: Add persistent "Need help?" sidebar on search page + enhanced "no results" message directing users to helpdesk@obis.org.
 - **Move thematic areas to dynamic vocabulary** if update frequency increases.
-- **Automated DB backups**: Cron job similar to whitelist export.
+- **Automated DB backups**: Cron job similar to allowlist export.
 - **SMTP configuration**: For future email notifications (user approval, etc.).
 - **Organization→Node renaming**: i18n override to replace "Organization/Organizations" with "Node/Nodes" throughout UI.
 - **Additional data sources**: GBIF, Dryad, etc. Each needs a mapper package in `ckanext-doi-import/mappers/` and any new license strings added to `licenses.json` and `LICENSE_FAMILY_MAP`.
