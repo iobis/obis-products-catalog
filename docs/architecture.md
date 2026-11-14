@@ -49,7 +49,7 @@ All configuration is in `.env` (not committed to git). CKAN reads environment va
 
 The catalog supports two login methods:
 
-- **ORCID login** — Primary method for researchers. OAuth2-based login, restricted to ORCID iDs on an approved whitelist.
+- **ORCID login** — Primary method for researchers. OAuth2-based login, restricted to ORCID iDs on an approved allowlist.
 - **CKAN accounts** — Used for automated processes and emergency admin access only. No shared admin account exists — all admin access is via ORCID sysadmin accounts.
 
 New ORCID users are automatically assigned to the **OBIS Community** organization as editors on first login.

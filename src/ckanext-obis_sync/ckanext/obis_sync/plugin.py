@@ -22,19 +22,19 @@ def obis():
     pass
 
 
-@obis.command("sync-whitelist")
+@obis.command("sync-allowlist")
 @click.option(
-    "--whitelist",
-    default="/srv/app/src/ckanext-oauth2-login/orcid_whitelist.txt",
-    help="Path to the ORCID whitelist file",
+    "--allowlist",
+    default="/srv/app/src/ckanext-oauth2-login/orcid_allowlist.txt",
+    help="Path to the ORCID allowlist file",
 )
-def sync_whitelist(whitelist):
-    """Pre-create CKAN accounts for all approved ORCID iDs in the whitelist.
+def sync_allowlist(allowlist):
+    """Pre-create CKAN accounts for all approved ORCID iDs in the allowlist.
 
     Fetches real names from the ORCID public API. Safe to re-run:
     - Creates accounts that don't exist yet
-    - Applies roles from the whitelist to ALL users (existing and new)
-    - Does not remove org memberships not listed in the whitelist
+    - Applies roles from the allowlist to ALL users (existing and new)
+    - Does not remove org memberships not listed in the allowlist
     """
     import secrets
     from ckan import model
@@ -67,12 +67,12 @@ def sync_whitelist(whitelist):
             click.echo(f"  Warning: could not fetch name for {orcid_id}: {e}")
         return orcid_id
 
-    click.echo(f"Reading whitelist from: {whitelist}")
+    click.echo(f"Reading allowlist from: {allowlist}")
     try:
-        with open(whitelist) as f:
+        with open(allowlist) as f:
             lines = f.readlines()
     except FileNotFoundError:
-        click.echo(f"Error: whitelist file not found: {whitelist}", err=True)
+        click.echo(f"Error: allowlist file not found: {allowlist}", err=True)
         return
 
     entries = []
@@ -85,7 +85,7 @@ def sync_whitelist(whitelist):
         roles = parts[1].split("|") if len(parts) >= 2 else []
         entries.append((orcid_id, roles))
 
-    click.echo(f"Found {len(entries)} entries in whitelist")
+    click.echo(f"Found {len(entries)} entries in allowlist")
     click.echo("=" * 50)
 
     ctx = {"ignore_auth": True}
@@ -164,6 +164,18 @@ def sync_whitelist(whitelist):
     click.echo(f"Updated (roles applied): {updated}")
     click.echo(f"Failed: {failed}")
     click.echo(f"Total: {len(entries)}")
+
+
+@obis.command("sync-whitelist", hidden=True)
+@click.option(
+    "--whitelist",
+    default="/srv/app/src/ckanext-oauth2-login/orcid_allowlist.txt",
+)
+@click.pass_context
+def sync_whitelist(ctx, whitelist):
+    """Deprecated alias for sync-allowlist."""
+    click.echo("Warning: 'sync-whitelist' is deprecated; use 'sync-allowlist'.", err=True)
+    ctx.invoke(sync_allowlist, allowlist=whitelist)
 
 
 @obis.command("sync-nodes")

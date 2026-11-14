@@ -55,14 +55,14 @@ docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-nodes
 # Sync institutions
 docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-institutions
 
-# Pre-create accounts and apply roles from whitelist
-docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-whitelist
+# Pre-create accounts and apply roles from allowlist
+docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-allowlist
 
-# Export catalog whitelist
-docker compose exec ckan ckan -c /srv/app/ckan.ini doi-import export-whitelist
+# Export catalog allowlist
+docker compose exec ckan ckan -c /srv/app/ckan.ini doi-import export-allowlist
 
-# Export whitelist to file
-docker compose exec ckan ckan -c /srv/app/ckan.ini doi-import export-whitelist --output /srv/app/catalog_whitelist.csv
+# Export allowlist to file
+docker compose exec ckan ckan -c /srv/app/ckan.ini doi-import export-allowlist --output /srv/app/catalog_allowlist.csv
 
 # Bulk harvest from DOI list
 docker compose exec ckan ckan -c /srv/app/ckan.ini doi-import harvest
@@ -282,7 +282,7 @@ If you need to rebuild dev from scratch:
    docker compose -f docker-compose.dev.yml up -d --build
    docker compose -f docker-compose.dev.yml exec ckan ckan -c /srv/app/ckan.ini obis sync-nodes
    docker compose -f docker-compose.dev.yml exec ckan ckan -c /srv/app/ckan.ini obis sync-institutions
-   docker compose -f docker-compose.dev.yml exec ckan ckan -c /srv/app/ckan.ini obis sync-whitelist
+   docker compose -f docker-compose.dev.yml exec ckan ckan -c /srv/app/ckan.ini obis sync-allowlist
 ```
 
 ## User Management
@@ -295,13 +295,13 @@ Registered redirect URIs:
 - `https://products.obis.org/oauth2/callback`
 - `https://dev.products.obis.org/oauth2/callback` (updated from `:8443` following the host-nginx SSL refactor, commit 012e3f8 — confirm this has been applied in the ORCID app settings, not just documented here)
 
-### ORCID Whitelist
+### ORCID Allowlist
 
-Access to the catalog is controlled by an ORCID whitelist. Only researchers whose ORCID iDs appear in the whitelist can log in via ORCID. Unapproved users see a message directing them to contact helpdesk@obis.org.
+Access to the catalog is controlled by an ORCID allowlist. Only researchers whose ORCID iDs appear in the allowlist can log in via ORCID. Unapproved users see a message directing them to contact helpdesk@obis.org.
 
-**Whitelist file location:** `src/ckanext-oauth2-login/orcid_whitelist.txt`
+**Allowlist file location:** `src/ckanext-oauth2-login/orcid_allowlist.txt`
 
-**Whitelist format:**
+**Allowlist format:**
 
 ```
 # Format: <orcid> [role1|role2|...] # comment
@@ -325,29 +325,29 @@ A user can hold multiple org admin roles by pipe-separating them:
 
 **Adding a new user:**
 
-1. Edit the whitelist file and add their ORCID iD with optional role
+1. Edit the allowlist file and add their ORCID iD with optional role
 2. Rebuild and restart:
    ```bash
    docker compose build ckan && docker compose up -d
    ```
-3. Run sync-whitelist to pre-create their account immediately (optional — account is also created on first login):
+3. Run sync-allowlist to pre-create their account immediately (optional — account is also created on first login):
    ```bash
-   docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-whitelist
+   docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-allowlist
    ```
 
-**Syncing the whitelist:**
+**Syncing the allowlist:**
 
-The `sync-whitelist` command pre-creates accounts for all whitelisted users and applies roles. It is safe to re-run at any time — it skips existing accounts and only applies role changes.
+The `sync-allowlist` command pre-creates accounts for all allowlisted users and applies roles. It is safe to re-run at any time — it skips existing accounts and only applies role changes.
 
 ```bash
-docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-whitelist
+docker compose exec ckan ckan -c /srv/app/ckan.ini obis sync-allowlist
 ```
 
 It fetches real names from the ORCID public API, so newly created accounts have correct names rather than placeholder values.
 
 **Removing a user:**
 
-Remove their ORCID iD from the whitelist file, rebuild, and restart. They won't be able to log in again via ORCID. Their existing CKAN account will remain in the system but will be inactive.
+Remove their ORCID iD from the allowlist file, rebuild, and restart. They won't be able to log in again via ORCID. Their existing CKAN account will remain in the system but will be inactive.
 
 To fully delete the account:
 
@@ -365,7 +365,7 @@ model.Session.commit()
 ```
 
 !!! warning
-    If you only set a user to `deleted` state (via the CKAN UI or `user remove` CLI) without removing them from the whitelist, they will be **automatically reactivated** the next time they log in via ORCID.
+    If you only set a user to `deleted` state (via the CKAN UI or `user remove` CLI) without removing them from the allowlist, they will be **automatically reactivated** the next time they log in via ORCID.
 
 ### Managing Organization Members
 
@@ -374,7 +374,7 @@ Organization member management is available to org admins and sysadmins at `/org
 !!! note "CKAN 2.11 route change"
     In CKAN 2.11, the members management page moved from `/organization/members/<name>` to `/organization/manage_members/<name>`. The old URL is now a public read-only view.
 
-The Add Member search box finds users by name or username. Users must have an existing account (created via `sync-whitelist` or first ORCID login) to appear in search results.
+The Add Member search box finds users by name or username. Users must have an existing account (created via `sync-allowlist` or first ORCID login) to appear in search results.
 
 ### Managing Institution Members
 
@@ -401,7 +401,7 @@ docker compose exec ckan ckan -c /srv/app/ckan.ini user add USERNAME email=EMAIL
 
 ### Promoting a user to sysadmin
 
-The preferred way is to add `sysadmin` as a role in the whitelist and run `sync-whitelist`. For emergency or one-off use, the shell approach still works:
+The preferred way is to add `sysadmin` as a role in the allowlist and run `sync-allowlist`. For emergency or one-off use, the shell approach still works:
 
 ```bash
 docker compose exec -it ckan ckan -c /srv/app/ckan.ini shell
@@ -427,7 +427,7 @@ The following individuals have full sudo (root-equivalent) access to the droplet
 
 Each account uses a dedicated, personal SSH key. Direct `root` SSH login is disabled (`PermitRootLogin no`); all admin access goes through named accounts plus `sudo`.
 
-**Gotcha — shared repo, multiple identities**: `/opt/obis-products-catalog` and `/opt/dev-obis-products-catalog` are single shared clones used by all sudo users plus the root-run cron job. Git identity (`user.name`/`user.email`) must never be set via `git config --local` in these repos — a local value applies to *whoever* runs git there, regardless of Linux account, and will silently misattribute commits (this happened during onboarding — a stray local override attributed a real commit to "OBIS Catalog Bot"). Each person sets identity in their own `~/.gitconfig` (global scope). The automated whitelist-export script instead scopes the bot identity per-command with `git -c user.name="OBIS Catalog Bot" -c user.email="helpdesk@obis.org" commit ...`, so it never touches shared repo config.
+**Gotcha — shared repo, multiple identities**: `/opt/obis-products-catalog` and `/opt/dev-obis-products-catalog` are single shared clones used by all sudo users plus the root-run cron job. Git identity (`user.name`/`user.email`) must never be set via `git config --local` in these repos — a local value applies to *whoever* runs git there, regardless of Linux account, and will silently misattribute commits (this happened during onboarding — a stray local override attributed a real commit to "OBIS Catalog Bot"). Each person sets identity in their own `~/.gitconfig` (global scope). The automated allowlist-export script instead scopes the bot identity per-command with `git -c user.name="OBIS Catalog Bot" -c user.email="helpdesk@obis.org" commit ...`, so it never touches shared repo config.
 
 **Gotcha — new user, repo permissions**: A freshly created sudo user will likely hit two errors in these shared repos on first use:
 1. `fatal: detected dubious ownership` — fix with `git config --global --add safe.directory <path>` (per-user, run once for each repo).
@@ -455,29 +455,29 @@ To add products, paste their URL slugs (one per line) into the admin form. Slugs
 
 The catalog maintains two CSV files at the repo root:
 
-**`catalog_whitelist.csv`** — Every product in the catalog, exported nightly from the database. Columns: `doi`, `title`, `source_url`, `catalog_url`. This file is version-controlled in git, providing an audit trail of catalog changes over time.
+**`catalog_allowlist.csv`** — Every product in the catalog, exported nightly from the database. Columns: `doi`, `title`, `source_url`, `catalog_url`. This file is version-controlled in git, providing an audit trail of catalog changes over time.
 
-**`catalog_blacklist.csv`** — DOIs that have been reviewed and determined to be out of scope. Manually curated. Columns: `doi`, `title`, `source_url`, `reason`, `reviewed_date`. The import system checks this file and blocks blacklisted DOIs from being imported.
+**`catalog_denylist.csv`** — DOIs that have been reviewed and determined to be out of scope. Manually curated. Columns: `doi`, `title`, `source_url`, `reason`, `reviewed_date`. The import system checks this file and blocks the DOIs it lists from being imported.
 
 ### Nightly Export
 
-A cron job runs at 2am UTC daily, exports the whitelist from the database, and commits to git if there are changes:
+A cron job runs at 2am UTC daily, exports the allowlist from the database, and commits to git if there are changes:
 ```bash
 # Manual run
-/root/bin/export-whitelist.sh
+/root/bin/export-allowlist.sh
 
 # Cron log
-cat /var/log/whitelist-export.log
+cat /var/log/allowlist-export.log
 ```
 
-### Adding to the Blacklist
+### Adding to the Denylist
 
-Edit `catalog_blacklist.csv` at the repo root and add a row:
+Edit `catalog_denylist.csv` at the repo root and add a row:
 ```
 https://doi.org/10.5281/zenodo.99999,Some Product Title,https://zenodo.org/record/99999,Not OBIS-derived,2026-02-19
 ```
 
-The blacklist is checked by the web form, API endpoint, and bulk harvest CLI. No rebuild is required — the file is volume-mounted into the container.
+The denylist is checked by the web form, API endpoint, and bulk harvest CLI. No rebuild is required — the file is volume-mounted into the container.
 
 ## Gotchas
 

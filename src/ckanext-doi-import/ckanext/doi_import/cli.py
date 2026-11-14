@@ -8,7 +8,7 @@ import re
 from datetime import datetime
 
 import ckan.plugins.toolkit as toolkit
-from ckanext.doi_import.plugin import _is_blacklisted
+from ckanext.doi_import.plugin import _is_denylisted
 from ckanext.doi_import.mappers.base import detect_source
 
 
@@ -19,7 +19,7 @@ def doi_import():
 
 
 @doi_import.command()
-@click.option('--registry', default='/srv/app/catalog_whitelist.csv',
+@click.option('--registry', default='/srv/app/catalog_allowlist.csv',
               help='Path to DOI registry CSV file')
 @click.option('--org', default='obis-community',
               help='Organization to import datasets into')
@@ -44,10 +44,10 @@ def harvest(registry, org):
     for doi in dois:
         click.echo(f"Checking: {doi}")
 
-        # Check blacklist
-        blacklist_reason = _is_blacklisted(doi)
-        if blacklist_reason:
-            click.echo(f"  ⊘ Blacklisted: {blacklist_reason}")
+        # Check denylist
+        denylist_reason = _is_denylisted(doi)
+        if denylist_reason:
+            click.echo(f"  ⊘ On denylist: {denylist_reason}")
             stats['skipped'] += 1
             continue
 
@@ -94,16 +94,16 @@ def harvest(registry, org):
     click.echo(f"  Imported: {stats['imported']} new datasets")
     click.echo(f"  Updated: {stats['updated']} datasets")
     click.echo(f"  Failed: {stats['failed']} operations")
-    click.echo(f"  Skipped: {stats['skipped']} blacklisted")
+    click.echo(f"  Skipped: {stats['skipped']} on denylist")
 
 
 @doi_import.command()
 @click.option('--output', default=None,
               help='Output file path (default: stdout)')
-def export_whitelist(output):
-    """Export catalog whitelist as CSV (doi, title, source_url, catalog_url)."""
+def export_allowlist(output):
+    """Export catalog allowlist as CSV (doi, title, source_url, catalog_url)."""
 
-    click.echo("=== Exporting Catalog Whitelist ===", err=True)
+    click.echo("=== Exporting Catalog Allowlist ===", err=True)
 
     context = {'ignore_auth': True}
     site_url = toolkit.config.get('ckan.site_url', 'http://localhost:5000')
@@ -138,6 +138,15 @@ def export_whitelist(output):
         click.echo(f"Written to {output}", err=True)
     else:
         click.echo(f.getvalue())
+
+
+@doi_import.command('export-whitelist', hidden=True)
+@click.option('--output', default=None)
+@click.pass_context
+def export_whitelist(ctx, output):
+    """Deprecated alias for export-allowlist."""
+    click.echo("Warning: 'export-whitelist' is deprecated; use 'export-allowlist'.", err=True)
+    ctx.invoke(export_allowlist, output=output)
 
 
 # --- Helper functions ---

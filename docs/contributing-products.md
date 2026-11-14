@@ -38,7 +38,7 @@ The system fetches metadata from Zenodo automatically — title, description, au
 
 **Re-importing a DOI**: If the product already exists in the catalog, it will be updated from the source. Curated fields (organization, tags, thematic areas, contributing institutions) are preserved. You'll see a yellow notice confirming this.
 
-**Blacklisted DOIs**: Some DOIs have been reviewed and excluded from the catalog. If you try to import one, you'll see a warning with the reason. Contact [helpdesk@obis.org](mailto:helpdesk@obis.org) if you believe this is an error.
+**DOIs on the denylist**: Some DOIs have been reviewed and excluded from the catalog. If you try to import one, you'll see a warning with the reason. Contact [helpdesk@obis.org](mailto:helpdesk@obis.org) if you believe this is an error.
 
 ## Editing Existing Products
 
@@ -80,5 +80,5 @@ When editing, the product remains under its original owning organization — you
 
 The catalog maintains a version-controlled record of all products:
 
-- **`catalog_whitelist.csv`** — Exported nightly from the database. Contains DOI, title, source URL, and catalog URL for every product.
-- **`catalog_blacklist.csv`** — Manually curated list of DOIs that have been reviewed and excluded. Contact [helpdesk@obis.org](mailto:helpdesk@obis.org) to request additions or removals.
+- **`catalog_allowlist.csv`** — Exported nightly from the database. Contains DOI, title, source URL, and catalog URL for every product.
+- **`catalog_denylist.csv`** — Manually curated list of DOIs that have been reviewed and excluded. Contact [helpdesk@obis.org](mailto:helpdesk@obis.org) to request additions or removals.

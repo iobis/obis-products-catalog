@@ -172,7 +172,7 @@ user.purge()
 model.Session.commit()
 ```
 
-## 11. Set up nightly whitelist export
+## 11. Set up nightly allowlist export
 
 Create a deploy key for automated git push (no passphrase):
 ```bash
@@ -188,23 +188,23 @@ Do not set a git identity in the repo config (`git config user.name ...`): it wo
 Create the export script:
 ```bash
 mkdir -p /root/bin
-cat > /root/bin/export-whitelist.sh << 'EOF'
+cat > /root/bin/export-allowlist.sh << 'EOF'
 #!/bin/bash
 cd /opt/obis-products-catalog
-docker compose exec -T ckan ckan -c /srv/app/ckan.ini doi-import export-whitelist 2>/dev/null > catalog_whitelist.csv
-git add catalog_whitelist.csv
-git diff --cached --quiet catalog_whitelist.csv || (
-  git -c user.name="OBIS Catalog Bot" -c user.email="helpdesk@obis.org" commit -m "Auto-update catalog whitelist $(date +%Y-%m-%d)" &&
+docker compose exec -T ckan ckan -c /srv/app/ckan.ini doi-import export-allowlist 2>/dev/null > catalog_allowlist.csv
+git add catalog_allowlist.csv
+git diff --cached --quiet catalog_allowlist.csv || (
+  git -c user.name="OBIS Catalog Bot" -c user.email="helpdesk@obis.org" commit -m "Auto-update catalog allowlist $(date +%Y-%m-%d)" &&
   git -c user.name="OBIS Catalog Bot" -c user.email="helpdesk@obis.org" pull --rebase --autostash origin main &&
   git push
 )
 EOF
-chmod +x /root/bin/export-whitelist.sh
+chmod +x /root/bin/export-allowlist.sh
 ```
 
 Test it:
 ```bash
-/root/bin/export-whitelist.sh
+/root/bin/export-allowlist.sh
 ```
 
 Add to cron (runs at 2am UTC daily):
@@ -214,7 +214,7 @@ crontab -e
 
 Add:
 ```
-0 2 * * * /root/bin/export-whitelist.sh >> /var/log/whitelist-export.log 2>&1
+0 2 * * * /root/bin/export-allowlist.sh >> /var/log/allowlist-export.log 2>&1
 ```
 
 ## Routine Operations
@@ -245,9 +245,9 @@ docker compose exec -T db pg_restore -U ckandbuser -d ckandb --clean < backup_fi
 docker compose exec ckan ckan -c /srv/app/ckan.ini search-index rebuild
 ```
 
-**Export catalog whitelist manually:**
+**Export catalog allowlist manually:**
 ```bash
-docker compose exec ckan ckan -c /srv/app/ckan.ini doi-import export-whitelist
+docker compose exec ckan ckan -c /srv/app/ckan.ini doi-import export-allowlist
 ```
 
 ## Troubleshooting
@@ -260,7 +260,7 @@ docker compose exec ckan ckan -c /srv/app/ckan.ini doi-import export-whitelist
 | Extensions not found after code change | Forgot to rebuild: `docker compose build ckan` |
 | Exit code 137 | Out of memory — check `docker stats`. Solr is usually the culprit |
 | ORCID login: flash message but not logged in | User may be in `deleted` state. Reactivate or purge and re-login |
-| DOI import says "excluded from catalog" | DOI is on the blacklist (`catalog_blacklist.csv`) |
+| DOI import says "excluded from catalog" | DOI is on the denylist (`catalog_denylist.csv`) |
 | DOI import says "already in catalog" | Product exists — it will be updated with curated fields preserved |
 | Permission errors on `test.ini` during startup | Non-fatal warnings from extension installer. Ignore |
 
