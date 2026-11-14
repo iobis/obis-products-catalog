@@ -5,31 +5,30 @@
 ```mermaid
 flowchart TD
     GHmain[("GitHub: main branch<br/>— the live, trusted version")]
-    GHdev[("GitHub: dev branch<br/>— where changes are tried out")]
 
-    GHmain --> GHdev
+    GHmain --> Branch[Create a feature branch<br/>off main]
+    Branch --> Work[Make your changes<br/>on your laptop or the droplet,<br/>commit and push the branch]
 
-    Work[Make your changes<br/>— either directly on the droplet,<br/>or from your own laptop<br/>connected over SSH]
+    Work --> PRdev[Open a PR from the branch<br/>into dev and merge it]
+    PRdev --> GHdev[("GitHub: dev branch<br/>— auto-deploys to the dev website")]
+    GHdev --> Test[Try it out on the<br/>dev website]
 
-    GHdev --> Work
-    Work --> Test[Try it out on the<br/>dev website]
-    Test --> Save[Save your work:<br/>commit and push to dev]
-    Save --> GHdev
+    Test -.once changes<br/>look good.-> PRmain[Open a PR from the<br/>same branch into main<br/>and merge it]
+    PRmain --> GHmain2[("GitHub: main branch")]
 
-    GHdev -.once changes<br/>look good.-> Merge[Merge dev into main]
-    Merge --> GHmain
-
-    GHmain --> Restart[Restart or rebuild the<br/>application on the droplet<br/>so it picks up the new code]
+    GHmain2 --> Restart[On the droplet: pull main and<br/>rebuild so prod picks up<br/>the new code]
     Restart --> Live[["The live site now<br/>reflects the change"]]
 
     classDef source fill:#e8f0fd,stroke:#2F6FEF,color:#343A40
     classDef action fill:#f2f3f4,stroke:#6c757d,color:#343A40
     classDef live fill:#d4edda,stroke:#2e7d32,color:#343A40
 
-    class GHmain,GHdev source
-    class Work,Test,Save,Merge,Restart action
+    class GHmain,GHmain2,GHdev source
+    class Branch,Work,PRdev,Test,PRmain,Restart action
     class Live live
 ```
+
+Feature branches merge into `dev` and `main` separately. Don't merge `dev` into `main`: `dev` collects work that is still being tried out.
 
 ## Routine Commands
 
